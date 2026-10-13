@@ -1,0 +1,110 @@
+const ORDER_KEY = "mock_orders";
+const REVIEW_KEY = "mock_reviews";
+const ORDER_MODE_KEY = "mock_order_mode";
+const REVIEW_MODE_KEY = "mock_review_mode";
+const PRICES = { 1: 299, 2: 499, 3: 699 };
+
+function readRows(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRows(key, rows) {
+  localStorage.setItem(key, JSON.stringify(rows));
+}
+
+function isMockMode(key) {
+  return localStorage.getItem(key) === "1" || localStorage.getItem("mock_api_mode") === "1";
+}
+
+function token() {
+  return globalThis.crypto?.randomUUID?.() || String(Date.now()) + "_" + Math.random().toString(36).slice(2);
+}
+
+export function createMockOrder(payload) {
+  const selection = payload.selection || payload;
+  const customer = payload.customer || payload;
+  const quantity = Number(selection.quantity || 1);
+  const orderId = 10000 + Math.floor(Math.random() * 90000);
+  const eventId = "evt_mock_" + token();
+  const orderKey = "wc_order_mock_" + token();
+  const value = Number(payload.value ?? payload.total?.amount ?? PRICES[quantity] ?? PRICES[1]);
+  const order = {
+    order_id: orderId,
+    order_key: orderKey,
+    event_id: eventId,
+    value,
+    product_id: Number(payload.product_id || document.body.dataset.productId || 15),
+    sku: payload.sku || document.body.dataset.sku || "",
+    offer_id: payload.offer_id || document.body.dataset.offerId || "produit-1",
+    customer: {
+      full_name: customer.full_name || customer.name || "",
+      phone: customer.phone || "",
+      city: customer.city || "",
+      address: customer.address || "",
+    },
+    selection: {
+      color: selection.color || "",
+      size: selection.size || "",
+      quantity,
+      offer: selection.offer || "",
+    },
+    created_at: new Date().toISOString(),
+  };
+  writeRows(ORDER_KEY, [...readRows(ORDER_KEY), order]);
+  return { success: true, order_id: orderId, value, event_id: eventId, product_id: order.product_id, offer_id: order.offer_id, order_key: orderKey };
+}
+
+export function saveMockReview(payload) {
+  const review = {
+    reviewer_name: payload.reviewer_name || "",
+    reviewer_city: payload.reviewer_city || "",
+    rating: Number(payload.rating),
+    comment: String(payload.comment || "").trim(),
+    offer_id: payload.offer_id || "produit-1",
+    status: "approved",
+    created_at: new Date().toISOString(),
+  };
+  writeRows(REVIEW_KEY, [...readRows(REVIEW_KEY), review]);
+  return review;
+}
+
+export function getMockOrders() {
+  return isMockMode(ORDER_MODE_KEY) ? readRows(ORDER_KEY) : [];
+}
+
+export function getMockReviews(offerId) {
+  if (!isMockMode(REVIEW_MODE_KEY)) return [];
+  return readRows(REVIEW_KEY).filter((review) => review.status === "approved" && (!offerId || review.offer_id === offerId));
+}
+
+export function getReviewSummary(offerId, baseAverage = 0, baseCount = 0) {
+  const reviews = getMockReviews(offerId);
+  const count = Number(baseCount) + reviews.length;
+  const sum = Number(baseAverage) * Number(baseCount) + reviews.reduce((total, review) => total + Number(review.rating), 0);
+  return { count, average: count ? sum / count : 0 };
+}
+
+export async function postWithLocalFallback(endpoint, payload, mockHandler) {
+  const modeKey = endpoint.includes("submit-review") ? REVIEW_MODE_KEY : ORDER_MODE_KEY;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
+    });
+    if ([404, 502, 503, 504].includes(response.status)) throw new Error("REST endpoint unavailable");
+    const body = await response.json();
+    localStorage.setItem(modeKey, "0");
+    localStorage.removeItem("mock_api_mode");
+    return { ok: response.ok && Boolean(body.success), body, mocked: false };
+  } catch (_) {
+    localStorage.setItem(modeKey, "1");
+    return { ok: true, body: mockHandler(payload), mocked: true };
+  }
+}
