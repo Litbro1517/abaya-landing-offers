@@ -5,17 +5,27 @@
  * WordPress associe automatiquement ce gabarit à la page de slug « merci »
  * (hiérarchie des templates : page-{slug}.php).
  *
- * Refonte UI/UX (mandat 4P LP « Thank You Page Redesign ») :
- *   - présentation minimaliste et aérée (typographie fine Cairo / Arial /
- *     System Sans-Serif), zéro bloc massif : les informations de confirmation
- *     sont purement informatives et restreintes à l'essentiel ;
- *   - récapitulatif de commande en TABLEAU à deux colonnes (Produit | Prix)
- *     à séparateurs fins, miniature intégrée ;
- *   - grille client compacte à 2 colonnes sans boîtes imposantes ;
- *   - section upsell SANS cadres : visuels libres sur fond neutre, texte
- *     fluide, bouton d'achat direct discret.
+ * INTÉGRATION MAQUETTE CANVA 4PLP (mandat « Page de Remerciement — Thank You
+ * Page », maquette canva.com/design/DAHYAa7V--E) :
+ *   - carte principale blanche (coins arrondis, ombre douce) sur fond crème
+ *     #FAF7F2 ; logo calligraphié « شكراً » WebP en bordeaux centré TOUT EN
+ *     HAUT de la carte, sur fond blanc pur ;
+ *   - message de confirmation + pastille du numéro de commande (pilule rose) ;
+ *   - tableau « تفاصيل الطلب » à 4 colonnes (المنتج | اللون/المقاس | الكمية |
+ *     السعر) SANS cadre englobant lourd — l'image produit est alignée dans sa
+ *     propre cellule-encadré à côté des informations textuelles ;
+ *   - bloc cadeau « هدية خاصة لطلبك القادم! » à bordure turquoise : code promo
+ *     personnalisé dans une pilule pointillée ;
+ *   - bouton de suivi officiel WhatsApp (vert #25D366) à côté des coordonnées
+ *     client (معلومات المراسلة) ;
+ *   - section upsell « تشكيلة أخرى قد تعجبك أيضاً » : EXACTEMENT 3 produits au
+ *     format vertical 3:5 (style Reels/Stories), badge « تخفيض خاص » et ancien
+ *     prix barrés OPTIONNELS (clés de registre cross_badge / cross_old_price),
+ *     boutons turquoise « إضافة للطلب » ;
+ *   - charte graphique exclusive : police Cairo, Bordeaux #6B1D2F,
+ *     Vert Turquoise #4D9AA4, Crème #FAF7F2.
  *
- * Sécurité d'accès au récapitulatif :
+ * Sécurité d'accès au récapitulatif (inchangée) :
  *   - la requête doit porter ?order=ID&key=KEY ;
  *   - la clé est comparée à get_order_key() via hash_equals() (timing-safe) ;
  *   - la commande doit dater de moins de 48 h ET provenir du tunnel
@@ -33,72 +43,111 @@ if (!defined('ABSPATH')) exit;
 add_action('wp_head', function () {
 ?><meta name="referrer" content="no-referrer" />
 <style id="abaya-merci">
-/* ---- Refonte épurée (mandat 4P LP) : typographie fine, aération, zéro cadre lourd ---- */
-.merci-page { max-width: 640px; margin: 0 auto; padding: 34px 16px 64px; font-family: 'Cairo', Arial, 'Helvetica Neue', 'Segoe UI', sans-serif; color: #2f2a24; }
-.merci-page h1, .merci-page h2 { font-weight: 600; }
+/* ---- Intégration maquette Canva 4PLP : carte blanche sur fond crème,
+ *      charte exclusive Cairo / Bordeaux #6B1D2F / Turquoise #4D9AA4 ---- */
+body { background: #FAF7F2; }
+.merci-page { max-width: 672px; margin: 0 auto; padding: 30px 14px 60px; font-family: 'Cairo', Arial, 'Helvetica Neue', 'Segoe UI', sans-serif; color: #3a2f2b; }
+.merci-card { background: #fff; border-radius: 18px; box-shadow: 0 12px 42px rgba(107, 29, 47, .08); overflow: hidden; }
+.merci-page h1, .merci-page h2 { font-weight: 700; }
 
-/* ---- En-tête & message de confirmation ---- */
-.merci-head { text-align: center; }
-.merci-check { width: 44px; height: 44px; margin: 0 auto 16px; border-radius: 50%; border: 1px solid #e3dcd0; background: #faf8f4; display: flex; align-items: center; justify-content: center; }
-.merci-check svg { width: 20px; height: 20px; stroke: #792f3c; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.merci-head h1 { font-size: 1.32rem; margin: 0 0 10px; line-height: 1.7; }
-.merci-lead { color: #6b6458; font-size: .95rem; line-height: 2; margin: 0 auto; max-width: 480px; }
-.merci-ref { color: #a39a8c; font-size: .84rem; margin: 12px 0 0; }
+/* ---- En-tête : logo WebP centré sur blanc pur + confirmation + pastille ---- */
+.merci-head { padding: 32px 26px 28px; text-align: center; background: #fff; }
+.merci-logo { width: 92px; height: 92px; object-fit: contain; display: block; margin: 0 auto 4px; }
+.merci-head h1 { color: #6B1D2F; font-size: 1.28rem; line-height: 1.9; margin: 0 0 10px; }
+.merci-lead { color: #8a7f75; font-size: .92rem; line-height: 2; margin: 0 auto; max-width: 470px; }
+.merci-order-pill { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0; background: #F4E6E9; color: #6B1D2F; border-radius: 999px; padding: 7px 22px; font-size: .86rem; font-weight: 600; }
+.merci-order-pill strong { font-weight: 700; letter-spacing: .3px; }
 
-/* ---- Tableau récapitulatif (2 colonnes, séparateurs fins) ---- */
-.merci-summary { margin: 26px 0 0; }
-.merci-summary table { width: 100%; border-collapse: collapse; font-size: .93rem; }
-.merci-summary th { text-align: right; font-weight: 600; font-size: .85rem; color: #8a8378; padding: 0 0 10px; border-bottom: 1px solid #f0f0f0; }
-.merci-summary th:last-child { text-align: left; }
-.merci-summary td { padding: 14px 0; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-.merci-item { display: flex; align-items: center; gap: 12px; }
-.merci-item img { width: 58px; height: 72px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; }
-.merci-item-name { font-weight: 600; font-size: .92rem; line-height: 1.6; margin: 0; }
-.merci-item-meta { color: #8a8378; font-size: .82rem; margin: 3px 0 0; line-height: 1.7; }
-.merci-price { text-align: left; white-space: nowrap; font-weight: 600; }
-.merci-price small { display: block; color: #a39a8c; font-size: .78rem; font-weight: 400; margin-top: 2px; }
-.merci-total-row td { border-bottom: 0; padding-top: 16px; }
-.merci-total-row .merci-price { font-size: 1.02rem; font-weight: 700; }
-.merci-pay-row td { border-bottom: 0; padding-top: 4px; color: #6b6458; font-size: .88rem; }
-.merci-pay-row td:first-child { color: #8a8378; font-size: .84rem; }
+/* ---- Sections internes : séparateur fin pleine largeur + titre à barre ---- */
+.merci-sec { padding: 24px 26px 26px; border-top: 1px solid #F3ECE3; }
+.merci-sec-title { display: flex; align-items: center; gap: 12px; color: #6B1D2F; font-size: 1.02rem; margin: 0 0 18px; }
+.merci-sec-title::before { content: ""; width: 4px; height: 22px; border-radius: 4px; background: #6B1D2F; flex: 0 0 auto; }
 
-/* ---- Informations client : grille compacte 2 colonnes, sans boîtes ---- */
-.merci-client { margin: 8px 0 0; padding: 18px 0 0; border-top: 1px solid #f0f0f0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; }
-.merci-client > div > dt { color: #8a8378; font-size: .8rem; font-weight: 400; margin: 0 0 3px; }
-.merci-client > div > dd { margin: 0; font-size: .92rem; line-height: 1.7; }
-.merci-client .merci-wide { grid-column: 1 / -1; }
-.merci-wa-line { margin: 18px 0 0; text-align: center; }
-.merci-wa { color: #792f3c; font-size: .9rem; font-weight: 600; text-decoration: none; border-bottom: 1px solid #e3c8cc; padding-bottom: 2px; }
-.merci-wa:hover { border-bottom-color: #792f3c; }
+/* ---- Tableau « تفاصيل الطلب » : 4 colonnes épurées + image produit à côté ---- */
+.merci-order { display: flex; gap: 16px; align-items: stretch; }
+.merci-order .merci-table { flex: 1 1 auto; min-width: 0; }
+.merci-order table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.merci-order thead th { background: #F8F3EC; color: #5c4f47; font-weight: 600; font-size: .8rem; padding: 10px 9px; text-align: right; white-space: nowrap; }
+.merci-order thead th:first-child { border-radius: 0 8px 8px 0; }
+.merci-order thead th:last-child { border-radius: 8px 0 0 8px; text-align: left; }
+.merci-order tbody td { padding: 13px 9px; border-bottom: 1px solid #F3ECE3; vertical-align: middle; }
+.merci-order tbody tr:last-child td { border-bottom: 0; }
+.merci-item-name { font-weight: 600; font-size: .9rem; line-height: 1.7; margin: 0; }
+.merci-item-meta { color: #8a8378; font-size: .8rem; margin: 2px 0 0; line-height: 1.7; }
+.merci-qty { text-align: center; color: #6f655c; }
+.merci-price { text-align: left; white-space: nowrap; font-weight: 700; color: #6B1D2F; }
+.merci-price small { display: block; color: #a39a8c; font-size: .74rem; font-weight: 400; margin-top: 2px; }
+.merci-total-row td { font-weight: 700; color: #3a2f2b; padding-top: 15px; border-bottom: 0; }
+.merci-total-row .merci-price { font-size: 1.02rem; }
+.merci-product-img { flex: 0 0 104px; align-self: flex-start; margin: 0; border: 1px solid #F0EAE1; border-radius: 12px; background: #FAF7F2; overflow: hidden; aspect-ratio: 3 / 4; }
+.merci-product-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* ---- Code promo : présentation fine, sans encadré lourd ---- */
-.merci-promo { margin: 26px 0 0; padding: 18px 16px; background: #faf8f4; border-radius: 12px; text-align: center; }
-.merci-promo-eyebrow { color: #8a8378; font-size: .84rem; font-weight: 400; margin: 0 0 8px; }
-.merci-promo-code { display: inline-block; font-family: 'DM Sans', 'Cairo', Arial, sans-serif; font-size: 1.12rem; font-weight: 700; color: #792f3c; letter-spacing: .5px; word-break: break-all; }
-.merci-promo-desc { color: #8a8378; font-size: .82rem; margin: 6px 0 0; line-height: 1.8; }
+/* ---- Bloc cadeau : bordure turquoise, code promo en pilule pointillée ---- */
+.merci-gift { margin: 22px 0 0; display: flex; align-items: center; gap: 16px; background: #FBF8F3; border: 1.5px solid #4D9AA4; border-radius: 14px; padding: 16px 18px; }
+.merci-gift-body { flex: 1 1 auto; min-width: 0; }
+.merci-gift-title { color: #3D8A95; font-weight: 700; font-size: .95rem; margin: 0 0 5px; }
+.merci-gift-desc { color: #6f655c; font-size: .85rem; line-height: 1.9; margin: 0; }
+.merci-gift-desc strong { color: #4D9AA4; font-weight: 700; }
+.merci-gift-code { flex: 0 0 auto; background: #fff; border: 1.5px dashed #4D9AA4; border-radius: 10px; padding: 9px 18px 10px; text-align: center; }
+.merci-gift-code small { display: block; color: #8a8378; font-size: .72rem; margin: 0 0 2px; }
+.merci-gift-code code { font-family: 'Cairo', Arial, sans-serif; font-weight: 700; color: #3D8A95; font-size: 1.02rem; letter-spacing: .5px; word-break: break-all; }
+.merci-gift-icon { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 12px; background: #E8F1F2; display: flex; align-items: center; justify-content: center; font-size: 26px; }
 
-/* ---- Section upsell : SANS cadres, visuels libres sur fond neutre ---- */
-.merci-upsell { margin: 40px 0 0; }
-.merci-upsell-title { text-align: center; font-size: 1.05rem; font-weight: 600; color: #2f2a24; margin: 0 0 20px; }
-.merci-upsell-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 18px; }
-.merci-upsell-item { display: flex; flex-direction: column; text-decoration: none; color: inherit; }
-.merci-upsell-item img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; }
-.merci-upsell-name { font-weight: 400; font-size: .88rem; line-height: 1.7; margin: 10px 0 0; color: #2f2a24; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.merci-upsell-price { color: #792f3c; font-size: .9rem; font-weight: 600; margin: 4px 0 10px; }
-.merci-upsell-btn { align-self: flex-start; border: 1px solid #2f2a24; border-radius: 999px; padding: 6px 18px; font-size: .82rem; color: #2f2a24; transition: background .15s ease, color .15s ease; }
-.merci-upsell-item:hover .merci-upsell-btn { background: #2f2a24; color: #fff; }
-.merci-upsell-item:hover img { opacity: .94; }
+/* ---- معلومات المراسلة : coordonnées + bouton WhatsApp officiel ---- */
+.merci-contact { display: flex; align-items: center; gap: 18px; }
+.merci-contact dl { flex: 1 1 auto; margin: 0; }
+.merci-contact dl > div { display: flex; gap: 6px; align-items: baseline; padding: 4px 0; }
+.merci-contact dt { color: #3a2f2b; font-weight: 700; font-size: .92rem; flex: 0 0 auto; }
+.merci-contact dd { margin: 0; color: #6f655c; font-size: .92rem; line-height: 1.8; }
+.merci-wa-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #fff; border-radius: 12px; padding: 13px 20px; font-weight: 700; font-size: .9rem; line-height: 1.6; text-decoration: none; box-shadow: 0 6px 16px rgba(37, 211, 102, .26); transition: background .15s ease; }
+.merci-wa-btn:hover { background: #1FB958; }
+.merci-wa-btn svg { width: 22px; height: 22px; fill: #fff; flex: 0 0 auto; }
+.merci-wa-line { text-align: center; margin: 4px 0 0; }
+.merci-wa-line .merci-wa-btn { flex: 0 1 auto; max-width: 100%; }
+
+/* ---- Upsell : EXACTEMENT 3 produits, format vertical 3:5 (Reels/Stories) ---- */
+.merci-upsell { padding: 26px 26px 30px; border-top: 1px solid #F3ECE3; text-align: center; }
+.merci-upsell-title { color: #6B1D2F; font-size: 1.1rem; margin: 0 0 4px; }
+.merci-upsell-sub { color: #9a9086; font-size: .85rem; margin: 0 0 20px; }
+.merci-upsell-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 16px; }
+.merci-upsell-item { position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+.merci-upsell-frame { position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 3 / 5; background: #DFE9EA; }
+.merci-upsell-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .15s ease; }
+.merci-upsell-badge { position: absolute; top: 10px; inset-inline-end: 10px; background: #6B1D2F; color: #fff; font-size: .7rem; font-weight: 600; padding: 3px 12px 4px; border-radius: 999px; z-index: 1; }
+.merci-upsell-name { font-weight: 700; font-size: .9rem; color: #3a2f2b; line-height: 1.7; margin: 12px 0 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.merci-upsell-price { margin: 3px 0 12px; font-size: .95rem; color: #6B1D2F; font-weight: 700; }
+.merci-upsell-price s { color: #b3a99e; font-size: .8rem; font-weight: 400; margin-inline-start: 8px; }
+.merci-upsell-btn { display: block; width: 100%; background: #4D9AA4; color: #fff; border-radius: 10px; padding: 11px 10px; font-size: .88rem; font-weight: 700; transition: background .15s ease; }
+.merci-upsell-item:hover .merci-upsell-btn { background: #3D7F88; }
+.merci-upsell-item:hover .merci-upsell-frame img { opacity: .95; }
+
+/* ---- Pied de carte ---- */
+.merci-foot { border-top: 1px solid #F3ECE3; background: #FBF9F5; color: #9a9086; text-align: center; font-size: .78rem; padding: 14px 20px; }
 
 /* ---- Version générique (sans clé valide) ---- */
-.merci-generic { text-align: center; }
-.merci-generic .merci-lead { margin-bottom: 6px; }
-.merci-generic .merci-wa-line { margin-top: 20px; }
+.merci-generic .merci-head { border-top: 0; }
+.merci-generic .merci-wa-line { padding: 6px 26px 28px; border-top: 1px solid #F3ECE3; }
 
+/* ---- Mobile : tableau resserré, cadeau empilé, upsell en carrousel Stories ---- */
 @media (max-width: 520px) {
-  .merci-page { padding: 26px 14px 54px; }
-  .merci-head h1 { font-size: 1.18rem; }
-  .merci-upsell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
-  .merci-client { gap: 12px 18px; }
+  .merci-page { padding: 20px 10px 48px; }
+  .merci-head { padding: 26px 16px 22px; }
+  .merci-logo { width: 80px; height: 80px; }
+  .merci-head h1 { font-size: 1.14rem; }
+  .merci-sec, .merci-upsell { padding-inline: 16px; }
+  .merci-order { gap: 10px; }
+  .merci-order table { font-size: .8rem; }
+  .merci-order thead th { padding: 8px 6px; font-size: .74rem; }
+  .merci-order tbody td { padding: 10px 6px; }
+  .merci-product-img { flex: 0 0 78px; }
+  .merci-gift { flex-wrap: wrap; }
+  .merci-gift-icon { display: none; }
+  .merci-gift-code { flex: 1 1 100%; order: 3; }
+  .merci-contact { flex-direction: column; align-items: stretch; }
+  .merci-wa-btn { justify-content: center; }
+  .merci-upsell-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .merci-upsell-grid::-webkit-scrollbar { display: none; }
+  .merci-upsell-item { flex: 0 0 60%; max-width: 200px; scroll-snap-align: center; }
 }
 </style>
 <?php
@@ -118,6 +167,9 @@ foreach (abaya_offers() as $abaya_mock_entry) {
 echo '<script>window.ABAYA_MOCK = ' . wp_json_encode([
     'reviewEndpoint' => wp_make_link_relative(rest_url('landing/v1/submit-review')),
     'assetBase'      => get_template_directory_uri() . '/uploads/offers',
+    /* Maquette Canva 4PLP : logo calligraphié شكراً (WebP, bordeaux sur blanc)
+     * — utilisé par le gabarit natif ET par le design injecté en mode mock. */
+    'logo'           => get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp',
     'offers'         => $abaya_mock_offers,
     /* FIX mandat 4P LP (déclenchement pop-up) : une closure PHP n'hérite pas
      * de la portée du gabarit — $abaya_rating_ctx défini plus bas dans ce
@@ -151,9 +203,19 @@ if ($abaya_order_id > 0 && $abaya_order_key !== '' && function_exists('wc_get_or
 if ($abaya_order) {
     /* ---- Données du récapitulatif (commande validée par sa clé) ---- */
     $abaya_first = $abaya_order->get_billing_first_name();
+    $abaya_last  = $abaya_order->get_billing_last_name();
     $abaya_phone = $abaya_order->get_billing_phone();
     $abaya_addr  = trim((string) $abaya_order->get_billing_address_1());
+    $abaya_addr2 = trim((string) $abaya_order->get_billing_address_2());
     $abaya_city  = $abaya_order->get_billing_city();
+    $abaya_country = $abaya_order->get_billing_country();
+    if ($abaya_country !== '') {
+        $abaya_countries = function_exists('WC') && isset(WC()->countries) ? WC()->countries->get_countries() : [];
+        $abaya_country   = isset($abaya_countries[$abaya_country]) ? $abaya_countries[$abaya_country] : $abaya_country;
+    }
+    $abaya_address_full = implode('، ', array_filter([$abaya_addr, $abaya_addr2, $abaya_city, $abaya_country], function ($abaya_part) {
+        return (string) $abaya_part !== '';
+    }));
 
     /* Mandat multi-landing : offre d'origine de la commande (_abaya_offer,
      * alias _abaya_offer_id) — pilote l'upsell, le catalogue de la couleur
@@ -178,6 +240,13 @@ if ($abaya_order) {
 
     $abaya_total       = (float) $abaya_order->get_total();
     $abaya_total_text  = ($abaya_total == floor($abaya_total)) ? number_format($abaya_total, 0) : number_format($abaya_total, 2);
+
+    /* Format prix de la maquette Canva : « DH 450 » (préfixe latin, chiffres
+     * occidentaux) — rendu LTR stable à l'intérieur des cellules RTL. */
+    $abaya_dh = function ($abaya_amount) {
+        $abaya_text = ($abaya_amount == floor($abaya_amount)) ? number_format($abaya_amount, 0) : number_format($abaya_amount, 2);
+        return 'DH ' . $abaya_text;
+    };
 
     /* Visuel de la couleur choisie : chemin issu du catalogue DE CETTE OFFRE
      * (adaptateur abaya_catalog($offer_id) — source unique). */
@@ -211,10 +280,14 @@ if ($abaya_order) {
     if ($abaya_promo_prenom === '') $abaya_promo_prenom = 'CLIENTE';
     if ($abaya_promo_ville === '') $abaya_promo_ville = 'MAROC';
     $abaya_promo_num    = (string) $abaya_order->get_order_number();
-    $abaya_promo_code   = $abaya_promo_prenom . '-' . $abaya_promo_ville . '-' . $abaya_promo_num;
+    /* Présentation MAJUSCULES (fidèle à la maquette Canva « RAK - ABD - 89421 ») :
+     * sans effet sur l'arabe, normalise les segments latins du code. */
+    $abaya_promo_code   = mb_strtoupper($abaya_promo_prenom . '-' . $abaya_promo_ville . '-' . $abaya_promo_num, 'UTF-8');
 
-    /* Upsell (mandat : offres complémentaires SANS cadres) : toutes les offres
-     * du registre SAUF celle de la commande. */
+    /* Upsell (maquette Canva : EXACTEMENT 3 produits au format vertical) :
+     * toutes les offres du registre SAUF celle de la commande (le registre
+     * compte 4 offres → 3 verticales). Badge « تخفيض خاص » + ancien prix
+     * barrés OPTIONNELS : clés de registre cross_badge / cross_old_price. */
     $abaya_cross_offers = [];
     foreach (abaya_offers() as $abaya_cross_id => $abaya_cross_entry) {
         if ($abaya_cross_id === $abaya_offer_id) continue;
@@ -238,105 +311,125 @@ if ($abaya_order) {
 get_header();
 ?>
 <main class="merci-page">
+  <div class="merci-card">
 <?php if ($abaya_order) : ?>
   <header class="merci-head" aria-labelledby="merci-title">
-    <span class="merci-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
-    <h1 id="merci-title"><?php echo $abaya_first ? 'شكراً لكِ ' . esc_html($abaya_first) . '! تم استلام طلبكِ بنجاح' : 'شكراً لكِ! تم استلام طلبكِ بنجاح'; ?></h1>
+    <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
+    <h1 id="merci-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>
     <p class="merci-lead">سنتصل بكِ هاتفياً في أقرب وقت لتأكيد طلبكِ قبل الشحن. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
-    <p class="merci-ref">رقم الطلب: <strong>#<?php echo esc_html($abaya_order->get_order_number()); ?></strong></p>
+    <p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#<?php echo esc_html($abaya_order->get_order_number()); ?></strong></p>
   </header>
 
-  <?php /* ---- Tableau récapitulatif à deux colonnes (Produit | Prix) ---- */ ?>
-  <section class="merci-summary" aria-label="ملخص الطلب">
-    <table>
-      <thead>
-        <tr><th scope="col">المنتج</th><th scope="col">السعر</th></tr>
-      </thead>
-      <tbody>
+  <?php /* ---- تفاصيل الطلب : tableau 4 colonnes épuré + image produit à côté ---- */ ?>
+  <section class="merci-sec" aria-label="تفاصيل الطلب">
+    <h2 class="merci-sec-title">تفاصيل الطلب</h2>
+    <div class="merci-order">
+      <div class="merci-table">
+        <table>
+          <thead>
+            <tr><th scope="col">المنتج</th><th scope="col">اللون / المقاس</th><th scope="col">الكمية</th><th scope="col">السعر</th></tr>
+          </thead>
+          <tbody>
 <?php foreach ($abaya_rows as $abaya_row) :
         $abaya_qty        = max(1, $abaya_row['qty']);
         $abaya_unit       = $abaya_row['total'] / $abaya_qty;
-        $abaya_line_text  = ($abaya_row['total'] == floor($abaya_row['total'])) ? number_format($abaya_row['total'], 0) : number_format($abaya_row['total'], 2);
-        $abaya_unit_text  = ($abaya_unit == floor($abaya_unit)) ? number_format($abaya_unit, 0) : number_format($abaya_unit, 2);
         $abaya_row_name   = $abaya_row['name'] !== '' ? $abaya_row['name'] : (string) $abaya_offer['name'];
 ?>
-        <tr>
-          <td>
-            <div class="merci-item">
-<?php if ($abaya_color_img) : ?>
-              <img src="<?php echo esc_url($abaya_color_img); ?>" alt="العباية باللون <?php echo esc_attr($abaya_color); ?>" width="58" height="72" loading="lazy" decoding="async" />
-<?php endif; ?>
-              <div>
-                <p class="merci-item-name"><?php echo esc_html($abaya_row_name); ?> × <?php echo esc_html($abaya_qty); ?></p>
-                <p class="merci-item-meta">اللون: <?php echo esc_html($abaya_color !== '' ? $abaya_color : '—'); ?> · المقاس: <?php echo esc_html($abaya_size !== '' ? $abaya_size : '—'); ?></p>
-              </div>
-            </div>
-          </td>
-          <td class="merci-price"><?php echo esc_html($abaya_line_text); ?> درهم<?php if ($abaya_qty > 1) : ?><small><?php echo esc_html($abaya_unit_text); ?> درهم / القطعة</small><?php endif; ?></td>
-        </tr>
+            <tr>
+              <td><p class="merci-item-name"><?php echo esc_html($abaya_row_name); ?></p></td>
+              <td class="merci-qty"><?php echo esc_html($abaya_color !== '' ? $abaya_color : '—'); ?> / <?php echo esc_html($abaya_size !== '' ? $abaya_size : '—'); ?></td>
+              <td class="merci-qty"><?php echo esc_html($abaya_qty); ?></td>
+              <td class="merci-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_row['total'])); ?></bdi><?php if ($abaya_qty > 1) : ?><small><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_unit)); ?></bdi> / القطعة</small><?php endif; ?></td>
+            </tr>
 <?php endforeach; ?>
-        <tr class="merci-total-row">
-          <td>المجموع</td>
-          <td class="merci-price"><?php echo esc_html($abaya_total_text); ?> درهم</td>
-        </tr>
-        <tr class="merci-pay-row">
-          <td>طريقة الدفع</td>
-          <td class="merci-price" style="font-weight:400;">الدفع عند الاستلام</td>
-        </tr>
-      </tbody>
-    </table>
+            <tr class="merci-total-row">
+              <td colspan="3">المجموع الإجمالي:</td>
+              <td class="merci-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_total)); ?></bdi></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+<?php if ($abaya_color_img) : ?>
+      <figure class="merci-product-img">
+        <img src="<?php echo esc_url($abaya_color_img); ?>" alt="العباية باللون <?php echo esc_attr($abaya_color); ?>" loading="lazy" decoding="async" />
+      </figure>
+<?php endif; ?>
+    </div>
+
+    <?php /* ---- Bloc cadeau : code promo personnalisé (bordure turquoise) ---- */ ?>
+    <aside class="merci-gift" aria-labelledby="merci-gift-title">
+      <div class="merci-gift-body">
+        <p class="merci-gift-title" id="merci-gift-title">🎁 هدية خاصة لطلبكِ القادم!</p>
+        <p class="merci-gift-desc">استلمي كود الخصم المخصص لكِ للحصول على <strong>خصم 20 درهم</strong> لكل عباية في طلبكِ القادم — لكِ أو لقريباتكِ.</p>
+      </div>
+      <div class="merci-gift-code">
+        <small>كود الخصم الخاص بكِ</small>
+        <code dir="ltr"><?php echo esc_html($abaya_promo_code); ?></code>
+      </div>
+      <div class="merci-gift-icon" aria-hidden="true">🎁</div>
+    </aside>
   </section>
 
-  <?php /* ---- Informations client : grille compacte à 2 colonnes, sans boîtes ---- */ ?>
-  <dl class="merci-client">
-    <div><dt>الهاتف</dt><dd dir="ltr"><?php echo esc_html($abaya_phone); ?></dd></div>
-    <div><dt>المدينة</dt><dd><?php echo esc_html($abaya_city !== '' ? $abaya_city : '—'); ?></dd></div>
-    <div class="merci-wide"><dt>العنوان</dt><dd><?php echo esc_html($abaya_addr !== '' ? $abaya_addr : '—'); ?></dd></div>
-    <div><dt>طريقة الدفع</dt><dd>الدفع عند الاستلام</dd></div>
-    <div><dt>الحالة</dt><dd>قيد التأكيد الهاتفي</dd></div>
-  </dl>
-  <p class="merci-wa-line"><a class="merci-wa" href="<?php echo esc_url($abaya_wa_link); ?>" target="_blank" rel="noopener">متابعة الطلب عبر الواتساب</a></p>
+  <?php /* ---- معلومات المراسلة : coordonnées + bouton WhatsApp officiel ---- */ ?>
+  <section class="merci-sec" aria-label="معلومات المراسلة">
+    <h2 class="merci-sec-title">معلومات المراسلة</h2>
+    <div class="merci-contact">
+      <dl>
+        <div><dt>الاسم:</dt><dd><?php echo esc_html(trim($abaya_first . ' ' . $abaya_last) !== '' ? trim($abaya_first . ' ' . $abaya_last) : '—'); ?></dd></div>
+        <div><dt>الرقم الهـ:</dt><dd dir="ltr"><?php echo esc_html($abaya_phone !== '' ? $abaya_phone : '—'); ?></dd></div>
+        <div><dt>العنوان:</dt><dd><?php echo esc_html($abaya_address_full !== '' ? $abaya_address_full : '—'); ?></dd></div>
+      </dl>
+      <a class="merci-wa-btn" href="<?php echo esc_url($abaya_wa_link); ?>" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span>تواصل معنا أو تابع طلبك عبر الواتساب</span>
+      </a>
+    </div>
+  </section>
 
-  <?php /* ---- Code promo : présentation fine et épurée ---- */ ?>
-  <div class="merci-promo" aria-labelledby="merci-promo-title">
-    <p class="merci-promo-eyebrow" id="merci-promo-title">كود خصم خاص بكِ للطلب القادم</p>
-    <code class="merci-promo-code" dir="ltr"><?php echo esc_html($abaya_promo_code); ?></code>
-    <p class="merci-promo-desc">خصم 20 درهم على كل عباية في طلبك القادم، أو لأي شخص يشتري باستخدام كودك الشخصي.</p>
-  </div>
-
-<?php /* ---- Upsell (mandat : offres complémentaires SANS cadres — visuels libres,
- *       texte fluide, bouton d'achat direct discret) ---- */ ?>
+  <?php /* ---- Upsell maquette Canva : EXACTEMENT 3 produits, vertical 3:5 (Reels/Stories) ---- */ ?>
 <?php if (!empty($abaya_cross_offers)) : ?>
   <section class="merci-upsell" aria-labelledby="merci-upsell-title">
-    <h2 id="merci-upsell-title">اكتشفي عروضاً أخرى قد تناسبك</h2>
+    <h2 class="merci-upsell-title" id="merci-upsell-title">تشكيلة أخرى قد تعجبكِ أيضاً</h2>
+    <p class="merci-upsell-sub">أضيفي عباية أخرى لنستفيدي من الخصم المباشر في طلبكِ</p>
     <div class="merci-upsell-grid">
-<?php foreach ($abaya_cross_offers as $abaya_cross_id => $abaya_cross_entry) : ?>
+<?php foreach ($abaya_cross_offers as $abaya_cross_id => $abaya_cross_entry) :
+        $abaya_cross_badge = isset($abaya_cross_entry['cross_badge']) ? (string) $abaya_cross_entry['cross_badge'] : '';
+        $abaya_cross_old   = isset($abaya_cross_entry['cross_old_price']) ? (float) $abaya_cross_entry['cross_old_price'] : 0.0;
+?>
       <a class="merci-upsell-item" href="<?php echo esc_url(home_url('/' . $abaya_cross_id . '/#order-form-section')); ?>">
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/' . $abaya_cross_entry['images']['lcp']); ?>" alt="<?php echo esc_attr($abaya_cross_entry['texts']['headline']); ?>" width="240" height="320" loading="lazy" decoding="async" />
+        <span class="merci-upsell-frame">
+<?php if ($abaya_cross_badge !== '') : ?>
+          <span class="merci-upsell-badge"><?php echo esc_html($abaya_cross_badge); ?></span>
+<?php endif; ?>
+          <img src="<?php echo esc_url(get_template_directory_uri() . '/' . $abaya_cross_entry['images']['lcp']); ?>" alt="<?php echo esc_attr($abaya_cross_entry['texts']['headline']); ?>" loading="lazy" decoding="async" />
+        </span>
         <strong class="merci-upsell-name"><?php echo esc_html($abaya_cross_entry['texts']['headline']); ?></strong>
-        <span class="merci-upsell-price">ابتداءً من <?php echo esc_html(number_format_i18n($abaya_cross_entry['bundles'][1])); ?> درهم</span>
-        <span class="merci-upsell-btn">اطلبي الآن</span>
+        <span class="merci-upsell-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh((float) $abaya_cross_entry['bundles'][1])); ?></bdi><?php if ($abaya_cross_old > 0) : ?><s><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_cross_old)); ?></bdi></s><?php endif; ?></span>
+        <span class="merci-upsell-btn">إضافة للطلب</span>
       </a>
 <?php endforeach; ?>
     </div>
   </section>
 <?php endif; ?>
+  <footer class="merci-foot">© <?php echo esc_html(date_i18n('Y')); ?> Abaya Collection — جميع الحقوق محفوظة</footer>
 <?php else : ?>
   <?php /* Version générique : sans clé valide (ou commande > 48 h), aucune donnée personnelle n'est affichée.
          Le conteneur mock reste disponible pour la prévisualisation locale (mock-api.js). */ ?>
   <div id="mock-thanks-container" hidden></div>
   <section class="merci-generic" data-generic-thanks aria-labelledby="merci-title-generic">
     <header class="merci-head">
-      <span class="merci-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
+      <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
       <h1 id="merci-title-generic">شكراً لكِ! تم استلام طلبكِ</h1>
-      <p class="merci-lead">سيتصل بك فريقنا هاتفياً في أقرب وقت لتأكيد المقاس واللون والكمية وعنوان التسليم.</p>
-      <p class="merci-lead">الدفع عند الاستلام، ويحق لك معاينة العباية قبل الدفع.</p>
+      <p class="merci-lead">سيتصل بكِ فريقنا هاتفياً في أقرب وقت لتأكيد المقاس واللون والكمية وعنوان التسليم. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     </header>
-    <p class="merci-wa-line"><a class="merci-wa" href="https://wa.me/<?php echo esc_attr($abaya_wa_number); ?>" target="_blank" rel="noopener">تواصلي معنا عبر الواتساب</a></p>
+    <p class="merci-wa-line"><a class="merci-wa-btn" href="https://wa.me/<?php echo esc_attr($abaya_wa_number); ?>" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span>تواصلي معنا عبر الواتساب</span></a></p>
   </section>
 <?php endif; ?>
+  </div>
 
-<?php /* ---- Pop-up d'évaluation « 1-clic » (mandat : perfectionnement UX) ---- --
+<?php /* ---- Pop-up d'évaluation « 1-clic » (inchangé — validation v2.2) ---- --
  * S'affiche dès l'arrivée sur /merci/ lorsqu'une commande active est validée.
  * Remplissage progressif (survol/clic sur la N-ième étoile → étoiles 1..N
  * allumées simultanément, sens RTL). Un clic enregistre DIRECTEMENT la note

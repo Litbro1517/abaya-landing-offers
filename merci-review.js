@@ -222,7 +222,6 @@ if (mockOrder && mockContainer) {
   mockContainer.hidden = false;
 
   const fullName = mockOrder.customer.full_name || "";
-  const firstName = fullName.split(/\s+/)[0];
   const selection = mockOrder.selection;
   const quantity = Number(selection.quantity) || 1;
   const mockOffer = (config.offers || []).find((offer) => offer.id === mockOrder.offer_id);
@@ -231,45 +230,64 @@ if (mockOrder && mockContainer) {
   const address = [mockOrder.customer.address, mockOrder.customer.city].filter(Boolean).join("، ") || "—";
   const promoCode = [fullName.split(/\s+/)[0] || "CLIENTE", mockOrder.customer.city || "MAROC", "#" + mockOrder.order_id].filter(Boolean).join("-");
 
-  /* Récapitulatif en mode mock : miroir EXACT du nouveau design (en-tête épuré,
-   * tableau 2 colonnes, grille client compacte, promo fin, upsell sans cadres). */
+  /* Récapitulatif en mode mock : miroir EXACT du design « maquette Canva 4PLP »
+   * (carte blanche + logo شكراً, pastille n° commande, tableau 4 colonnes avec
+   * cellule image, bloc cadeau turquoise, WhatsApp officiel, upsell 3:5). */
+  const dh = (n) => "DH " + String(n);
+  const logoSrc = config.logo || "";
   const otherOffers = (config.offers || [])
     .filter((offer) => offer.id !== mockOrder.offer_id)
     .map((offer) =>
       '<a class="merci-upsell-item" href="' + escapeHtml(offer.url || ("/" + encodeURIComponent(offer.id) + "/")) + '">' +
-      '<img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" width="240" height="320" loading="lazy" />' +
+      '<span class="merci-upsell-frame"><img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" loading="lazy" /></span>' +
       '<strong class="merci-upsell-name">' + escapeHtml(offer.headline) + '</strong>' +
-      '<span class="merci-upsell-price">ابتداءً من ' + escapeHtml(offer.price || 299) + ' درهم</span>' +
-      '<span class="merci-upsell-btn">اطلبي الآن</span></a>'
+      '<span class="merci-upsell-price"><bdi dir="ltr">' + escapeHtml(dh(offer.price || 299)) + '</bdi></span>' +
+      '<span class="merci-upsell-btn">إضافة للطلب</span></a>'
     ).join("");
 
   mockContainer.innerHTML =
     '<header class="merci-head" aria-labelledby="mock-thanks-title">' +
-      '<span class="merci-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></svg></span>' +
-      '<h1 id="mock-thanks-title">شكراً لكِ ' + escapeHtml(firstName) + '! تم استلام طلبكِ بنجاح</h1>' +
+      (logoSrc ? '<img class="merci-logo" src="' + escapeHtml(logoSrc) + '" alt="شكراً" width="92" height="92" />' : "") +
+      '<h1 id="mock-thanks-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>' +
       '<p class="merci-lead">طلب تجريبي محفوظ محلياً على هذا المتصفح فقط؛ لم يُرسل طلب إلى المتجر.</p>' +
-      '<p class="merci-ref">رقم الطلب التجريبي: <strong>#' + escapeHtml(String(mockOrder.order_id)) + '</strong></p>' +
+      '<p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#' + escapeHtml(String(mockOrder.order_id)) + '</strong></p>' +
     '</header>' +
-    '<section class="merci-summary" aria-label="ملخص الطلب"><table><thead><tr><th scope="col">المنتج</th><th scope="col">السعر</th></tr></thead><tbody>' +
-      '<tr><td><div class="merci-item">' +
-        '<img src="' + escapeHtml(itemImg) + '" alt="العباية" width="58" height="72" loading="lazy" />' +
-        '<div><p class="merci-item-name">' + escapeHtml(offerName) + ' × ' + escapeHtml(String(quantity)) + '</p>' +
-        '<p class="merci-item-meta">اللون: ' + escapeHtml(selection.color || "—") + ' · المقاس: ' + escapeHtml(selection.size || "—") + '</p></div>' +
-      '</div></td><td class="merci-price">' + escapeHtml(String(mockOrder.value)) + ' درهم</td></tr>' +
-      '<tr class="merci-total-row"><td>المجموع</td><td class="merci-price">' + escapeHtml(String(mockOrder.value)) + ' درهم</td></tr>' +
-      '<tr class="merci-pay-row"><td>طريقة الدفع</td><td class="merci-price" style="font-weight:400;">الدفع عند الاستلام</td></tr>' +
-    '</tbody></table></section>' +
-    '<dl class="merci-client">' +
-      '<div><dt>الهاتف</dt><dd dir="ltr">' + escapeHtml(mockOrder.customer.phone || "—") + '</dd></div>' +
-      '<div><dt>المدينة</dt><dd>' + escapeHtml(mockOrder.customer.city || "—") + '</dd></div>' +
-      '<div class="merci-wide"><dt>العنوان</dt><dd>' + escapeHtml(address) + '</dd></div>' +
-      '<div><dt>الحالة</dt><dd>طلب تجريبي</dd></div>' +
-    '</dl>' +
-    '<div class="merci-promo"><p class="merci-promo-eyebrow">كود خصم خاص بكِ للطلب القادم</p>' +
-      '<code class="merci-promo-code" dir="ltr">' + escapeHtml(promoCode) + '</code></div>' +
+    '<section class="merci-sec" aria-label="تفاصيل الطلب">' +
+      '<h2 class="merci-sec-title">تفاصيل الطلب</h2>' +
+      '<div class="merci-order"><div class="merci-table"><table><thead><tr><th scope="col">المنتج</th><th scope="col">اللون / المقاس</th><th scope="col">الكمية</th><th scope="col">السعر</th></tr></thead><tbody>' +
+        '<tr><td><p class="merci-item-name">' + escapeHtml(offerName) + '</p></td>' +
+        '<td class="merci-qty">' + escapeHtml(selection.color || "—") + ' / ' + escapeHtml(selection.size || "—") + '</td>' +
+        '<td class="merci-qty">' + escapeHtml(String(quantity)) + '</td>' +
+        '<td class="merci-price"><bdi dir="ltr">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
+        '<tr class="merci-total-row"><td colspan="3">المجموع الإجمالي:</td>' +
+        '<td class="merci-price"><bdi dir="ltr">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
+      '</tbody></table></div>' +
+      '<figure class="merci-product-img"><img src="' + escapeHtml(itemImg) + '" alt="العباية" loading="lazy" /></figure></div>' +
+      '<aside class="merci-gift" aria-labelledby="mock-gift-title">' +
+        '<div class="merci-gift-body">' +
+          '<p class="merci-gift-title" id="mock-gift-title">🎁 هدية خاصة لطلبكِ القادم!</p>' +
+          '<p class="merci-gift-desc">استلمي كود الخصم المخصص لكِ للحصول على <strong>خصم 20 درهم</strong> لكل عباية في طلبكِ القادم — لكِ أو لقريباتكِ.</p>' +
+        '</div>' +
+        '<div class="merci-gift-code"><small>كود الخصم الخاص بكِ</small><code dir="ltr">' + escapeHtml(promoCode) + '</code></div>' +
+        '<div class="merci-gift-icon" aria-hidden="true">🎁</div>' +
+      '</aside>' +
+    '</section>' +
+    '<section class="merci-sec" aria-label="معلومات المراسلة">' +
+      '<h2 class="merci-sec-title">معلومات المراسلة</h2>' +
+      '<div class="merci-contact"><dl>' +
+        '<div><dt>الاسم:</dt><dd>' + escapeHtml(fullName || "—") + '</dd></div>' +
+        '<div><dt>الرقم الهـ:</dt><dd dir="ltr">' + escapeHtml(mockOrder.customer.phone || "—") + '</dd></div>' +
+        '<div><dt>العنوان:</dt><dd>' + escapeHtml(address) + '</dd></div>' +
+      '</dl>' +
+      '<a class="merci-wa-btn" href="https://wa.me/212698738664" target="_blank" rel="noopener">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
+        '<span>تواصل معنا أو تابع طلبك عبر الواتساب</span></a></div>' +
+    '</section>' +
     '<section class="merci-upsell" aria-labelledby="mock-upsell-title">' +
-      '<h2 id="mock-upsell-title">اكتشفي عروضاً أخرى قد تناسبك</h2>' +
-      '<div class="merci-upsell-grid">' + otherOffers + '</div></section>';
+      '<h2 class="merci-upsell-title" id="mock-upsell-title">تشكيلة أخرى قد تعجبكِ أيضاً</h2>' +
+      '<p class="merci-upsell-sub">أضيفي عباية أخرى لنستفيدي من الخصم المباشر في طلبكِ</p>' +
+      '<div class="merci-upsell-grid">' + otherOffers + '</div></section>' +
+    '<footer class="merci-foot">© ' + new Date().getFullYear() + ' Abaya Collection — جميع الحقوق محفوظة</footer>';
 
   /* Pop-up 1-clic en mode simulation : injection dynamique si absent
    * (page générique), même markup + même flux que le pop-up natif. */
