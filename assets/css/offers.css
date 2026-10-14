@@ -165,12 +165,12 @@
   line-height: 1.8;
   color: #2f2a24;
 }
-.abaya-rating-note:focus { outline: none; border-color: #c49b55; }
+.abaya-rating-note:focus { outline: none; border-color: #4D9AA4; }
 .abaya-rating-send {
   margin: 10px 0 0;
   border: 0;
   border-radius: 999px;
-  background: #2f2a24;
+  background: #6B1D2F;
   color: #fff;
   font-family: inherit;
   font-size: .9rem;
@@ -179,7 +179,7 @@
   cursor: pointer;
   transition: background .15s ease;
 }
-.abaya-rating-send:hover { background: #1f1b16; }
+.abaya-rating-send:hover { background: #521526; }
 .abaya-rating-send[hidden] { display: none; }
 .abaya-rating-feedback { margin: 12px 0 0; color: #2f6e4f; font-size: .9rem; font-weight: 600; }
 .abaya-rating-feedback.is-error { color: #a32929; }
