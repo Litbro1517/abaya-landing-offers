@@ -742,7 +742,8 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     ]);
 }
 
-/* ---------- Route 2 : soumission d'avis clients (persistance MySQL + modération) ---------- */
+/* ---------- Route 2 : soumission d'avis clients (persistance MySQL + modération
+ *            intelligente — mandat « Thank You Page Redesign ») ---------- */
 
 function abaya_handle_submit_review(WP_REST_Request $request) {
     // 1) Anti-flood : maximum 3 avis par tranche de 10 minutes et par IP.
@@ -750,7 +751,9 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
         return new WP_Error('abaya_rate_limited', 'عدد كبير من المحاولات. يرجى المحاولة بعد قليل.', ['status' => 429]);
     }
 
-    // 2) Validation du contenu.
+    // 2) Validation du contenu — le TEXTE est désormais OPTIONNEL (mandat :
+    //    « étoiles seules » = 1-clic valide) ; le formulaire avis de la landing
+    //    continue d'exiger le texte côté client et suit le même chemin serveur.
     $rating        = (int) $request->get_param('rating');
     $comment       = trim(sanitize_textarea_field((string) $request->get_param('comment')));
     $reviewer_name = trim(sanitize_text_field((string) $request->get_param('reviewer_name')));
@@ -758,7 +761,7 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
     if ($rating < 1 || $rating > 5) {
         return new WP_Error('abaya_invalid_field', 'يرجى اختيار عدد النجوم.', ['status' => 422]);
     }
-    if (mb_strlen($comment) < 3 || mb_strlen($comment) > 2000) {
+    if ($comment !== '' && (mb_strlen($comment) < 3 || mb_strlen($comment) > 2000)) {
         return new WP_Error('abaya_invalid_field', 'يرجى كتابة رأيك في المنتج.', ['status' => 422]);
     }
     if (mb_strlen($reviewer_name) < 2 || mb_strlen($reviewer_name) > 50) {
@@ -780,33 +783,117 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
     if ($review_offer === '') $review_offer = sanitize_key((string) $request->get_param('offer_id'));
     if ($review_offer !== '' && !isset(abaya_offers()[$review_offer])) $review_offer = '';
 
-    // 4) Persistance via le système natif de commentaires : type « review », statut « en attente » (0).
-    //    Mandat 4P LP : le nom de la cliente est stocké dans comment_author (affichage natif WP),
-    //    et la ville en comment_meta « reviewer_city » pour réutilisation côté rendu.
-    $comment_id = wp_insert_comment([
-        'comment_post_ID'      => $target_id,
-        'comment_author'       => $reviewer_name,
-        'comment_author_email' => '',
-        'comment_author_url'   => '',
-        'comment_content'      => $comment,
-        'comment_type'         => 'review',
-        'comment_approved'     => 0,
-        'comment_meta'         => [
-            'rating'        => $rating,
-            'reviewer_name' => $reviewer_name,
-            'reviewer_city' => $reviewer_city,
-            'review_offer'  => $review_offer,
-        ],
-    ]);
-    if (!$comment_id || is_wp_error($comment_id)) {
-        return new WP_Error('abaya_review_failed', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
+    // 3c) Contexte commande (pop-up /merci/) : order_id + order_key. La clé est
+    //     revalidée en timing-safe (hash_equals) et la commande doit provenir du
+    //     tunnel — sans ce duo valide, AUCUNE auto-approbation (défense anti-spam).
+    $review_order    = null;
+    $order_id_param  = absint($request->get_param('order_id'));
+    $order_key_param = sanitize_text_field((string) $request->get_param('order_key'));
+    if ($order_id_param > 0 && $order_key_param !== '' && function_exists('wc_get_order')) {
+        $abaya_candidate = wc_get_order($order_id_param);
+        if ($abaya_candidate
+            && hash_equals((string) $abaya_candidate->get_order_key(), $order_key_param)
+            && $abaya_candidate->get_created_via() === 'landing-abaya') {
+            $review_order = $abaya_candidate;
+        }
     }
 
-    // 5) L'avis ne s'affichera qu'après validation manuelle (comment_approved => 1).
+    // 3d) RÈGLE DU MAXIMUM (mandat) : si l'utilisatrice modifie son choix de note,
+    //     le système enregistre et conserve la valeur la plus haute exprimée :
+    //     max(note_existante, nouvelle_note). L'avis existant est retrouvé par la
+    //     méta « review_order_id » (un seul avis par commande, tout statut).
+    $existing_id     = 0;
+    $existing_rating = 0;
+    $existing_approved = 0;
+    $existing_has_text = false;
+    if ($review_order) {
+        $abaya_found = get_comments([
+            'post_id'    => $target_id,
+            'type'       => 'review',
+            'status'     => 'all',
+            'meta_key'   => 'review_order_id',
+            'meta_value' => (string) $review_order->get_id(),
+            'number'     => 1,
+        ]);
+        if (!empty($abaya_found)) {
+            $existing_id       = (int) $abaya_found[0]->comment_ID;
+            $existing_rating   = (int) get_comment_meta($existing_id, 'rating', true);
+            $existing_approved = (int) $abaya_found[0]->comment_approved;
+            /* Le texte déjà présent (≠ commentaire automatique du 1-clic) maintient
+             * l'avis en modération, même si une re-soumission d'étoiles seules suit. */
+            $existing_content  = trim((string) $abaya_found[0]->comment_content);
+            $existing_has_text = ($existing_content !== '' && $existing_content !== 'تقييم بنقرة واحدة');
+        }
+    }
+    $final_rating = max($existing_rating, $rating);
+    $has_text     = ($comment !== '');
+
+    // 4) MODÉRATION INTELLIGENTE (mandat) :
+    //      - étoiles seules + commande validée → comment_approved = 1 (auto-
+    //        approbation immédiate : la moyenne sous le H1 est actualisée
+    //        instantanément — abaya_render_rating_summary() lit la base au rendu) ;
+    //      - avis avec texte (nouveau ou DÉJÀ présent) → comment_approved = 0
+    //        (validation administrative — jamais republication sans revue) ;
+    //      - sans contexte commande valide → statu quo anti-spam (0).
+    $auto_approve = (!$has_text && !$existing_has_text && $review_order);
+    $new_approved = ($has_text || $existing_has_text) ? 0 : ($review_order ? 1 : $existing_approved);
+
+    if ($existing_id) {
+        // 4a) Mise à jour de l'avis existant (même commande) : note = max,
+        //     texte ajouté/replacé, statut recalculé selon la modération.
+        $abaya_update = [
+            'comment_ID'      => $existing_id,
+            'comment_approved' => $new_approved,
+        ];
+        if ($has_text) $abaya_update['comment_content'] = $comment;
+        wp_update_comment($abaya_update);
+        update_comment_meta($existing_id, 'rating', $final_rating);
+        update_comment_meta($existing_id, 'reviewer_name', $reviewer_name);
+        update_comment_meta($existing_id, 'reviewer_city', $reviewer_city);
+        if ($review_offer !== '') update_comment_meta($existing_id, 'review_offer', $review_offer);
+        clean_comment_cache($existing_id);
+    } else {
+        // 4b) Insertion d'un nouvel avis (système natif de commentaires, type
+        //     « review »). Le nom de la cliente est stocké dans comment_author
+        //     (affichage natif WP), la ville en comment_meta « reviewer_city »,
+        //     la commande d'origine en « review_order_id » (règle du maximum).
+        $comment_id = wp_insert_comment([
+            'comment_post_ID'      => $target_id,
+            'comment_author'       => $reviewer_name,
+            'comment_author_email' => '',
+            'comment_author_url'   => '',
+            'comment_content'      => $has_text ? $comment : 'تقييم بنقرة واحدة',
+            'comment_type'         => 'review',
+            'comment_approved'     => $auto_approve ? 1 : 0,
+            'comment_meta'         => [
+                'rating'          => $final_rating,
+                'reviewer_name'   => $reviewer_name,
+                'reviewer_city'   => $reviewer_city,
+                'review_offer'    => $review_offer,
+                'review_order_id' => $review_order ? (string) $review_order->get_id() : '',
+            ],
+        ]);
+        if (!$comment_id || is_wp_error($comment_id)) {
+            return new WP_Error('abaya_review_failed', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
+        }
+    }
+
+    // 5) Moyenne recalculée depuis la base (avis approuvés) : renvoyée au client
+    //    pour affichage immédiat — c'est la même source que le badge sous le H1.
+    $abaya_summary = abaya_review_summary();
+
+    // 6) Réponse : message conforme au flux réel (auto-approbation / modération texte /
+    //    en attente anti-spam sans contexte commande valide).
     return rest_ensure_response([
         'success'    => true,
-        'moderation' => true,
-        'message'    => 'شكراً لك! تم استلام تقييمك وسيُنشر بعد المراجعة.',
+        'moderation' => $has_text,
+        'rating'     => $final_rating,
+        'average'    => round((float) $abaya_summary['average'], 2),
+        'count'      => (int) $abaya_summary['count'],
+        'message'    => $has_text
+            ? 'شكراً جزيلاً! تم استلام رأيك وسيُنشر بعد المراجعة.'
+            : ($auto_approve ? 'شكراً لك! تم تسجيل تقييمك بنجاح'
+                             : 'شكراً لك! تم استلام تقييمك وسيُنشر بعد المراجعة.'),
     ]);
 }
 

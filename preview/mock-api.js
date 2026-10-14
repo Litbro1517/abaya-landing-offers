@@ -60,17 +60,37 @@ export function createMockOrder(payload) {
 }
 
 export function saveMockReview(payload) {
-  const review = {
-    reviewer_name: payload.reviewer_name || "",
-    reviewer_city: payload.reviewer_city || "",
-    rating: Number(payload.rating),
-    comment: String(payload.comment || "").trim(),
-    offer_id: payload.offer_id || "produit-1",
-    status: "approved",
-    created_at: new Date().toISOString(),
-  };
-  writeRows(REVIEW_KEY, [...readRows(REVIEW_KEY), review]);
-  return review;
+  /* Règle du maximum + modération intelligente (miroir du handler REST) :
+   * - un seul avis par commande (order_id) — re-soumission = mise à jour ;
+   * - note conservée = max(note_existante, nouvelle_note) ;
+   * - étoiles seules = « approved » ; avec texte = « pending » (modération). */
+  const rows = readRows(REVIEW_KEY);
+  const orderId = Number(payload.order_id) || 0;
+  const text = String(payload.comment || "").trim();
+  let rating = Math.min(5, Math.max(1, Number(payload.rating) || 1));
+  let target = orderId ? rows.find((row) => Number(row.order_id) === orderId) : null;
+  if (target) {
+    rating = Math.max(Number(target.rating) || 0, rating);
+    target.rating = rating;
+    target.reviewer_name = payload.reviewer_name || target.reviewer_name || "";
+    target.reviewer_city = payload.reviewer_city || target.reviewer_city || "";
+    target.offer_id = payload.offer_id || target.offer_id || "produit-1";
+    if (text !== "") { target.comment = text; target.status = "pending"; }
+  } else {
+    target = {
+      reviewer_name: payload.reviewer_name || "",
+      reviewer_city: payload.reviewer_city || "",
+      rating: rating,
+      comment: text,
+      offer_id: payload.offer_id || "produit-1",
+      order_id: orderId,
+      status: text !== "" ? "pending" : "approved",
+      created_at: new Date().toISOString(),
+    };
+    rows.push(target);
+  }
+  writeRows(REVIEW_KEY, rows);
+  return { rating: target.rating, status: target.status };
 }
 
 export function getMockOrders() {

@@ -5,8 +5,10 @@
  * 1) Badge étoiles sous le H1 — SVG au FORMAT EXACT de la section avis
  *    (#avis-clients .review-card-stars svg), garnies dynamiquement depuis
  *    la moyenne BDD (couche grise + couche dorée clippée).
- * 2) Pop-up d'évaluation « 1-clic » de la page /merci/.
- * 3) Cartes cross-sell de la page /merci/.
+ * 2) Pop-up d'évaluation « 1-clic » de la page /merci/ — remplissage
+ *    progressif RTL, persistance (message + texte optionnel).
+ *    (La mise en page /merci/ — tableau récap, grille client, upsell sans
+ *    cadres, promo — vit dans le style inline du gabarit page-merci.php.)
  * ===================================================================== */
 
 /* ---------- 1) Badge étoiles sous le H1 (toutes les landings) ---------- */
@@ -106,52 +108,89 @@
 }
 .abaya-rating-modal h2 { margin: 0 0 8px; font-size: 1.15rem; color: #2f2a24; }
 .abaya-rating-text { margin: 0 0 16px; color: #5c554a; font-size: .92rem; line-height: 1.8; }
-.abaya-rating-stars { display: flex; justify-content: center; gap: 8px; }
+/* Après enregistrement de la note : le texte d'invite cède la place au
+ * message de remerciement persistant (mandat : pas de fermeture brusque). */
+.abaya-rating-modal.is-rated .abaya-rating-text { display: none; }
+.abaya-rating-modal.is-rated { padding-bottom: 20px; }
+
+/* Étoiles NUES (mandat : plus d'étoiles isolées dans des boîtes) — le
+ * remplissage progressif (survol/clic 1..N, sens RTL) est piloté par les
+ * classes .is-hot (survol) et .is-picked (note enregistrée) posées en JS. */
+.abaya-rating-stars { display: flex; justify-content: center; gap: 6px; }
 .abaya-rating-star {
-  width: 52px;
-  height: 52px;
-  border: 1px solid #e7e1d6;
-  border-radius: 12px;
-  background: #fff;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: transparent;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  padding: 0;
+  transition: transform .12s ease;
 }
-.abaya-rating-star svg { width: 32px; height: 32px; fill: #ded8ce; stroke: #c9c2b5; stroke-width: 1; stroke-linejoin: round; transition: fill .12s ease, stroke .12s ease; }
-.abaya-rating-star:hover { transform: translateY(-2px); border-color: #c49b55; }
-.abaya-rating-star:hover svg, .abaya-rating-star.is-picked svg { fill: #c49b55; stroke: #a8813d; }
-.abaya-rating-star.is-picked { background: #faf3e6; border-color: #c49b55; }
-.abaya-rating-feedback { margin: 14px 0 0; color: #2f6e4f; font-size: .92rem; font-weight: 700; }
+.abaya-rating-star svg {
+  width: 40px;
+  height: 40px;
+  fill: #e7e1d6;
+  stroke: #d8d0c2;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  transition: fill .12s ease, stroke .12s ease;
+}
+.abaya-rating-star:hover { transform: scale(1.06); }
+.abaya-rating-star.is-hot svg,
+.abaya-rating-star.is-picked svg { fill: #c49b55; stroke: #a8813d; }
+.abaya-rating-star:focus-visible { outline: 2px solid #c49b55; outline-offset: 2px; border-radius: 8px; }
+
+/* Zone de texte optionnelle (persistance du pop-up après la note) —
+ * apparition douce via l'animation de la modale. */
+.abaya-rating-after { margin: 14px 0 0; animation: abaya-after-in .3s ease-out; }
+@keyframes abaya-after-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.abaya-rating-after-msg { margin: 0 0 12px; color: #2f2a24; font-size: .95rem; line-height: 1.9; }
+.abaya-rating-note {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 74px;
+  resize: vertical;
+  border: 1px solid #e7e1d6;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: .9rem;
+  line-height: 1.8;
+  color: #2f2a24;
+}
+.abaya-rating-note:focus { outline: none; border-color: #c49b55; }
+.abaya-rating-send {
+  margin: 10px 0 0;
+  border: 0;
+  border-radius: 999px;
+  background: #2f2a24;
+  color: #fff;
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  padding: 9px 30px;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.abaya-rating-send:hover { background: #1f1b16; }
+.abaya-rating-send[hidden] { display: none; }
+.abaya-rating-feedback { margin: 12px 0 0; color: #2f6e4f; font-size: .9rem; font-weight: 600; }
 .abaya-rating-feedback.is-error { color: #a32929; }
 @media (prefers-reduced-motion: reduce) {
-  .abaya-rating-modal { animation: none; }
+  .abaya-rating-modal, .abaya-rating-after { animation: none; }
   .abaya-rating-star { transition: none; }
 }
 
-/* ---------- 3) Cartes cross-sell (/merci/) ---------- */
-.merci-cross-sell { margin: 26px auto 0; max-width: 720px; }
-.merci-cross-sell h2 { margin: 0 0 12px; font-size: 1.1rem; color: #2f2a24; }
-.merci-cross-sell-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.merci-cross-sell-card {
-  display: grid;
-  grid-template-columns: 86px 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 12px;
-  border: 1px solid #e7e1d6;
-  border-radius: 12px;
-  background: #fff;
-  color: inherit;
-  text-decoration: none;
-  transition: border-color .12s ease, box-shadow .12s ease;
-}
-.merci-cross-sell-card:hover { border-color: #c49b55; box-shadow: 0 6px 18px rgba(47, 42, 36, .08); }
-.merci-cross-sell-card img { width: 86px; height: 96px; object-fit: cover; border-radius: 8px; }
-.merci-cross-sell-copy strong, .merci-cross-sell-copy span { display: block; }
-.merci-cross-sell-copy span { margin-top: 4px; color: #792f3c; font-size: .88rem; font-weight: 700; }
+/* ---------- Responsive /merci/ ---------- */
 @media (max-width: 560px) {
-  .merci-cross-sell-grid { grid-template-columns: 1fr; }
   .landing-rating .review-star { width: 26px; height: 26px; }
+  .abaya-rating-star { width: 42px; height: 42px; }
+  .abaya-rating-star svg { width: 34px; height: 34px; }
 }
