@@ -897,7 +897,7 @@ add_filter('template_include', function ($template) {
     return $template;
 }, 99);
 
-/* ---------- Badge étoiles sous le H1 (landings secondaires uniquement) ---------- */
+/* ---------- Badge étoiles sous le H1 (toutes les landings — mandat 4P LP) ---------- */
 
 /** Moyenne calculée dynamiquement depuis la base : avis de type « review » approuvés. */
 function abaya_review_summary() {
@@ -915,28 +915,41 @@ function abaya_review_summary() {
     return ['count' => $count, 'average' => $count ? $sum / $count : 0];
 }
 
-/** Badge étoiles sous le H1 : composant visuel réutilisé de la section avis
- *  (étoiles dorées .review-star), agrandi et mis en valeur, note moyenne
- *  chiffrée issue de la base. Ne doit PAS être rendu sur la racine (rendu
- *  de l'offre vedette inchangé bit-à-bit). */
+/** Badge étoiles sous le H1 (mandat 4P LP « Ajustement Final & Badge Étoiles ») :
+ *  5 étoiles SVG au FORMAT EXACT du composant de la section avis
+ *  (#avis-clients .review-card-stars svg : même <path>, même viewBox="0 0 24 24",
+ *  classes .review-star / .review-star.is-empty identiques) — garnies
+ *  dynamiquement selon la moyenne calculée depuis la base de données
+ *  (avis « review » approuvés) : couche grise + couche dorée clippée à
+ *  --rating-fill % (fraction de la moyenne, ex. 4.9/5 → 98 %).
+ *  ISOLATION : seul le markup SVG est réutilisé — aucun texte, aucune carte
+ *  ni formulaire de la section avis n'est dupliqué. Rendu sur la landing
+ *  principale ET les 3 landings secondaires. */
 function abaya_render_rating_summary() {
     $summary = abaya_review_summary();
     $average = (float) $summary['average'];
     $score   = number_format($average, 1, '.', '');
     $fill    = $average / 5 * 100;
+    /* Markup SVG : copie CONFORME de l'étoile de la section avis (functions.php
+     * abaya_render_review_card) — path et viewBox identiques au caractère près. */
+    $abaya_star_svg = '<svg class="review-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg>';
+    $abaya_star_empty = str_replace('class="review-star"', 'class="review-star is-empty"', $abaya_star_svg);
     echo '<div class="landing-rating" role="img" data-average="' . esc_attr($average) . '" data-count="' . esc_attr($summary['count']) . '" aria-label="' . esc_attr($score) . ' / 5">';
-    echo '<span class="landing-rating-stars" dir="ltr" style="--rating-fill:' . esc_attr($fill) . '%" aria-hidden="true">★★★★★</span>';
+    echo '<span class="landing-rating-stars" dir="ltr" style="--rating-fill:' . esc_attr($fill) . '%" aria-hidden="true">';
+    echo '<span class="landing-rating-layer">' . str_repeat($abaya_star_empty, 5) . '</span>';
+    echo '<span class="landing-rating-layer landing-rating-fill">' . str_repeat($abaya_star_svg, 5) . '</span>';
+    echo '</span>';
     echo '<strong class="landing-rating-score">' . esc_html($score) . ' / 5</strong>';
     echo '<span class="landing-rating-count">(' . esc_html(number_format_i18n($summary['count'])) . ' تقييم)</span>';
     echo '</div>';
 }
 
-/* Feuille de style des composants offres (badge étoiles agrandi, pop-up
- * évaluation 1-clic, cross-sell /merci/, code promo). Volontairement NON
- * chargée sur la racine : styles.css du socle inchangé bit-à-bit.
- * Chargée sur les landings secondaires et la page /merci/. */
+/* Feuille de style des composants offres (badge étoiles SVG sous le H1, pop-up
+ * évaluation 1-clic, cross-sell /merci/, code promo). Chargée sur TOUTES les
+ * landings (racine + secondaires — mandat 4P LP : badge étoiles sur la landing
+ * principale également) ainsi que sur la page /merci/. */
 add_action('wp_enqueue_scripts', function () {
-    if (is_page('merci') || (abaya_is_landing_page() && !abaya_is_front_offer())) {
+    if (is_page('merci') || abaya_is_landing_page()) {
         wp_enqueue_style('abaya-offers', get_template_directory_uri() . '/assets/css/offers.css', [], abaya_asset_ver('assets/css/offers.css'));
     }
 }, 20);

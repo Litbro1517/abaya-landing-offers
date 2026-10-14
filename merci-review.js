@@ -20,7 +20,11 @@ const orderId = Number(params.get("order"));
 const orderKey = params.get("key");
 const RATING_DONE_KEY = "abaya_rating_done";
 
-const overlay = document.getElementById("abaya-rating-overlay");
+const overlayHost = document.getElementById("abaya-rating-overlay");
+/* Réassignable : le mode mock peut injecter le pop-up APRES le chargement du
+ * module (prévisualisation locale) — les listeners globaux (Échap, fermeture)
+ * doivent alors viser le pop-up injecté. */
+let overlay = overlayHost;
 const starsBox = document.getElementById("abaya-rating-stars");
 const feedback = document.getElementById("abaya-rating-feedback");
 const closeBtn = document.getElementById("abaya-rating-close");
@@ -161,6 +165,8 @@ if (mockOrder && mockContainer) {
         '<p class="abaya-rating-feedback" id="abaya-rating-feedback" role="status" hidden></p>' +
       '</div>';
     document.body.appendChild(popup);
+    /* Les listeners globaux (Échap, closeRatingPopup) ciblent désormais le pop-up injecté. */
+    overlay = popup;
     /* Contexte mock : coordonnées de la commande simulée. */
     config.ratingCtx = { offer: mockOrder.offer_id, name: mockOrder.customer.full_name || "عميلة", city: mockOrder.customer.city || "المغرب" };
     /* Réattache la logique sur le pop-up injecté. */

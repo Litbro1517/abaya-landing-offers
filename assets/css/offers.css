@@ -1,14 +1,15 @@
 /* =====================================================================
- * Composants OFFRES (mandat multi-landing) — chargé UNIQUEMENT sur les
- * landings secondaires et la page /merci/ (jamais sur la racine : le
- * styles.css du socle et le rendu de l'offre vedette restent inchangés).
- * 1) Badge étoiles sous le H1 — composant réutilisé de la section avis
- *    (étoiles dorées), AGRANDI et mis en valeur, moyenne depuis la BDD.
+ * Composants OFFRES (mandat multi-landing) — chargé sur TOUTES les
+ * landings (racine + secondaires — mandat 4P LP : badge étoiles sur la
+ * landing principale également) et la page /merci/.
+ * 1) Badge étoiles sous le H1 — SVG au FORMAT EXACT de la section avis
+ *    (#avis-clients .review-card-stars svg), garnies dynamiquement depuis
+ *    la moyenne BDD (couche grise + couche dorée clippée).
  * 2) Pop-up d'évaluation « 1-clic » de la page /merci/.
  * 3) Cartes cross-sell de la page /merci/.
  * ===================================================================== */
 
-/* ---------- 1) Badge étoiles sous le H1 (landings secondaires) ---------- */
+/* ---------- 1) Badge étoiles sous le H1 (toutes les landings) ---------- */
 .landing-rating {
   display: flex;
   align-items: center;
@@ -17,24 +18,33 @@
   color: #5c554a;
   font-size: 1rem;
 }
-.landing-rating-stars {
+/* Étoiles SVG = markup exact du composant avis (.review-star) : les couleurs
+ * (doré #c49b55 / gris is-empty) et le rendu volumineux (stroke round +
+ * drop-shadow) viennent des règles du socle. Seule la TAILLE est scopée ici
+ * par .landing-rating pour l'agrandir (~1,4x les cartes d'avis) tout en
+ * surpassant les tailles du socle (critical 15px / styles 22px), quel que
+ * soit l'ordre de chargement des feuilles. */
+.landing-rating .review-star {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+}
+.landing-rating .landing-rating-stars {
   position: relative;
   display: inline-block;
-  color: #ded8ce;
-  font-size: 30px;          /* agrandi : ~2x la taille des étoiles des cartes d'avis */
-  letter-spacing: .1em;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 0;
 }
-.landing-rating-stars::before {
-  content: "★★★★★";
+.landing-rating .landing-rating-layer {
+  display: flex;
+  gap: 4px;
+  width: max-content;   /* aucune contraction des 5 étoiles dans la couche clippée */
+}
+.landing-rating .landing-rating-fill {
   position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
+  top: 0;
+  left: 0;              /* dir="ltr" sur .landing-rating-stars : remplissage gauche → droite */
   width: var(--rating-fill, 0%);
   overflow: hidden;
-  color: #c49b55;           /* doré, identique aux étoiles de la section avis */
-  white-space: nowrap;
 }
 .landing-rating-score { color: #792f3c; font-size: 1.05rem; }
 .landing-rating-count { color: #8a8378; font-size: .9rem; }
@@ -143,5 +153,5 @@
 .merci-cross-sell-copy span { margin-top: 4px; color: #792f3c; font-size: .88rem; font-weight: 700; }
 @media (max-width: 560px) {
   .merci-cross-sell-grid { grid-template-columns: 1fr; }
-  .landing-rating-stars { font-size: 26px; }
+  .landing-rating .review-star { width: 26px; height: 26px; }
 }
