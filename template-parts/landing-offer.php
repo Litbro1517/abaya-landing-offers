@@ -51,11 +51,13 @@ foreach ($cat['colors'] as $color_name => $color_data) :
         <div class="product-info">
           <p class="eyebrow"><span class="eyebrow-line"></span> ABAYA COLLECTION</p>
           <h1 id="product-title"><?php echo esc_html($T['headline']); ?></h1>
-<?php /* Badge étoiles sous le H1 (mandat landing secondaires) : composant visuel
-       réutilisé de la section avis (étoiles dorées), agrandi, moyenne calculée
-       dynamiquement depuis la base de données (avis « review » approuvés).
-       Racine : volontairement ABSENT — rendu de l'offre vedette inchangé bit-à-bit. */
-if (!abaya_is_front_offer()) abaya_render_rating_summary();
+<?php /* Badge étoiles sous le H1 (mandat 4P LP « Ajustement Final ») : 5 étoiles
+       SVG au format exact du composant de la section avis (#avis-clients
+       .review-card-stars svg), garnies dynamiquement selon la moyenne calculée
+       en base de données (avis « review » approuvés). Rendu sur la landing
+       principale ET les 3 landings secondaires ; aucun texte ni formulaire
+       de la section avis n'est dupliqué. */
+abaya_render_rating_summary();
 ?>
           <p class="product-intro"><?php echo esc_html($T['intro']); ?></p>
 

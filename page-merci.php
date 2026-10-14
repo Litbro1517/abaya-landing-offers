@@ -74,7 +74,12 @@ echo '<script>window.ABAYA_MOCK = ' . wp_json_encode([
     'reviewEndpoint' => wp_make_link_relative(rest_url('landing/v1/submit-review')),
     'assetBase'      => get_template_directory_uri() . '/uploads/offers',
     'offers'         => $abaya_mock_offers,
-    'ratingCtx'      => isset($abaya_rating_ctx) ? $abaya_rating_ctx : null,
+    /* FIX mandat 4P LP (déclenchement pop-up) : une closure PHP n'hérite pas
+     * de la portée du gabarit — $abaya_rating_ctx défini plus bas dans ce
+     * fichier était invisible ici (ratingCtx toujours null → le pop-up
+     * 1-clic ne s'ouvrait jamais automatiquement). Lecture via $GLOBALS,
+     * le gabarit s'exécutant à la portée globale (template-loader WP). */
+    'ratingCtx'      => isset($GLOBALS['abaya_rating_ctx']) ? $GLOBALS['abaya_rating_ctx'] : null,
 ]) . ';</script>' . "\n";
 echo '<script type="module" src="' . esc_url(get_template_directory_uri() . '/merci-review.js?ver=' . abaya_asset_ver('merci-review.js')) . '"></script>' . "\n";
 }, 6);
