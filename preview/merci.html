@@ -7,18 +7,20 @@
   <title>Merci | Abaya Collection</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/merci.css" />
-  <script>window.ABAYA_MOCK = { reviewEndpoint: "/wp-json/landing/v1/submit-review", assetBase: "/uploads/uploads/offers", offers: [{id:"produit-1",url:"/produit-1.html",headline:"عباية خريفية من توب لولان – أناقة وانسيابية"},{id:"produit-2",url:"/produit-2.html",headline:"عباية لولان تجمع بين الراحة والأناقة"},{id:"produit-3",url:"/produit-3.html",headline:"عباية لولان بلمسة راقية تناسبك"}] };</script>
+  <script>window.ABAYA_MOCK = { reviewEndpoint: "/wp-json/landing/v1/submit-review", assetBase: "/uploads/uploads/offers", offers: [{id:"produit-1",url:"/produit-1.html#order-form-section",headline:"عباية خريفية من توب لولان – أناقة وانسيابية",price:299,img:"/uploads/uploads/offers/produit-1/hero.webp"},{id:"produit-2",url:"/produit-2.html#order-form-section",headline:"عباية لولان تجمع بين الراحة والأناقة",price:299,img:"/uploads/uploads/offers/produit-2/hero.webp"},{id:"produit-3",url:"/produit-3.html#order-form-section",headline:"عباية لولان بلمسة راقية تناسبك",price:299,img:"/uploads/uploads/offers/produit-3/hero.webp"}] };</script>
   <script type="module" src="/merci.js"></script>
 </head>
 <body class="merci-body">
   <header class="site-header"><a href="/" aria-label="Abaya Collection"><img src="/assets/images/logo-header-color.svg" alt="Abaya Collection" class="header-logo-svg" /></a></header>
   <main class="merci-page">
     <div id="mock-thanks-container" hidden></div>
-    <section class="merci-card" data-generic-thanks>
-      <div class="merci-check" aria-hidden="true">✓</div>
-      <h1>شكراً لكِ</h1>
-      <p class="merci-lead">لا توجد تفاصيل طلب تجريبي صالحة في هذا الرابط.</p>
-      <a class="merci-home" href="/">العودة إلى المتجر</a>
+    <section class="merci-generic" data-generic-thanks>
+      <header class="merci-head">
+        <span class="merci-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
+        <h1>شكراً لكِ! تم استلام طلبكِ</h1>
+        <p class="merci-lead">لا توجد تفاصيل طلب تجريبي صالحة في هذا الرابط.</p>
+      </header>
+      <p class="merci-wa-line"><a class="merci-wa" href="/">العودة إلى المتجر</a></p>
     </section>
   </main>
 </body>
