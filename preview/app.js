@@ -37,6 +37,22 @@ function refreshLandingRating() {
 window.addEventListener("pageshow", refreshLandingRating);
 window.addEventListener("storage", refreshLandingRating);
 
+/* Découplage étoiles/avis (mandat fix/rating-comments-decoupling) : mise à jour
+   immédiate du score global sous le H1 depuis la réponse du serveur réel —
+   indépendamment du corps du commentaire et de sa modération. */
+function updateRatingBadge(out) {
+  const average = Number(out?.average);
+  const count = Number(out?.count);
+  if (!ratingElement || !Number.isFinite(average) || average <= 0 || !Number.isFinite(count) || count <= 0) return;
+  const score = average.toFixed(1);
+  ratingElement.dataset.average = String(average);
+  ratingElement.dataset.count = String(count);
+  ratingElement.setAttribute("aria-label", `${score} / 5`);
+  ratingElement.querySelector(".landing-rating-stars")?.style.setProperty("--rating-fill", `${average / 5 * 100}%`);
+  ratingElement.querySelector(".landing-rating-score").textContent = `${score} / 5`;
+  ratingElement.querySelector(".landing-rating-count").textContent = `(${count} تقييم)`;
+}
+
 document.querySelector("#product-title").textContent = currentOffer.title;
 document.querySelector(".photo-tag").textContent = currentOffer.slogan;
 document.querySelector(".product-intro").textContent = currentOffer.intro;
@@ -195,7 +211,11 @@ reviewForm.addEventListener("submit", async (event) => {
       return { success: true, message: "تم حفظ تقييمكِ التجريبي محلياً. شكراً لمساعدتنا على التحسين." };
     });
     if (!result.ok) throw new Error(result.body.message || "تعذر إرسال التقييم الآن.");
+    /* Le badge global sous le H1 est actualisé immédiatement — depuis la
+       réponse serveur (source réelle) ou depuis l'agrégat local (mode mock,
+       toutes les notes, approuvées comme en attente). */
     if (result.mocked) refreshLandingRating();
+    else updateRatingBadge(result.body);
     reviewFeedback.textContent = result.body.message || "شكراً لك! تم استلام تقييمك وسيُنشر بعد المراجعة.";
     reviewFeedback.hidden = false;
     reviewForm.reset();

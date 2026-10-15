@@ -222,6 +222,28 @@ function showReviewFeedback(message, isError = false) {
   reviewFeedback.hidden = false;
 }
 
+/* Découplage étoiles/avis (mandat fix/rating-comments-decoupling) : le score
+   global sous le H1 (Global Score Ratio) est recalculé en base à chaque note
+   et mis à jour IMMÉDIATEMENT depuis la réponse du serveur — indépendamment
+   du corps du commentaire et de sa modération. Le rendu de la section avis
+   reste étanche : seuls les avis textuels validés par l'admin y apparaissent. */
+function updateRatingBadge(out) {
+  const badge = document.querySelector(".landing-rating");
+  const average = Number(out?.average);
+  const count = Number(out?.count);
+  if (!badge || !Number.isFinite(average) || average <= 0 || !Number.isFinite(count) || count <= 0) return;
+  const score = average.toFixed(1);
+  badge.dataset.average = String(average);
+  badge.dataset.count = String(count);
+  badge.setAttribute("aria-label", score + " / 5");
+  const stars = badge.querySelector(".landing-rating-stars");
+  if (stars) stars.style.setProperty("--rating-fill", (average / 5 * 100).toFixed(1) + "%");
+  const scoreEl = badge.querySelector(".landing-rating-score");
+  if (scoreEl) scoreEl.textContent = score + " / 5";
+  const countEl = badge.querySelector(".landing-rating-count");
+  if (countEl) countEl.textContent = "(" + count + " تقييم)";
+}
+
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (reviewSubmitButton?.disabled) return;
@@ -255,9 +277,11 @@ reviewForm.addEventListener("submit", async (event) => {
     const out = await response.json().catch(() => ({}));
     reviewDialog.close();
     if (out.success) {
-      // Enregistré en base avec statut « en attente » : publié après validation manuelle
+      // Enregistré en base avec statut « en attente » pour le texte : publié après validation manuelle.
+      // La note associée alimente déjà la moyenne — badge sous le H1 actualisé immédiatement.
       showReviewFeedback(out.message || "شكراً لك! تم استلام تقييمك وسيُنشر بعد المراجعة.");
       reviewForm.reset();
+      updateRatingBadge(out);
     } else {
       showReviewFeedback(out.message || "حدث خطأ، يرجى المحاولة مرة أخرى.", true);
     }

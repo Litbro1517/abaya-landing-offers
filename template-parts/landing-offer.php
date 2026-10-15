@@ -263,9 +263,16 @@ foreach ($T['trust'] as $trust_index => $trust_item) :
         <p class="review-feedback" id="reviews-feedback" role="status" hidden></p>
         <div class="reviews-list-container" aria-live="polite">
 <?php
-/* Correctif C2 : rendu serveur des avis approuvés (persistance MySQL via wp_insert_comment,
- * type « review », statut « en attente » à la soumission). Plus aucune volatilité au rafraîchissement. */
-$abaya_reviews_args   = ['status' => 'approve', 'type' => 'review', 'number' => 20];
+/* Correctif C2 : rendu serveur des avis (persistance MySQL via wp_insert_comment,
+ * type « review », statut « en attente » à la soumission). Plus aucune volatilité
+ * au rafraîchissement.
+ * Découplage étoiles/avis (mandat fix/rating-comments-decoupling) : la requête
+ * cible les avis approuvés et abaya_render_review_card() impose l'étanchéité
+ * finale — seuls les avis TEXTUELS validés par l'admin s'affichent ; les
+ * évaluations d'étoiles seules (approuvées, sans texte) n'apparaissent jamais
+ * comme cartes partielles/vides. Le nombre est porté à 50 pour que les
+ * enregistrements filtrés ne réduisent pas la fenêtre des cartes visibles. */
+$abaya_reviews_args   = ['status' => 'approve', 'type' => 'review', 'number' => 50];
 $abaya_reviews_target = abaya_reviews_target_post_id();
 if ($abaya_reviews_target) $abaya_reviews_args['post_id'] = $abaya_reviews_target;
 foreach (get_comments($abaya_reviews_args) as $abaya_review) {
