@@ -446,6 +446,17 @@ function abaya_reviews_target_post_id() {
  *  Mandat 4P LP (fix/review-form-fields-and-stars) : affichage « name — city » en bordeaux sous les étoiles,
  *  étoiles dorées volumineuses à sommets arrondis (stroke-linejoin: round + drop-shadow). */
 function abaya_render_review_card($comment) {
+    /* ÉTANCHÉITÉ stricte (mandat « fix/rating-comments-decoupling ») : le listing
+     * « Avis Clients » n'affiche QUE les avis textuels validés par l'administrateur.
+     *  1) rendu conditionné au statut de modération (comment_approved = 1 exigé) ;
+     *  2) texte réel exigé — une évaluation d'étoiles seules (contenu vide ou
+     *     placeholder du 1-clic) alimente le score global sous le H1 mais ne
+     *     génère JAMAIS de carte partielle/vide dans le listing. La liaison
+     *     relationnelle note↔commentaire (même enregistrement + méta « rating »)
+     *     est préservée en base ; seuls les rendus sont découplés. */
+    if ((int) $comment->comment_approved !== 1) return;
+    $abaya_card_text = trim((string) $comment->comment_content);
+    if ($abaya_card_text === '' || $abaya_card_text === 'تقييم بنقرة واحدة') return;
     $rating = (int) get_comment_meta($comment->comment_ID, 'rating', true);
     if ($rating < 1 || $rating > 5) return;
 
@@ -778,7 +789,8 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
     }
 
     // 3b) Mandat multi-landing : offre d'origine de l'avis (méta informationnelle,
-    //     facultative — la moyenne du badge reste calculée sur l'ensemble des avis approuvés).
+    //     facultative — la moyenne du badge agrège TOUTES les notes attribuées,
+    //     indépendamment du corps du commentaire et de la modération).
     $review_offer = sanitize_key((string) $request->get_param('offer'));
     if ($review_offer === '') $review_offer = sanitize_key((string) $request->get_param('offer_id'));
     if ($review_offer !== '' && !isset(abaya_offers()[$review_offer])) $review_offer = '';
@@ -828,12 +840,15 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
     $final_rating = max($existing_rating, $rating);
     $has_text     = ($comment !== '');
 
-    // 4) MODÉRATION INTELLIGENTE (mandat) :
-    //      - étoiles seules + commande validée → comment_approved = 1 (auto-
-    //        approbation immédiate : la moyenne sous le H1 est actualisée
-    //        instantanément — abaya_render_rating_summary() lit la base au rendu) ;
+    // 4) MODÉRATION INTELLIGENTE + DÉCOUPLAGE (mandat fix/rating-comments-decoupling) :
+    //      - étoiles seules + commande validée → comment_approved = 1 : la note
+    //        alimente immédiatement la moyenne sous le H1 via abaya_review_summary()
+    //        (agrégat découplé de la modération) — mais la carte correspondante ne
+    //        s'affiche JAMAIS dans le listing (garde texte réel du renderer) ;
     //      - avis avec texte (nouveau ou DÉJÀ présent) → comment_approved = 0
-    //        (validation administrative — jamais republication sans revue) ;
+    //        (validation administrative — le texte ne s'affiche publiquement
+    //        QUE SI ET SEULEMENT SI validé par l'admin ; la note associée compte
+    //        elle dans la moyenne dès la soumission) ;
     //      - sans contexte commande valide → statu quo anti-spam (0).
     $auto_approve = (!$has_text && !$existing_has_text && $review_order);
     $new_approved = ($has_text || $existing_has_text) ? 0 : ($review_order ? 1 : $existing_approved);
@@ -878,8 +893,9 @@ function abaya_handle_submit_review(WP_REST_Request $request) {
         }
     }
 
-    // 5) Moyenne recalculée depuis la base (avis approuvés) : renvoyée au client
-    //    pour affichage immédiat — c'est la même source que le badge sous le H1.
+    // 5) Moyenne recalculée depuis la base (toutes les notes, indépendamment de
+    //    la modération) : renvoyée au client pour mise à jour immédiate du badge
+    //    sous le H1 — c'est la même source que le rendu serveur du badge.
     $abaya_summary = abaya_review_summary();
 
     // 6) Réponse : message conforme au flux réel (auto-approbation / modération texte /
@@ -986,11 +1002,19 @@ add_filter('template_include', function ($template) {
 
 /* ---------- Badge étoiles sous le H1 (toutes les landings — mandat 4P LP) ---------- */
 
-/** Moyenne calculée dynamiquement depuis la base : avis de type « review » approuvés. */
+/** Moyenne calculée dynamiquement depuis la base — DÉCOUPLÉE de la modération
+ *  (mandat « fix/rating-comments-decoupling ») : le score global sous le H1
+ *  agrège TOUTES les notes de type « review » (approuvées ET en attente),
+ *  indépendamment du corps du commentaire. Chaque note attribuée met à jour la
+ *  moyenne générale immédiatement. Union déterministe approve+hold : le spam et
+ *  la corbeille restent exclus par construction (comment_approved 0 ou 1 seul). */
 function abaya_review_summary() {
     $post_id = abaya_reviews_target_post_id();
     if (!$post_id) return ['count' => 0, 'average' => 0];
-    $reviews = get_comments(['status' => 'approve', 'type' => 'review', 'post_id' => $post_id, 'number' => 0, 'fields' => 'ids']);
+    $reviews = array_merge(
+        get_comments(['status' => 'approve', 'type' => 'review', 'post_id' => $post_id, 'number' => 0, 'fields' => 'ids']),
+        get_comments(['status' => 'hold', 'type' => 'review', 'post_id' => $post_id, 'number' => 0, 'fields' => 'ids'])
+    );
     $sum = 0;
     $count = 0;
     foreach ($reviews as $review_id) {
@@ -1007,8 +1031,9 @@ function abaya_review_summary() {
  *  (#avis-clients .review-card-stars svg : même <path>, même viewBox="0 0 24 24",
  *  classes .review-star / .review-star.is-empty identiques) — garnies
  *  dynamiquement selon la moyenne calculée depuis la base de données
- *  (avis « review » approuvés) : couche grise + couche dorée clippée à
- *  --rating-fill % (fraction de la moyenne, ex. 4.9/5 → 98 %).
+ *  (toutes les notes « review », indépendamment de la modération du texte) :
+ *  couche grise + couche dorée clippée à --rating-fill % (fraction de la
+ *  moyenne, ex. 4.9/5 → 98 %).
  *  ISOLATION : seul le markup SVG est réutilisé — aucun texte, aucune carte
  *  ni formulaire de la section avis n'est dupliqué. Rendu sur la landing
  *  principale ET les 3 landings secondaires. */

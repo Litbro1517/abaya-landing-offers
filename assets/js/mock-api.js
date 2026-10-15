@@ -103,7 +103,15 @@ export function getMockReviews(offerId) {
 }
 
 export function getReviewSummary(offerId, baseAverage = 0, baseCount = 0) {
-  const reviews = getMockReviews(offerId);
+  /* Découplage étoiles/avis (miroir du handler REST) : l'agrégat du score global
+   * porte sur TOUTES les notes (approuvées ET en attente), indépendamment du
+   * corps du commentaire — chaque note attribuée met la moyenne à jour
+   * immédiatement. Le listing public (getMockReviews) reste étanche :
+   * seuls les avis approuvés y sont éligibles. */
+  const reviews = readRows(REVIEW_KEY).filter((review) => {
+    const rating = Number(review.rating);
+    return rating >= 1 && rating <= 5 && (!offerId || review.offer_id === offerId);
+  });
   const count = Number(baseCount) + reviews.length;
   const sum = Number(baseAverage) * Number(baseCount) + reviews.reduce((total, review) => total + Number(review.rating), 0);
   return { count, average: count ? sum / count : 0 };
