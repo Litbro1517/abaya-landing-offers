@@ -230,6 +230,22 @@ add_action('wp_head', function () {
             if ($abaya_wc_product) $landing_config['sku'] = (string) $abaya_wc_product->get_sku();
         }
     }
+    /* Tunnel post-achat (mandat ⑭) : en mode upsell (commande tunnel valide dans
+     * l'URL), la soumission du formulaire AJOUTE une ligne à la commande existante
+     * (route add-to-order) puis ramène à la Thank You Page personnalisée — le
+     * récapitulatif est recalculé serveur. La clé `offer` cible l'offre de la
+     * landing courante (vedette incluse). Clés ADDITIVES : la racine et les
+     * visites sans contexte (redirigées) restent inchangées bit-à-bit. */
+    $abaya_upsell_ctx = function_exists('abaya_upsell_context') ? abaya_upsell_context() : false;
+    if ($abaya_upsell_ctx) {
+        $landing_config['upsell_endpoint'] = wp_make_link_relative(rest_url('landing/v1/add-to-order'));
+        $landing_config['upsell'] = [
+            'order_id'  => (int) $abaya_upsell_ctx['order_id'],
+            'order_key' => (string) $abaya_upsell_ctx['order_key'],
+            'offer'     => $offer['id'],
+            'return'    => (string) $abaya_upsell_ctx['merci_url'],
+        ];
+    }
     ?>
 <script>window.LANDING = <?php echo wp_json_encode($landing_config); ?>;</script>
 <script type="module" src="<?php echo esc_url($base . '/assets/js/app.js?ver=' . abaya_asset_ver('assets/js/app.js')); ?>"></script>
@@ -439,6 +455,95 @@ function abaya_reviews_target_post_id() {
     if ($product_id > 0 && get_post($product_id)) return $product_id;
     return 0;
 }
+
+/* =====================================================================
+ * TUNNEL POST-ACHAT (mandat « fix/post-purchase-navigation-flow »)
+ * ---------------------------------------------------------------------
+ * Résolution partagée d'une commande tunnel à partir du duo order+key.
+ * Gardes identiques au récapitulatif /merci/ (inchangées) : comparaison
+ * timing-safe hash_equals de la clé, commande de moins de 48 h, provenance
+ * du tunnel (created_via = landing-abaya). Source unique consommée par
+ * /merci/, le contexte upsell des landings secondaires et la route
+ * REST add-to-order — plus aucune duplication de cette logique.
+ * ===================================================================== */
+function abaya_resolve_tunnel_order($order_id, $order_key) {
+    if (!function_exists('wc_get_order')) return null;
+    $order_id  = absint($order_id);
+    $order_key = sanitize_text_field((string) $order_key);
+    if ($order_id < 1 || $order_key === '') return null;
+    $abaya_candidate = wc_get_order($order_id);
+    if (!$abaya_candidate || !hash_equals((string) $abaya_candidate->get_order_key(), $order_key)) return null;
+    $abaya_created = $abaya_candidate->get_date_created();
+    $abaya_age     = $abaya_created ? (time() - $abaya_created->getTimestamp()) : PHP_INT_MAX;
+    if ($abaya_age > 48 * HOUR_IN_SECONDS || $abaya_candidate->get_created_via() !== 'landing-abaya') return null;
+    return $abaya_candidate;
+}
+
+/** Contexte upsell d'une landing déverrouillée depuis la Thank You Page
+ *  (mandat ⑭) : la commande tunnel référencée par ?order=&key= est-elle
+ *  valide ? Retourne ['order', 'order_id', 'order_key', 'merci_url'] ou false.
+ *  La racine (offre vedette) est ÉLIGIBLE : c'est la cible de la 3e carte
+ *  upsell quand la commande provient d'une offre secondaire — le rendu par
+ *  défaut (sans duo dans l'URL) reste inchangé bit-à-bit (compat caches v2.0).
+ *  Le résultat est mémoïsé par requête (en-tête + gabarit + config JS
+ *  consomment la même résolution). merci_url = Thank You Page personnalisée. */
+function abaya_upsell_context() {
+    static $abaya_upsell_ctx = null;
+    if ($abaya_upsell_ctx !== null) return $abaya_upsell_ctx;
+    $abaya_upsell_ctx = false;
+    if (is_front_page()) {
+        $abaya_slug = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
+    } elseif (is_page()) {
+        $abaya_slug = (string) get_post_field('post_name', get_queried_object_id());
+    } else {
+        return $abaya_upsell_ctx;
+    }
+    if (!isset(abaya_offers()[$abaya_slug])) return $abaya_upsell_ctx;
+    $abaya_order_id  = isset($_GET['order']) ? absint($_GET['order']) : 0;
+    $abaya_order_key = isset($_GET['key']) ? sanitize_text_field((string) wp_unslash($_GET['key'])) : '';
+    $abaya_order     = abaya_resolve_tunnel_order($abaya_order_id, $abaya_order_key);
+    if (!$abaya_order) return $abaya_upsell_ctx;
+    $abaya_upsell_ctx = [
+        'order'     => $abaya_order,
+        'order_id'  => (int) $abaya_order->get_id(),
+        'order_key' => (string) $abaya_order->get_order_key(),
+        'merci_url' => home_url('/merci/') . '?order=' . rawurlencode((string) $abaya_order->get_id()) . '&key=' . rawurlencode((string) $abaya_order->get_order_key()),
+    ];
+    return $abaya_upsell_ctx;
+}
+
+/* ---------- Landings déverrouillées : déverrouillage par commande tunnel ----------
+ * Mandat ⑭ (isolation des landings d'upsell) : les landings secondaires sont
+ * TOTALEMENT cachées du site public et des publicités.
+ *   - SANS duo order+key valide (visite directe, publicité, robot) : la page
+ *     n'est JAMAIS affichée — redirection 302 vers l'offre vedette (la racine) ;
+ *   - AVEC un contexte upsell valide (arrivée depuis les cartes upsell de la
+ *     Thank You Page) : rendu de la landing + en-têtes no-cache — l'URL porte
+ *     le duo personnel order+key, aucun cache partagé ne doit la servir
+ *     (même posture que /merci/).
+ * La racine reste PUBLIQUE (offre vedette, publicités) : pas de redirection —
+ * mais un duo valide dans son URL active le mode upsell ET impose no-cache
+ * (les clés personnalitées ne doivent jamais être servies depuis un cache
+ * partagé ; le rendu par défaut sans duo reste inchangé et cacheable). */
+function abaya_gate_secondary_landing() {
+    if (!is_page()) {
+        if (is_front_page() && abaya_upsell_context()) {
+            nocache_headers();
+            do_action('litespeed_control_set_nocache');
+        }
+        return;
+    }
+    $abaya_slug = (string) get_post_field('post_name', get_queried_object_id());
+    if (!isset(abaya_offers()[$abaya_slug]) || abaya_is_front_offer($abaya_slug)) return;
+    if (abaya_upsell_context()) {
+        nocache_headers();
+        do_action('litespeed_control_set_nocache');
+        return;
+    }
+    wp_safe_redirect(home_url('/'), 302);
+    exit;
+}
+add_action('template_redirect', 'abaya_gate_secondary_landing', 5);
 
 /** Rendu serveur d'une carte d'avis — structure DOM identique à celle construite par app.js (.review-card).
  *  Inclut les réponses validées de la boutique (commentaires enfants approuvés) sous chaque avis client,
@@ -753,9 +858,154 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     ]);
 }
 
-/* ---------- Route 2 : soumission d'avis clients (persistance MySQL + modération
- *            intelligente — mandat « Thank You Page Redesign ») ---------- */
+/* ---------- Route 2 : ajout upsell à une commande tunnel existante (mandat ⑭) ----------
+ * Consommée par les landings secondaires déverrouillées depuis la Thank You
+ * Page (window.LANDING.upsell) : la soumission complète la COMMANDE EXISTANTE
+ * au lieu de créer un ticket séparé — le récapitulatif /merci/ se met à jour
+ * dynamiquement au retour. Mêmes gardes que create-order : champ piège,
+ * prix AUTORITAIRE du registre, whitelist catalogue de l'offre, anti-flood.
+ * Idempotence par event_id porté en méta de ligne (retry / double-clic). */
 
+function abaya_handle_add_to_order(WP_REST_Request $request) {
+    // 1) Champ piège anti-robots (input « extra_note » masqué côté front) : doit rester vide.
+    if (trim((string) $request->get_param('website_hp')) !== '') {
+        return new WP_Error('abaya_spam', 'تم رفض الطلب.', ['status' => 400]);
+    }
+
+    // 2) WooCommerce doit être actif.
+    if (!function_exists('wc_get_order') || !function_exists('wc_get_product')) {
+        return new WP_Error('abaya_no_woocommerce', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
+    }
+
+    // 3) Commande tunnel : résolution partagée (hash_equals + < 48 h + created_via).
+    $order = abaya_resolve_tunnel_order($request->get_param('order_id'), $request->get_param('order_key'));
+    if (!$order) {
+        return new WP_Error('abaya_bad_order', 'انتهت صلاحية رابط الطلب. يرجى الاتصال بنا.', ['status' => 403]);
+    }
+
+    // 4) Anti-flood : même quota que la création de commande (5 / 10 min / IP).
+    if (!abaya_rate_limit('order', 5, 10 * MINUTE_IN_SECONDS)) {
+        return new WP_Error('abaya_rate_limited', 'عدد كبير من المحاولات. يرجى المحاولة بعد قليل.', ['status' => 429]);
+    }
+
+    // 5) Offre upsell : paramètre `offer` obligatoire et connu du registre.
+    $offer_param = sanitize_key(trim((string) $request->get_param('offer')));
+    $offer = $offer_param !== '' ? abaya_offer_config($offer_param) : null;
+    if (!$offer || (int) $offer['product_id'] < 1) {
+        return new WP_Error('abaya_bad_product', 'خطأ في إعداد العرض. يرجى الاتصال بنا.', ['status' => 500]);
+    }
+    $product_id = (int) $offer['product_id'];
+
+    // 6) Idempotence (P1-2, portée commande) : une ligne ajoutée porte son
+    //    event_id en méta — le même event_id ne crée JAMAIS une seconde ligne
+    //    (retry réseau, double-clic). Réponse idempotente sans recalcul.
+    $client_event_id = sanitize_text_field((string) $request->get_param('event_id'));
+    if ($client_event_id !== '') {
+        foreach ($order->get_items() as $abaya_existing_item) {
+            if ((string) $abaya_existing_item->get_meta('_abaya_upsell_event') === $client_event_id) {
+                return rest_ensure_response([
+                    'success'     => true,
+                    'order_id'    => $order->get_id(),
+                    'value'       => (float) $order->get_total(),
+                    'added_value' => (float) $abaya_existing_item->get_total(),
+                    'event_id'    => $client_event_id,
+                    'product_id'  => $product_id,
+                    'offer'       => $offer['id'],
+                    'order_key'   => $order->get_order_key(),
+                    'duplicate'   => true,
+                ]);
+            }
+        }
+    }
+
+    // 7) Whitelist catalogue de CETTE offre (P0-2) + stock épuisé (v1.10).
+    $cat   = abaya_catalog($offer['id']);
+    $color = sanitize_text_field((string) $request->get_param('color'));
+    $size  = sanitize_text_field((string) $request->get_param('size'));
+    if (!isset($cat['colors'][$color]) || !in_array($size, $cat['sizes'], true)) {
+        return new WP_Error('abaya_invalid_field', 'يرجى اختيار اللون والمقاس بشكل صحيح.', ['status' => 422]);
+    }
+    if (!empty($cat['colors'][$color]['out_of_stock'])) {
+        return new WP_Error('abaya_out_of_stock', 'غير متوفر حالياً في هذا اللون — يرجى اختيار لون آخر.', ['status' => 422]);
+    }
+
+    // 8) Prix AUTORITAIRE du serveur : la grille abaya_catalog() fait foi.
+    $quantity = max(1, min(3, (int) $request->get_param('quantity')));
+    if (!isset($cat['bundles'][$quantity])) {
+        return new WP_Error('abaya_invalid_field', 'يرجى اختيار العرض المناسب.', ['status' => 422]);
+    }
+    $price = (float) $cat['bundles'][$quantity];
+
+    $product = wc_get_product($product_id);
+    if (!$product) {
+        return new WP_Error('abaya_bad_product', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
+    }
+
+    // 9) event_id de déduplication Pixel/CAPI : navigateur, sinon généré serveur.
+    $event_id = $client_event_id !== '' ? $client_event_id : 'upsell_' . time() . '_' . wp_generate_password(8, false, false);
+    $page_url = esc_url_raw((string) $request->get_param('page_url'));
+
+    // 10) Ligne additionnelle sur la MÊME commande (Item Meta traçable, mêmes
+    //     conventions lisibles que create-order + traçabilité upsell).
+    $item_id = $order->add_product($product, $quantity, ['subtotal' => $price, 'total' => $price]);
+    $item    = $item_id ? $order->get_item($item_id) : null;
+    if (!$item) {
+        return new WP_Error('abaya_order_failed', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
+    }
+    $item->add_meta_data('اللون', $color, true);
+    $item->add_meta_data('المقاس', $size, true);
+    $item->add_meta_data('Offre', $offer['name'], true);
+    if ((string) $product->get_sku() !== '') $item->add_meta_data('SKU', (string) $product->get_sku(), true);
+    $item->add_meta_data('_abaya_upsell_event', $event_id, true);
+    $item->add_meta_data('_abaya_upsell_offer', $offer['id'], true);
+    $item->save();
+
+    // 11) Totaux recalculés sur la commande existante + note service client.
+    $order->calculate_totals();
+    $order->add_order_note(sprintf(
+        'Upsell tunnel (%1$s) — اللون : %2$s · المقاس : %3$s · %4$d pièce(s) — %5$.0f MAD — ajouté à la commande #%6$d · event_id : %7$s',
+        $offer['id'],
+        $color,
+        $size,
+        $quantity,
+        $price,
+        $order->get_id(),
+        $event_id
+    ));
+    $order->save();
+
+    // 12) CAPI : Purchase additionnel (valeur = ligne ajoutée, event_id dédupliqué
+    //     avec le Pixel) — le listener existant est réutilisé tel quel.
+    do_action('abaya_order_created', [
+        'event_id'   => $event_id,
+        'value'      => $price,
+        'full_name'  => trim((string) $order->get_billing_first_name() . ' ' . (string) $order->get_billing_last_name()),
+        'phone'      => (string) $order->get_billing_phone(),
+        'city'       => (string) $order->get_billing_city(),
+        'page_url'   => $page_url !== '' ? $page_url : home_url('/'),
+        'fbp'        => isset($_COOKIE['_fbp']) ? (string) $_COOKIE['_fbp'] : '',
+        'fbc'        => isset($_COOKIE['_fbc']) ? (string) $_COOKIE['_fbc'] : '',
+        'product_id' => $product_id,
+        'order_id'   => $order->get_id(),
+    ], $order);
+
+    // 13) Réponse : value = NOUVEAU total de la commande — le retour /merci/
+    //     recalcule le récapitulatif depuis la base (source unique).
+    return rest_ensure_response([
+        'success'     => true,
+        'order_id'    => $order->get_id(),
+        'value'       => (float) $order->get_total(),
+        'added_value' => $price,
+        'event_id'    => $event_id,
+        'product_id'  => $product_id,
+        'offer'       => $offer['id'],
+        'order_key'   => $order->get_order_key(),
+        'duplicate'   => false,
+    ]);
+}
+
+/* ---------- Route 3 : soumission d'avis clients (persistance MySQL + modération
+ *            intelligente — mandat « Thank You Page Redesign ») ---------- */
 function abaya_handle_submit_review(WP_REST_Request $request) {
     // 1) Anti-flood : maximum 3 avis par tranche de 10 minutes et par IP.
     if (!abaya_rate_limit('review', 3, 10 * MINUTE_IN_SECONDS)) {
@@ -918,6 +1168,11 @@ add_action('rest_api_init', function () {
     register_rest_route('landing/v1', '/create-order', [
         'methods'             => WP_REST_Server::CREATABLE,
         'callback'            => 'abaya_handle_create_order',
+        'permission_callback' => '__return_true',
+    ]);
+    register_rest_route('landing/v1', '/add-to-order', [
+        'methods'             => WP_REST_Server::CREATABLE,
+        'callback'            => 'abaya_handle_add_to_order',
         'permission_callback' => '__return_true',
     ]);
     register_rest_route('landing/v1', '/submit-review', [

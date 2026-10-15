@@ -230,15 +230,28 @@ if (mockOrder && mockContainer) {
   const address = [mockOrder.customer.address, mockOrder.customer.city].filter(Boolean).join("، ") || "—";
   const promoCode = [fullName.split(/\s+/)[0] || "CLIENTE", mockOrder.customer.city || "MAROC", "#" + mockOrder.order_id].filter(Boolean).join("-");
 
+  /* Tunnel post-achat (mandat ⑭) : bandeau de confirmation au retour d'un
+   * ajout upsell réussi (?added=1) — miroir du rendu natif. */
+  const addedBanner = new URLSearchParams(location.search).get("added")
+    ? '<div class="merci-added" role="status"><span aria-hidden="true">✓</span> تمت إضافة المنتج إلى طلبكِ بنجاح — المجموع المحدَّث أدناه</div>'
+    : "";
+
   /* Récapitulatif en mode mock : miroir EXACT du design « maquette Canva 4PLP »
    * (carte blanche + logo شكراً, pastille n° commande, tableau 4 colonnes avec
    * cellule image, bloc cadeau turquoise, WhatsApp officiel, upsell 3:5). */
   const dh = (n) => "DH " + String(n);
   const logoSrc = config.logo || "";
+  /* Mandat ⑭ : les offres déjà ajoutées à la commande (upsell mock) disparaissent
+   * des cartes — chaque lien porte le duo order+key (déverrouillage de la
+   * landing cible, vedette = racine). */
+  const purchasedOffers = [mockOrder.offer_id].concat(mockOrder.upsell_offers || []);
+  const upsellQuery = orderId && orderKey
+    ? "?order=" + encodeURIComponent(String(orderId)) + "&key=" + encodeURIComponent(String(orderKey))
+    : "";
   const otherOffers = (config.offers || [])
-    .filter((offer) => offer.id !== mockOrder.offer_id)
+    .filter((offer) => !purchasedOffers.includes(offer.id))
     .map((offer) =>
-      '<a class="merci-upsell-item" href="' + escapeHtml(offer.url || ("/" + encodeURIComponent(offer.id) + "/")) + '">' +
+      '<a class="merci-upsell-item" href="' + escapeHtml((offer.url || ("/" + encodeURIComponent(offer.id) + "/")).split("#")[0] + upsellQuery + "#order-form-section") + '">' +
       '<span class="merci-upsell-frame"><img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" loading="lazy" /></span>' +
       '<strong class="merci-upsell-name">' + escapeHtml(offer.headline) + '</strong>' +
       '<span class="merci-upsell-price"><bdi dir="ltr">' + escapeHtml(dh(offer.price || 299)) + '</bdi></span>' +
@@ -251,7 +264,7 @@ if (mockOrder && mockContainer) {
       '<h1 id="mock-thanks-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>' +
       '<p class="merci-lead">طلب تجريبي محفوظ محلياً على هذا المتصفح فقط؛ لم يُرسل طلب إلى المتجر.</p>' +
       '<p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#' + escapeHtml(String(mockOrder.order_id)) + '</strong></p>' +
-    '</header>' +
+    '</header>' + addedBanner +
     '<section class="merci-sec" aria-label="تفاصيل الطلب">' +
       '<h2 class="merci-sec-title">تفاصيل الطلب</h2>' +
       '<div class="merci-order"><div class="merci-table"><table><thead><tr><th scope="col">المنتج</th><th scope="col">اللون / المقاس</th><th scope="col">الكمية</th><th scope="col">السعر</th></tr></thead><tbody>' +
