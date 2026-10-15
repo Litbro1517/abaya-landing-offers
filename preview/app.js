@@ -1,4 +1,4 @@
-import { createMockOrder, getReviewSummary, postWithLocalFallback, saveMockReview } from "./mock-api.js";
+import { addToMockOrder, createMockOrder, getReviewSummary, postWithLocalFallback, saveMockReview } from "./mock-api.js";
 
 const mainPhoto = document.querySelector("#main-photo");
 const thumbnails = [...document.querySelectorAll(".thumbnail")];
@@ -283,11 +283,26 @@ orderForm.addEventListener("submit", async (event) => {
     sku: productSku,
     value: bundlePrices[state.quantity],
   };
+  /* Tunnel post-achat (mandat ⑭) : landings secondaires déverrouillées depuis
+   * la Thank You Page (?order=&key=) — la soumission AJOUTE à la commande
+   * existante (miroir add-to-order) puis ramène à la Thank You Page : le
+   * récapitulatif mock se met à jour (bandeau + total). */
+  const upsellParams = new URLSearchParams(location.search);
+  const upsellOrderId = Number(upsellParams.get("order")) || 0;
+  const upsellOrderKey = upsellParams.get("key") || "";
+  const isUpsell = upsellOrderId > 0 && upsellOrderKey !== "";
+  if (isUpsell) {
+    payload.order_id = upsellOrderId;
+    payload.order_key = upsellOrderKey;
+  }
   try {
-    const result = await postWithLocalFallback("/wp-json/landing/v1/create-order", payload, createMockOrder);
+    const result = isUpsell
+      ? await postWithLocalFallback("/wp-json/landing/v1/add-to-order", payload, addToMockOrder)
+      : await postWithLocalFallback("/wp-json/landing/v1/create-order", payload, createMockOrder);
     if (!result.ok || !result.body.success) throw new Error(result.body.message || "حدث خطأ، يرجى المحاولة مرة أخرى.");
     const out = result.body;
-    const query = new URLSearchParams({ order: String(out.order_id), key: out.order_key });
+    const query = new URLSearchParams({ order: String(isUpsell ? upsellOrderId : out.order_id), key: isUpsell ? upsellOrderKey : out.order_key });
+    if (isUpsell) query.set("added", "1");
     window.location.assign("/merci.html?" + query.toString());
   } catch (error) {
     submitButton.disabled = false;

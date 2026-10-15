@@ -58,6 +58,9 @@ body { background: #FAF7F2; }
 .merci-order-pill { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0; background: #F4E6E9; color: #6B1D2F; border-radius: 999px; padding: 7px 22px; font-size: .86rem; font-weight: 600; }
 .merci-order-pill strong { font-weight: 700; letter-spacing: .3px; }
 
+/* ---- Bandeau de confirmation upsell (retour d'ajout à la commande) ---- */
+.merci-added { display: flex; align-items: center; gap: 8px; margin: 0 26px; padding: 10px 16px; background: #E8F1F2; color: #3D8A95; border: 1px solid #4D9AA4; border-radius: 10px; font-weight: 700; font-size: .86rem; line-height: 1.7; }
+
 /* ---- Sections internes : séparateur fin pleine largeur + titre à barre ---- */
 .merci-sec { padding: 24px 26px 26px; border-top: 1px solid #F3ECE3; }
 .merci-sec-title { display: flex; align-items: center; gap: 12px; color: #6B1D2F; font-size: 1.02rem; margin: 0 0 18px; }
@@ -134,6 +137,7 @@ body { background: #FAF7F2; }
   .merci-head { padding: 26px 16px 22px; }
   .merci-logo { width: 80px; height: 80px; }
   .merci-head h1 { font-size: 1.14rem; }
+  .merci-added { margin: 0 16px; font-size: .8rem; }
   .merci-sec, .merci-upsell { padding-inline: 16px; }
   .merci-order { gap: 10px; }
   .merci-order table { font-size: .8rem; }
@@ -153,24 +157,19 @@ body { background: #FAF7F2; }
 <?php
 /* Mandat multi-landing + simulation dev (mock-api.js) : config exposée à
  * merci-review.js. Le mock n'agit QUE si le serveur WordPress est injoignable
- * (404/50x réseau) — compatibilité native en production. */
-$abaya_mock_offers = [];
-foreach (abaya_offers() as $abaya_mock_entry) {
-    $abaya_mock_offers[] = [
-        'id'       => $abaya_mock_entry['id'],
-        'url'      => home_url('/' . $abaya_mock_entry['id'] . '/#order-form-section'),
-        'headline' => $abaya_mock_entry['texts']['headline'],
-        'price'    => (int) $abaya_mock_entry['bundles'][1],
-        'img'      => get_template_directory_uri() . '/' . $abaya_mock_entry['images']['lcp'],
-    ];
-}
+ * (404/50x réseau) — compatibilité native en production.
+ * La liste des offres est construite APRÈS résolution de la commande (bas de
+ * ce gabarit, stockée en $GLOBALS['abaya_mock_offers']) — une closure PHP
+ * n'hérite pas de la portée du gabarit : même pattern que ratingCtx. Les
+ * liens upsell du mock portent ainsi le même duo order+key que le rendu réel
+ * (déverrouillage cohérent des landings secondaires, mandat ⑭). */
 echo '<script>window.ABAYA_MOCK = ' . wp_json_encode([
     'reviewEndpoint' => wp_make_link_relative(rest_url('landing/v1/submit-review')),
     'assetBase'      => get_template_directory_uri() . '/uploads/offers',
     /* Maquette Canva 4PLP : logo calligraphié شكراً (WebP, bordeaux sur blanc)
      * — utilisé par le gabarit natif ET par le design injecté en mode mock. */
     'logo'           => get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp',
-    'offers'         => $abaya_mock_offers,
+    'offers'         => isset($GLOBALS['abaya_mock_offers']) ? $GLOBALS['abaya_mock_offers'] : [],
     /* FIX mandat 4P LP (déclenchement pop-up) : une closure PHP n'hérite pas
      * de la portée du gabarit — $abaya_rating_ctx défini plus bas dans ce
      * fichier était invisible ici (ratingCtx toujours null → le pop-up
@@ -184,20 +183,17 @@ echo '<script type="module" src="' . esc_url(get_template_directory_uri() . '/me
 /* Numéro WhatsApp du service client (identique à la landing). */
 $abaya_wa_number = '212698738664';
 
-/* ---- Validation de l'accès au récapitulatif (aucune fuite sans clé valide) ---- */
+/* ---- Validation de l'accès au récapitulatif (aucune fuite sans clé valide) ----
+ * Tunnel post-achat (mandat ⑭) : la garde est le résolveur PARTAGÉ
+ * abaya_resolve_tunnel_order() — hash_equals timing-safe + < 48 h +
+ * created_via = landing-abaya — consommé également par le contexte upsell
+ * des landings secondaires et la route REST add-to-order. */
 $abaya_order     = null;
 $abaya_order_id  = isset($_GET['order']) ? absint($_GET['order']) : 0;
 $abaya_order_key = isset($_GET['key']) ? sanitize_text_field((string) wp_unslash($_GET['key'])) : '';
 
-if ($abaya_order_id > 0 && $abaya_order_key !== '' && function_exists('wc_get_order')) {
-    $abaya_candidate = wc_get_order($abaya_order_id);
-    if ($abaya_candidate && hash_equals((string) $abaya_candidate->get_order_key(), $abaya_order_key)) {
-        $abaya_created = $abaya_candidate->get_date_created();
-        $abaya_age     = $abaya_created ? (time() - $abaya_created->getTimestamp()) : PHP_INT_MAX;
-        if ($abaya_age <= 48 * HOUR_IN_SECONDS && $abaya_candidate->get_created_via() === 'landing-abaya') {
-            $abaya_order = $abaya_candidate;
-        }
-    }
+if ($abaya_order_id > 0 && $abaya_order_key !== '') {
+    $abaya_order = function_exists('abaya_resolve_tunnel_order') ? abaya_resolve_tunnel_order($abaya_order_id, $abaya_order_key) : null;
 }
 
 if ($abaya_order) {
@@ -285,12 +281,20 @@ if ($abaya_order) {
     $abaya_promo_code   = mb_strtoupper($abaya_promo_prenom . '-' . $abaya_promo_ville . '-' . $abaya_promo_num, 'UTF-8');
 
     /* Upsell (maquette Canva : EXACTEMENT 3 produits au format vertical) :
-     * toutes les offres du registre SAUF celle de la commande (le registre
-     * compte 4 offres → 3 verticales). Badge « تخفيض خاص » + ancien prix
-     * barrés OPTIONNELS : clés de registre cross_badge / cross_old_price. */
+     * toutes les offres du registre SAUF celles déjà présentes dans la
+     * commande (mandat ⑭ : l'offre d'origine ET les offres ajoutées en upsell
+     * via le méta de ligne _abaya_upsell_offer disparaissent des cartes — le
+     * tableau récapitulatif devient la source de vérité, aucun produit déjà
+     * acheté n'est re-proposé). Badge « تخفيض خاص » + ancien prix barrés
+     * OPTIONNELS : clés de registre cross_badge / cross_old_price. */
+    $abaya_purchased_offers = [$abaya_offer_id];
+    foreach ($abaya_order->get_items() as $abaya_item) {
+        $abaya_item_offer = (string) $abaya_item->get_meta('_abaya_upsell_offer');
+        if ($abaya_item_offer !== '' && isset(abaya_offers()[$abaya_item_offer])) $abaya_purchased_offers[] = $abaya_item_offer;
+    }
     $abaya_cross_offers = [];
     foreach (abaya_offers() as $abaya_cross_id => $abaya_cross_entry) {
-        if ($abaya_cross_id === $abaya_offer_id) continue;
+        if (in_array($abaya_cross_id, $abaya_purchased_offers, true)) continue;
         if ($abaya_offer['cross_sell'] !== [] && !in_array($abaya_cross_id, $abaya_offer['cross_sell'], true)) continue;
         $abaya_cross_offers[$abaya_cross_id] = $abaya_cross_entry;
     }
@@ -308,6 +312,27 @@ if ($abaya_order) {
     ];
 }
 
+/* Config mock (dev) : construite APRÈS résolution de la commande et stockée
+ * en $GLOBALS (lue par la closure wp_head au-dessus) — les liens upsell du
+ * mock portent le duo order+key réel quand une commande est validée. La
+ * carte de l'offre vedette vise la RACINE (aucune page /accueil/ — 404). */
+$abaya_front_slug = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
+$abaya_mock_offers = [];
+foreach (abaya_offers() as $abaya_mock_entry) {
+    $abaya_mock_base = ($abaya_mock_entry['id'] === $abaya_front_slug) ? home_url('/') : home_url('/' . $abaya_mock_entry['id'] . '/');
+    $abaya_mock_url  = $abaya_order
+        ? add_query_arg(['order' => $abaya_order->get_id(), 'key' => $abaya_order->get_order_key()], $abaya_mock_base) . '#order-form-section'
+        : $abaya_mock_base . '#order-form-section';
+    $abaya_mock_offers[] = [
+        'id'       => $abaya_mock_entry['id'],
+        'url'      => $abaya_mock_url,
+        'headline' => $abaya_mock_entry['texts']['headline'],
+        'price'    => (int) $abaya_mock_entry['bundles'][1],
+        'img'      => get_template_directory_uri() . '/' . $abaya_mock_entry['images']['lcp'],
+    ];
+}
+$GLOBALS['abaya_mock_offers'] = $abaya_mock_offers;
+
 get_header();
 ?>
 <main class="merci-page">
@@ -319,6 +344,13 @@ get_header();
     <p class="merci-lead">سنتصل بكِ هاتفياً في أقرب وقت لتأكيد طلبكِ قبل الشحن. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     <p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#<?php echo esc_html($abaya_order->get_order_number()); ?></strong></p>
   </header>
+
+<?php /* Tunnel post-achat (mandat ⑭) : retour d'une ajout upsell réussi —
+       la commande a été complétée, le récapitulatif ci-dessous est recalculé
+       serveur depuis la même commande (même duo order+key). */ ?>
+<?php if (!empty($_GET['added'])) : ?>
+  <div class="merci-added" role="status"><span aria-hidden="true">✓</span> تمت إضافة المنتج إلى طلبكِ بنجاح — المجموع المحدَّث أدناه</div>
+<?php endif; ?>
 
   <?php /* ---- تفاصيل الطلب : tableau 4 colonnes épuré + image produit à côté ---- */ ?>
   <section class="merci-sec" aria-label="تفاصيل الطلب">
@@ -395,8 +427,12 @@ get_header();
 <?php foreach ($abaya_cross_offers as $abaya_cross_id => $abaya_cross_entry) :
         $abaya_cross_badge = isset($abaya_cross_entry['cross_badge']) ? (string) $abaya_cross_entry['cross_badge'] : '';
         $abaya_cross_old   = isset($abaya_cross_entry['cross_old_price']) ? (float) $abaya_cross_entry['cross_old_price'] : 0.0;
+        /* Mandat ⑭ : la carte de l'offre vedette vise la RACINE (aucune page
+         * /accueil/ — l'ancien href /accueil/ était un 404) ; le duo order+key
+         * déverrouille le mode upsell de la landing ciblée. */
+        $abaya_cross_base = ($abaya_cross_id === (defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil')) ? home_url('/') : home_url('/' . $abaya_cross_id . '/');
 ?>
-      <a class="merci-upsell-item" href="<?php echo esc_url(home_url('/' . $abaya_cross_id . '/#order-form-section')); ?>">
+      <a class="merci-upsell-item" href="<?php echo esc_url(add_query_arg(['order' => $abaya_order->get_id(), 'key' => $abaya_order->get_order_key()], $abaya_cross_base) . '#order-form-section'); ?>">
         <span class="merci-upsell-frame">
 <?php if ($abaya_cross_badge !== '') : ?>
           <span class="merci-upsell-badge"><?php echo esc_html($abaya_cross_badge); ?></span>

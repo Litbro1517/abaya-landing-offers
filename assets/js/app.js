@@ -304,6 +304,13 @@ orderForm.querySelectorAll(".form-field input, .form-field select").forEach((fie
 });
 
 const LANDING_ENDPOINT = LANDING.endpoint;
+// Tunnel post-achat (mandat ⑭) : sur une landing secondaire déverrouillée
+// depuis la Thank You Page (?order=&key= valide), la soumission AJOUTE une
+// ligne à la commande existante (route add-to-order) puis ramène à la Thank
+// You Page personnalisée — le récapitulatif est recalculé serveur. La racine
+// et les landings sans contexte suivent le flux create-order historique.
+const UPSELL = LANDING.upsell || null;
+const UPSELL_ENDPOINT = LANDING.upsell_endpoint || "";
 const submitButton = orderForm.querySelector(".form-submit");
 const submitLabel = submitButton.textContent;
 // Un seul event_id par chargement de page : un nouvel essai ne crée jamais de doublon
@@ -383,7 +390,8 @@ orderForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!LANDING_ENDPOINT) {
+  const isUpsell = Boolean(UPSELL && UPSELL_ENDPOINT);
+  if (!isUpsell && !LANDING_ENDPOINT) {
     showFormError("خطأ في الإعداد. يرجى الاتصال بنا هاتفياً.");
     return;
   }
@@ -411,9 +419,17 @@ orderForm.addEventListener("submit", async (event) => {
    * Racine : aucun paramètre — « offer absent = offre n°1 » (compat caches). */
   if (LANDING.offer_id) payload.offer = LANDING.offer_id;
   if (LANDING.sku) payload.sku = LANDING.sku;
+  /* Mandat ⑭ : en mode upsell, la ligne est rattachée à la commande tunnel
+   * référencée (même garde serveur que /merci/ : hash_equals + 48 h) et
+   * l'offre cible est celle de la landing courante (vedette incluse). */
+  if (isUpsell) {
+    payload.order_id = UPSELL.order_id;
+    payload.order_key = UPSELL.order_key;
+    if (UPSELL.offer) payload.offer = UPSELL.offer;
+  }
 
   try {
-    const response = await fetch(LANDING.endpoint, {
+    const response = await fetch(isUpsell ? UPSELL_ENDPOINT : LANDING_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin", // envoie les cookies _fbp / _fbc au serveur
@@ -430,6 +446,16 @@ orderForm.addEventListener("submit", async (event) => {
         content_ids: [String(out.product_id)],
       }, { eventID: out.event_id });
       // Bouton laissé désactivé : redirection vers la page de remerciement.
+      if (isUpsell) {
+        // Mandat ⑭ : retour Thank You Page (MÊME commande, récap recalculé
+        // serveur depuis la base) — &added=1 déclenche le bandeau de
+        // confirmation. La persistance du contexte est garantie par le duo
+        // order+key inchangé porté par UPSELL.return.
+        setTimeout(() => {
+          location.href = UPSELL.return + (UPSELL.return.includes("?") ? "&" : "?") + "added=1";
+        }, 500);
+        return;
+      }
       // P1-1 : passage de order_id + order_key pour afficher le
       // récapitulatif dynamique sécurisé (sans clé valide, /merci/ reste générique).
       setTimeout(() => {

@@ -59,6 +59,35 @@ export function createMockOrder(payload) {
   return { success: true, order_id: orderId, value, event_id: eventId, product_id: order.product_id, offer_id: order.offer_id, order_key: orderKey };
 }
 
+export function addToMockOrder(payload) {
+  /* Tunnel post-achat (mandat ⑭) : miroir du handler REST add-to-order —
+   * la ligne est ajoutée à la COMMANDE EXISTANTE (duo order_id + order_key
+   * revalidé), le total est recalculé, l'event_id garantit l'idempotence. */
+  const orderId = Number(payload.order_id) || 0;
+  const orderKey = String(payload.order_key || "");
+  const rows = readRows(ORDER_KEY);
+  const target = rows.find((row) => Number(row.order_id) === orderId && row.order_key === orderKey);
+  if (!target) return { success: false, message: "انتهت صلاحية رابط الطلب. يرجى الاتصال بنا." };
+  const eventId = String(payload.event_id || "");
+  if (eventId && (target.upsell_events || []).includes(eventId)) {
+    return { success: true, order_id: target.order_id, value: target.value, order_key: target.order_key, event_id: eventId, duplicate: true };
+  }
+  const quantity = Math.min(3, Math.max(1, Number(payload.quantity) || 1));
+  const added = PRICES[quantity] ?? PRICES[1];
+  target.value = Number(target.value || 0) + added;
+  target.upsell_events = [...(target.upsell_events || []), eventId];
+  target.upsell_offers = [...(target.upsell_offers || []), String(payload.offer_id || payload.offer || "")];
+  target.upsell_items = [...(target.upsell_items || []), {
+    offer_id: String(payload.offer_id || payload.offer || ""),
+    color: String(payload.color || ""),
+    size: String(payload.size || ""),
+    quantity,
+    value: added,
+  }];
+  writeRows(ORDER_KEY, rows);
+  return { success: true, order_id: target.order_id, value: target.value, added_value: added, order_key: target.order_key, event_id: eventId, duplicate: false };
+}
+
 export function saveMockReview(payload) {
   /* Règle du maximum + modération intelligente (miroir du handler REST) :
    * - un seul avis par commande (order_id) — re-soumission = mise à jour ;

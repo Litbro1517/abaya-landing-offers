@@ -4,9 +4,12 @@ $u = esc_url(get_template_directory_uri());
 <footer class="site-footer">
       <div class="footer-inner wrap">
         <div class="footer-logo-wrapper">
-          <a class="footer-wordmark" href="/" aria-label="Accueil Abaya Collection">
+<?php /* Tunnel post-achat (mandat « fix/post-purchase-navigation-flow ») :
+       ce pied de page n'est rendu QUE sur les landings — logo non-cliquable,
+       aucune fuite de navigation depuis le tunnel vers l'accueil. */ ?>
+          <span class="footer-wordmark">
             <img src="<?= $u ?>/assets/images/logo-footer-white.svg" alt="Abaya Collection" class="footer-logo-svg" loading="lazy" decoding="async" />
-          </a>
+          </span>
         </div>
         <nav class="footer-columns" aria-label="روابط المتجر">
           <section>

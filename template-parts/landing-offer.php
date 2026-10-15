@@ -109,6 +109,14 @@ foreach ($cat['sizes'] as $size_name) : ?>
                 </div>
                 <strong id="summary-price" class="summary-price"><?= (int) $cat['bundles'][1] ?> درهم</strong>
               </div>
+<?php /* Tunnel post-achat (mandat « fix/post-purchase-navigation-flow ») :
+       landing secondaire déverrouillée depuis la Thank You Page : la cliente
+       sait d'emblée que sa commande existante est complétée — aucun nouveau
+       ticket créé, le récapitulatif /merci/ se met à jour au retour. */ ?>
+<?php $abaya_upsell_ctx = function_exists('abaya_upsell_context') ? abaya_upsell_context() : false; ?>
+<?php if ($abaya_upsell_ctx) : ?>
+              <p class="upsell-order-hint">سيُضاف هذا المنتج إلى طلبكِ الحالي رقم <strong dir="ltr">#<?php echo esc_html($abaya_upsell_ctx['order']->get_order_number()); ?></strong> — لن يُنشأ طلب جديد</p>
+<?php endif; ?>
               <form class="order-form-grid" id="order-form" novalidate>
                 <label class="form-field">
                   <span>الاسم الكامل</span>

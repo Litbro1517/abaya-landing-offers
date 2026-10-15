@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **2.4** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **2.5** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -48,7 +48,9 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # MAQUETTE CANVA 4PLP v2.3 (carte blanche sur crème,
 │                                 # logo شكراً WebP, pastille n° commande, tableau
 │                                 # 4 colonnes + image, bloc cadeau turquoise,
-│                                 # WhatsApp officiel, upsell 3 verticales 3:5)
+│                                 # WhatsApp officiel, upsell 3 verticales 3:5 —
+│                                 # URLs de déverrouillage order+key + bandeau
+│                                 # confirmation v2.5)
 │                                 # + pop-up 1-clic persistant + config mock
 ├── merci-review.js               # Pop-up évaluation 1-clic perfectionné (remplissage
 │                                 # progressif RTL, persistance + texte optionnel,
@@ -56,6 +58,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # + injection du design Canva en mode mock
 ├── header.php / footer.php       # abaya_is_landing_page() remplace is_front_page()
 ├── template-parts/landing-offer.php  # GABARIT UNIQUE du landing (toutes offres)
+│                                 # + hint « ajout à la commande existante » (mode upsell v2.5)
 ├── pages/*.html                  # Graines des pages légales (inchangées, socle)
 ├── assets/css/{critical,styles}.css  # SOCLE INCHANGÉS bit-à-bit
 ├── assets/css/offers.css         # Badge étoiles SVG (2 couches, clip --rating-fill)
@@ -67,6 +70,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # sur blanc pur, 474×474, ~8 Ko) — remplaçable
 │                                 # sans code par l'asset officiel client
 ├── assets/js/app.js              # Socle + paramètre `offer` additif (secondaires)
+│                                 # + branche upsell v2.5 (add-to-order → retour TYP)
 ├── assets/js/mock-api.js         # Simulation localStorage (REST 404/50x uniquement)
 │                                 # + miroir règle max / modération (v2.2)
 │                                 # + agrégat découplé des statuts (v2.4)
@@ -124,6 +128,32 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Mock miroir (v2.4)** : `getReviewSummary` porte sur toutes les notes (approuvées ET en attente) ; `getMockReviews` (listing public) reste approuvé seul.
 - **Validation** : suite avis 29/29 (4 assertions découplage T7.1-T7.4 dont étanchéité renderer + affichage après validation admin) + 5 invariants statiques S12.1-S12.5 ; correction au passage d'un bug masqué du harnais T7 (nom 1 caractère rejeté 422 — l'ancienne assertion count=1 passait sans créer l'avis texte).
 
+## 5-quater. Sécurisation du tunnel post-achat & flux d'upsell (v2.5 — mandat « fix/post-purchase-navigation-flow »)
+
+- **Objectif** : isoler hermétiquement le tunnel post-achat, supprimer toute fuite de navigation vers l'offre principale, rendre le logo des landing pages non-cliquable, et instaurer une navigation bidirectionnelle fluide Thank You Page ↔ landings d'upsell.
+- **A. Nettoyage des landing pages de vente** (mandat) :
+  - **Logo STRICTEMENT non-cliquable** sur toutes les landings : `site-header.php` (racine) et `legal-header.php` (secondaires + /merci/, branche tunnel) — balise `<a>` remplacée par `<span>` avec classes conservées (rendu inchangé) ; logo de pied (`site-footer.php`, rendu uniquement sur les landings) également non-cliquable ; **pages légales inchangées** (hors tunnel — navigation historique conservée) ;
+  - **Suppression du lien de retour « العودة إلى صفحة الطلب »** sur les pages tunnel (il pointait vers `/` = offre principale) — conservé UNIQUEMENT sur les pages légales.
+- **B. Isolation des landings secondaires (upsell)** (mandat) :
+  - **Garde `template_redirect` (`abaya_gate_secondary_landing`)** : toute visite d'une landing secondaire SANS duo `?order=&key=` valide → **redirection 302 vers la racine** (jamais affichée depuis le site public ou les publicités) ;
+  - **Déverrouillage exclusif depuis la TYP** : les 3 cartes upsell de /merci/ portent désormais `?order={ID}&key={KEY}#order-form-section` — même garde de résolution que /merci/ (`hash_equals` timing-safe + < 48 h + `created_via=landing-abaya`) ;
+  - **No-cache** sur toute page portant le duo personnel (landings secondaires + racine en mode upsell — aucune clé personnelle servie depuis un cache partagé ; posture /merci/).
+- **B. Persistance & mise à jour dynamique de la Thank You Page** (mandat) :
+  - **Sans achat additionnel** : le retour (flèche ou back navigateur) rouvre EXACTEMENT la même URL `/merci/?order=&key=` → récapitulatif, code promo, pastille n° inchangés (persistance par re-rendu serveur de la même commande) ;
+  - **Avec achat additionnel** : la soumission du formulaire upsell appelle la **nouvelle route REST `POST /landing/v1/add-to-order`** → ligne AJOUTÉE à la MÊME commande (item meta `اللون/المقاس/Offre/SKU` + traçabilité `_abaya_upsell_event`/`_abaya_upsell_offer`), `calculate_totals()`, note de commande « Upsell tunnel », CAPI `abaya_order_created` (valeur = ligne ajoutée, event_id dédupliqué) → redirection TYP `&added=1` → **récapitulatif recalculé serveur** (nouvelle ligne + nouveau total) + **bandeau de confirmation turquoise** « تمت إضافة المنتج إلى طلبكِ بنجاح » ;
+  - **Idempotence** : le même `event_id` ne crée JAMAIS une seconde ligne (méta portée par la ligne) ;
+  - **Prix AUTORITAIRE** du registre (grille `abaya_catalog()`), whitelist couleur/taille de l'offre upsell, garde `out_of_stock`, anti-flood 5/10 min/IP, champ piège — mêmes gardes que create-order ;
+  - **Exclusion réciproque** : une offre déjà présente dans la commande (offre d'origine + lignes upsell via `_abaya_upsell_offer`) disparaît des cartes upsell — le tableau récapitulatif est la source de vérité.
+- **C. Navigation bidirectionnelle (flèche de retour)** (mandat) :
+  - **Flèche explicite « رجوع إلى طلبي »** en haut de chaque landing déverrouillée : `legal-header.php` (slot du lien supprimé) pour les secondaires, barre `.upsell-back-bar` dans `site-header.php` pour la racine (cible de la carte vedette) ;
+  - **Cible = Thank You Page personnalisée** (`/merci/?order=&key=` — JAMAIS la landing principale) ; flèche orientée RTL ; rendu conditionné au contexte valide (zéro impact rendu par défaut) ;
+  - **Racine éligible au mode upsell** : la carte de l'offre vedette vise désormais la racine `/?order=&key=` (l'ancien href `/accueil/` — page inexistante — était un 404) ; le **rendu par défaut de la racine reste inchangé bit-à-bit** (compat caches v2.0 prouvé par diff harnais) ;
+  - **Rappel transparence** : `.upsell-order-hint` au-dessus du formulaire — « سيُضاف هذا المنتج إلى طلبكِ الحالي رقم #X — لن يُنشأ طلب جديد ».
+- **Contrat REST additif** : route `add-to-order` en ADDITION de create-order/submit-review ; `window.LANDING` reçoit `upsell_endpoint` + `upsell {order_id, order_key, offer, return}` UNIQUEMENT en contexte valide (clés additives — racine par défaut et visites directes inchangées).
+- **Résolveur partagé** : `abaya_resolve_tunnel_order()` = SEULE copie de la garde d'accès tunnel (hash_equals + 48 h + created_via) — consommée par /merci/, le contexte upsell et la route add-to-order (zéro duplication ; la garde contexte avis de submit-review reste distincte, hors périmètre 48 h).
+- **Miroirs preview synchronisés** : `addToMockOrder` (localStorage, duo revalidé, idempotence), branche upsell de `preview/app.js` (retour TYP + `&added=1`), URLs mock avec duo, bandeau mock (générateur `scripts/gen_preview_mirrors.py`).
+- **Validation** : 88/88 statique (17 nouveaux invariants S13 + S7.6 recalé) + 56/56 harnais tunnel post-achat (`test_post_purchase.php` : résolveur, contexte, garde, REST add-to-order, rendus) + régressions 30/30 orders + 29/29 avis + 29/29 E2E + 41/41 Canva + 16/16 badge + popup 10/14 (contrebaseline v2.3 inchangée) ; rendu racine bit-exact (diff harnais vide).
+
 ## 6. Historique
 
 | Version | Contenu |
@@ -132,4 +162,5 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 | 2.1 | Mandat 4P LP « Ajustement Final & Badge Étoiles » (branche `feat/ratings-popup-adjustments`) : badge étoiles SVG au format EXACT de la section avis sous le H1 sur les 4 landings (avant : secondaires seules, étoiles Unicode), garnissage BDD 2 couches ; FIX P0 pop-up merci (`ratingCtx` closure PHP toujours null → auto-ouverture restaurée) ; correctif Échap mode mock ; offers.css chargée sur toutes les landings ; validation 59/59 statique + 30/30 REST + 14/14 E2E Playwright + 16/16 visuel + SVG byte-exact 10/10 |
 | 2.2 | Mandat 4P LP « Refonte UI/UX Thank You Page, Offres Upsell & Logique de Notation » (branche `feat/thankyou-page-redesign`) : /merci/ épurée (typographie fine Cairo/Arial, zéro bloc massif), tableau récap 2 colonnes à séparateurs fins + miniature, grille client compacte sans boîtes, upsell SANS cadres (visuels libres + bouton d'achat direct), promo fin ; pop-up perfectionné (remplissage progressif RTL, étoiles nues, persistance + texte optionnel, fermeture X/valider/délai 30 s) ; REST : texte optionnel, règle `max(note)` par commande (méta `review_order_id`), modération intelligente (étoiles seules = auto-approbation, texte = modération), réponse enrichie (rating/average/count) ; mock + preview miroirs (fix syntaxe `ockOrder` au passage) ; validation php -l + node ESM + E2E Playwright + visuel mobile/RTL |
 | 2.3 | Mandat 4PLP « Intégration Maquette Canva — Page de Remerciement » (branche `feat/merci-canva-integration`) : maquette Canva (`DAHYAa7V--E`) extraite par navigateur réel et intégrée fidèlement — carte blanche sur crème #FAF7F2, logo calligraphié شكراً WebP (bordeaux sur blanc pur), pastille n° commande, tableau 4 colonnes المنتج/اللون-المقاس/الكمية/السعر avec cellule image produit, bloc cadeau bordure turquoise + code promo en pilule pointillée (MAJUSCULES), bouton WhatsApp officiel vert + SVG, upsell EXACTEMENT 3 verticales 3:5 style Reels/Stories (carrousel scroll-snap mobile, badge تخفيض خاص + ancien prix optionnels via registre, boutons turquoise إضافة للطلب), pied © ; Cairo exclusif (DM Sans bannie) ; pop-up harmonisé (bouton bordeaux, focus turquoise) ; logo WebP généré Amiri Bold (remplaçable sans code) ; validation 67/67 statique + 29/29 E2E + 41/41 visuel Canva + 26/26 avis + 30/30 orders |
+| 2.5 | Mandat « MANDAT TECHNIQUE : Sécurisation du tunnel post-achat & flux d'upsell » (branche `fix/post-purchase-navigation-flow`) : logos non-cliquables + suppression des liens de retour sur toutes les pages tunnel (landings + /merci/, pages légales inchangées) ; landings secondaires TOTALEMENT cachées (302 vers la vedette sans duo valide, déverrouillage exclusif par les 3 cartes TYP portant `?order=&key=`) ; route REST `add-to-order` (ligne ajoutée à la MÊME commande, prix autoritaire, idempotence event_id, CAPI dédupliquée) → TYP mise à jour dynamiquement + bandeau confirmation `&added=1` ; flèche de retour « رجوع إلى طلبي » vers la TYP personnalisée (secondaires + racine) ; hint « ajout à la commande existante » ; exclusion des offres déjà commandées ; carte vedette corrigée (racine, l'ancien /accueil/ était un 404) ; résolveur partagé unique ; no-cache sur URLs personnalisées ; miroirs preview synchronisés ; validation 88/88 statique + 56/56 tunnel + 145/145 régressions in-scope |
 | 2.4 | Mandat « MANDAT COMBO : Audit Préalable & Protocole — Découplage Étoiles / Avis Clients » (branche `fix/rating-comments-decoupling`) : étanchéité stricte entre score global et avis — `abaya_review_summary()` agrège toutes les notes (union approve+hold, indépendante de la modération du texte), garde double dans `abaya_render_review_card()` (approved=1 + texte réel, placeholder 1-clic banni du listing), mise à jour live du badge H1 via `updateRatingBadge()` (réponse REST), requête listing approve + number 50, mock/preview miroirs (agrégat toutes notes) ; validation 72/72 statique + 29/29 avis + 30/30 orders + 16/16 badge + 29/29 E2E + 41/41 Canva (217/217) |
