@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **2.7** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **2.8** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -32,7 +32,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 ## 3. Arborescence
 
 ```
-├── style.css                     # En-tête thème — Version 2.7
+├── style.css                     # En-tête thème — Version 2.8
 ├── functions.php                 # Adaptateur abaya_catalog($offer_id), LCP par offre,
 │   │                             # window.LANDING (clés offre = secondaires SEULEMENT),
 │   │                             # Pixel/CAPI par offre, REST additive (offer/offer_id),
@@ -183,6 +183,14 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Zéro changement fonctionnel** : aucun PHP/JS/CSS de production modifié (hors en-tête `style.css` 2.7) — les landings, le tunnel, /merci/, le pop-up et les pages légales sont bit-à-bit identiques ; seuls des fichiers morts disparaissent de l'arborescence déployée par WP Pusher.
 - **Suites de validation rescopées** : invariants S9.3 (inversé : `preview/` absent + mock racine présent), S13.13 (styles bandeau dans le gabarit, sans miroir), S13.15 (logique mock racine : `addToMockOrder`/`add-to-order`/`upsellQuery` dans les fichiers racine) ; générateurs de miroirs (`scripts/gen_preview_mirrors.py`) et rapports historiques référençant `preview/` archivés hors dépôt.
 
+## 5-septies. Correction visuelle des variantes selon les maquettes validées (v2.8 — branche « fix/lp-variants-visual-correction »)
+
+- **Constat** : le déploiement v2.6 comportait des erreurs d'interprétation visuelle par rapport aux consignes strictes et aux versions HTML validées fournies en référence (« VF charte LP offres.html » pour la principale, « version nuence offres upsel.html » pour l'upsell).
+- **Principale (vedette) — retour au design d'origine validé « VF charte »** : les puces de caractéristiques retrouvent leur structure EXACTE — carré arrondi 28px au fond vert très léger **#E8F0EE** (fini le cercle plein émeraude lourd) contenant un petit cercle 16px à **contour émeraude 2px** et un **crochet émeraude REMPLI** 10px (SVG fill M16.707, viewBox 20) — bien visible ; carte active **DORÉE #C5A059** à halo doré rgb(197 160 89 / 35%) + fond blanc + translateY(-2px) (fini l'active verte) ; hover doré ; badge ✓ de sélection **doré #C5A059 à ✓ blanc** ; contours de cartes verts translucides **rgba(58,125,132,.4)** (valeur maquette exacte) ; badges de quantité aux teintes maquette (beige 60% carte 1, doré 20% carte 2, doré 30% carte 3, texte sombre) ; prix carte 2 en **vert sapin #3B7A57** + économies en pilule pâle rgb(59 122 87/10%), prix cartes 1/3 encre, économies émeraude ; ruban « الأكثر طلباً » émeraude à texte blanc (inchangé, conforme).
+- **Upsell (secondaires) — inversion strictement appliquée (déjà conforme v2.6, verrouillée)** : puces à **cercle plein DORÉ #D4AF37** + **crochet ÉMERAUDE #3A7D84** (SVG stroke 3) ; contours des cartes **DORÉS** rgba(212,175,55,.55) ; carte active dorée pleine + halo ; badge ✓ **doré à ✓ émeraude** (inversion exacte de la maquette « nuence » qui portait émeraude/✓ doré) ; badge « الأكثر طلباً » **DORÉ** à texte contrasté #2C1D11 ; badges de quantité teintes dorées + texte sombre ; prix/économies émeraude.
+- **Architecture markup** : chaque puce embarque désormais les DEUX rendus SVG (crochet fill viewBox 20 + crochet stroke-3 viewBox 24) et l'anneau intermédiaire `.lp-bullet-ring` — offers.css masque l'un ou l'autre par variante en pur CSS : zéro duplication de markup, zéro état JS, la liaison dynamique carte active ⇄ badge ✓ reste strictement dérivée de `.is-selected`.
+- **Socle intouché** : critical.css/styles.css/app.js bit-à-bit ; pages /merci/, pop-up et pages légales hors périmètre ; suite statique S14 rescopée (principale = VF littérale, upsell = inversion nuence) et suite visuelle Playwright recalibrée sur les couleurs maquettes.
+
 ## 6. Historique
 
 | Version | Contenu |
@@ -195,3 +203,4 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 | 2.4 | Mandat « MANDAT COMBO : Audit Préalable & Protocole — Découplage Étoiles / Avis Clients » (branche `fix/rating-comments-decoupling`) : étanchéité stricte entre score global et avis — `abaya_review_summary()` agrège toutes les notes (union approve+hold, indépendante de la modération du texte), garde double dans `abaya_render_review_card()` (approved=1 + texte réel, placeholder 1-clic banni du listing), mise à jour live du badge H1 via `updateRatingBadge()` (réponse REST), requête listing approve + number 50, mock/preview miroirs (agrégat toutes notes) ; validation 72/72 statique + 29/29 avis + 30/30 orders + 16/16 badge + 29/29 E2E + 41/41 Canva (217/217) |
 | 2.6 | Mandat « VALIDATION ET DÉPLOIEMENT DES VARIANTES DE LANDING PAGES » (branche `feat/lp-variants-styling`) : harmonisation Émeraude & Doré des deux déclinaisons LP — classe variante unique sur `<main>` (vedette = principale émeraude, secondaires = upsell inversé) + variables CSS `--lp-*` inversées dans offers.css ; puces à cercle plein (émeraude↔doré) + crochets SVG stroke 3 ; bordures/badges de cartes unifiés par variante ; carte active contour plein + halo (maquettes) ; ruban « الأكثر طلباً » (vert/blanc en principale, doré/texte contrasté en upsell) ; badge ✓ de sélection lié en pur CSS à `.is-selected` (zéro persistance erronée, prouvé Playwright) ; socle critical/styles/app.js bit-exact ; validation 98/98 statique + 42/42 visuel + régressions (341/341 in-scope) |
 | 2.7 | Nettoyage « thème au strict minimum » (branche `chore/theme-minimal-cleanup`) : audit référentiel exhaustif (36 orphelins identifiés, zéro fonction PHP morte, tous les assets restants référencés) puis suppression de `preview/` entier (33 fichiers, ~1,29 Mo — harnais dev jamais chargé par WP), des 2 logos PNG morts (doublons SVG) et de `docs/AUDIT_PHASE0.md` (archivé) — ~1,37 Mo / −26 % du poids du dépôt ; mock racine `assets/js/mock-api.js` conservé (filet de sécurité REST) ; zéro changement fonctionnel (PHP/JS/CSS de production bit-à-bit, hors en-tête style.css 2.7) ; invariants S9.3/S13.13/S13.15 rescopés ; déploiement WP Pusher vérifié après push main |
+| 2.8 | Correction visuelle des variantes LP selon les maquettes HTML validées (branche `fix/lp-variants-visual-correction`) : principale = retour au design d'origine « VF charte » (puces à fond léger #E8F0EE + cercle contour émeraude + crochet rempli bien visible, active DORÉE #C5A059 + halo, badge ✓ doré/blanc, badges quantité teintes maquette, prix carte 2 #3B7A57) ; upsell = inversion verrouillée (cercles dorés + crochets émeraude stroke 3, contours/badge الأكثر طلباً/accents DORÉS, ✓ doré/émeraude) ; markup puces = double SVG (fill+stroke) + anneau pilotés par CSS pur ; suite visuelle recalibrée + statique S14 rescopée |
