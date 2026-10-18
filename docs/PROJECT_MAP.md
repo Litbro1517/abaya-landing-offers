@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **2.8** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **2.9** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -32,7 +32,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 ## 3. Arborescence
 
 ```
-├── style.css                     # En-tête thème — Version 2.8
+├── style.css                     # En-tête thème — Version 2.9
 ├── functions.php                 # Adaptateur abaya_catalog($offer_id), LCP par offre,
 │   │                             # window.LANDING (clés offre = secondaires SEULEMENT),
 │   │                             # Pixel/CAPI par offre, REST additive (offer/offer_id),
@@ -191,6 +191,16 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Architecture markup** : chaque puce embarque désormais les DEUX rendus SVG (crochet fill viewBox 20 + crochet stroke-3 viewBox 24) et l'anneau intermédiaire `.lp-bullet-ring` — offers.css masque l'un ou l'autre par variante en pur CSS : zéro duplication de markup, zéro état JS, la liaison dynamique carte active ⇄ badge ✓ reste strictement dérivée de `.is-selected`.
 - **Socle intouché** : critical.css/styles.css/app.js bit-à-bit ; pages /merci/, pop-up et pages légales hors périmètre ; suite statique S14 rescopée (principale = VF littérale, upsell = inversion nuence) et suite visuelle Playwright recalibrée sur les couleurs maquettes.
 
+## 5-octies. Intégration de la charte graphique finalisée (v2.9 — branche « feat/charte-css-finalisee »)
+
+- **Mandat** : intégrer les fichiers CSS finalisés fournis par le client (« le socle, les styles critiques, les composants d'offres et la charte graphique validée ») : `styles.css`, `critical.css`, `offers.css` — remplacés bit-à-bit par les versions fournies ; en-tête `style.css` porté à 2.9.
+- **Charte émeraude/doré DANS LE SOCLE** : les variables `:root` basculent à la source (`--olive: #3a7d84`, `--gold: #d4af37`, encre `#2c1d11`, papiers crème) + nouvelles variables `--check-bg: #3a7d84` / `--check-mark: #d4af37` (critiques incluses, inline dans `<head>`). Section « Charte LP émeraude » (~200 lignes) ajoutée au socle : conteneur carte arrondi `.product-landing main` (radius 24px, ombre douce, mobile 20px), puces `.checkmark-badge` à fond `var(--check-bg)` + ✓ `var(--check-mark)`, badge ✓ de sélection en **pur CSS** (`.bundle-card.is-selected::before`), ruban « الأكثر طلباً » en **pur CSS** (`.bundle-card:nth-child(2)::after`), boutons/titres Cairo 900.
+- **Inversion upsell par `body.is-upsell`** : `header.php` pose désormais `is-upsell` sur `<body>` hors vedette (`abaya_is_front_offer()`, même sémantique que les variantes v2.6–v2.8) ; styles.css réinverse les variables sur `.product-landing.is-upsell { --check-bg: #d4af37; --check-mark: #3a7d84; }` + accents dorés (contours rgb(212 175 55 / 45%), carte active dorée, ruban doré à texte contrasté, économies dorées).
+- **Gabarit épuré** : `<main>` sans classe variante ; les 3 puces retrouvent le markup simple `<span class="checkmark-badge">✓</span>` (texte) ; spans `bundle-check`/`bundle-flag` supprimés (rendus par pseudo-éléments CSS) — zéro référence `lp-*` résiduelle, liaison dynamique carte active ⇄ badge toujours dérivée de `.is-selected` (bascule exhaustive app.js inchangée).
+- **Composants d'offres réharmonisés** : offers.css (versions client) repasse le pop-up 1-clic et le tunnel post-achat à la charte émeraude/doré — étoiles/bordures `#d4af37`, bouton إرسal `#3A7D84` (hover `#2D6A70`), focus note `#3A7D84`, flèche retour + hint upsell `#3A7D84`/`#E7F0EE` (fini bordeaux/turquoise v2.3 sur ces composants) ; la carte /merci/ (styles inline du gabarit, hors périmètre des fichiers fournis) reste au design Canva v2.3.
+- **Typographie unifiée Cairo** : le socle ne référence plus DM Sans sur aucun élément d'interface (les déclarations `@font-face` auto-hébergées restent à l'identique dans les fichiers fournis — zéro téléchargement inutile faute d'usage) ; graisses variables Cairo 400–900 (`font-weight: 800 900`).
+- **Hors périmètre (fichier non intégré)** : `styles-2.css` fourni = itération antérieure du socle (palette olive #517c79, wordmark DM Sans, classes retirées depuis) — non référencé par le thème, non intégré pour préserver le « thème au strict minimum » (v2.7) ; à conserver hors dépôt.
+
 ## 6. Historique
 
 | Version | Contenu |
@@ -204,3 +214,4 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 | 2.6 | Mandat « VALIDATION ET DÉPLOIEMENT DES VARIANTES DE LANDING PAGES » (branche `feat/lp-variants-styling`) : harmonisation Émeraude & Doré des deux déclinaisons LP — classe variante unique sur `<main>` (vedette = principale émeraude, secondaires = upsell inversé) + variables CSS `--lp-*` inversées dans offers.css ; puces à cercle plein (émeraude↔doré) + crochets SVG stroke 3 ; bordures/badges de cartes unifiés par variante ; carte active contour plein + halo (maquettes) ; ruban « الأكثر طلباً » (vert/blanc en principale, doré/texte contrasté en upsell) ; badge ✓ de sélection lié en pur CSS à `.is-selected` (zéro persistance erronée, prouvé Playwright) ; socle critical/styles/app.js bit-exact ; validation 98/98 statique + 42/42 visuel + régressions (341/341 in-scope) |
 | 2.7 | Nettoyage « thème au strict minimum » (branche `chore/theme-minimal-cleanup`) : audit référentiel exhaustif (36 orphelins identifiés, zéro fonction PHP morte, tous les assets restants référencés) puis suppression de `preview/` entier (33 fichiers, ~1,29 Mo — harnais dev jamais chargé par WP), des 2 logos PNG morts (doublons SVG) et de `docs/AUDIT_PHASE0.md` (archivé) — ~1,37 Mo / −26 % du poids du dépôt ; mock racine `assets/js/mock-api.js` conservé (filet de sécurité REST) ; zéro changement fonctionnel (PHP/JS/CSS de production bit-à-bit, hors en-tête style.css 2.7) ; invariants S9.3/S13.13/S13.15 rescopés ; déploiement WP Pusher vérifié après push main |
 | 2.8 | Correction visuelle des variantes LP selon les maquettes HTML validées (branche `fix/lp-variants-visual-correction`) : principale = retour au design d'origine « VF charte » (puces à fond léger #E8F0EE + cercle contour émeraude + crochet rempli bien visible, active DORÉE #C5A059 + halo, badge ✓ doré/blanc, badges quantité teintes maquette, prix carte 2 #3B7A57) ; upsell = inversion verrouillée (cercles dorés + crochets émeraude stroke 3, contours/badge الأكثر طلباً/accents DORÉS, ✓ doré/émeraude) ; markup puces = double SVG (fill+stroke) + anneau pilotés par CSS pur ; suite visuelle recalibrée + statique S14 rescopée |
+| 2.9 | Intégration de la charte graphique finalisée (branche `feat/charte-css-finalisee`) : socle = fichiers CSS client remplacés bit-à-bit (styles.css 59 Ko avec section « Charte LP émeraude » + variables --check-bg/--check-mark, critical.css synchronisé inline, offers.css réharmonisé émeraude/doré) ; inversion upsell portée par `body.is-upsell` (header.php) ; gabarit épuré (markup simple ✓, badge ✓ et ruban الأكثر طلباً en pur CSS ::before/::after) ; Cairo unifié ; styles-2.css (itération antérieure) non intégré ; suites statique S1/S6/S9/S14 et visuelle LP recalibrées |

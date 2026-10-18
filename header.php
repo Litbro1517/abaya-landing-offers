@@ -10,6 +10,6 @@
 <?php endif; ?>
 <?php wp_head(); ?>
 </head>
-<body class="<?= abaya_is_landing_page() ? 'product-landing' : 'legal-page' ?>">
+<body class="<?= abaya_is_landing_page() ? 'product-landing' . (!abaya_is_front_offer() ? ' is-upsell' : '') : 'legal-page' ?>">
 <?php wp_body_open(); ?>
 <?php get_template_part('template-parts/' . (is_front_page() ? 'site-header' : 'legal-header')); ?>
