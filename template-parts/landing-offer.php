@@ -14,16 +14,21 @@ $cat   = abaya_catalog($offer['id']);
 $T     = $offer['texts'];
 $I     = $offer['images'];
 
-/* Charte graphique finalisée (v2.9 — intégration des CSS validés) : la charte
- * émeraude/doré vit DANS LE SOCLE (styles.css + critical.css : variables
- * --check-bg/--check-mark + section « Charte LP émeraude » : conteneur carte
- * arrondi, contours translucides, badges, prix). L'inversion des accents sur
- * les landings secondaires (tunnel upsell ⑭) est portée par la classe
- * body.is-upsell posée par header.php via abaya_is_front_offer() — les
- * variables se réinversent en pur CSS (puces dorées à crochet émeraude,
- * contours/ruban « الأكثر طلباً » dorés). Le badge ✓ de sélection
- * (::before lié à .is-selected) et le ruban (::after) sont rendus sans
- * aucun markup dédié — zéro état JS, zéro duplication. */
+/* Charte graphique (v3.0 — LP principale = maquette « VF charte » stricte) :
+ * le socle v2.9 (variables --check-bg/--check-mark + section « Charte LP
+ * émeraude ») reste la base commune ; la section v3.0 de styles.css rescope la
+ * VEDETTE sur la maquette validée (puces carré #E8F0EE + anneau émeraude +
+ * crochet émeraude REMPLI, carte active DORÉE #C5A059, badge ✓ doré/blanc,
+ * pilules quantité 60/20/30, prix encre & vert sapin #3B7A57, titre offres
+ * bordeaux + sous-titre, bannière d'inspection à pastille, note sécurisée
+ * émeraude) — tout est scopé .product-landing:not(.is-upsell) et rendu en PUR
+ * CSS (pseudo-éléments + SVG inline), sans markup variante dédié. Les
+ * landings secondaires (tunnel upsell ⑭, body.is-upsell posé par header.php)
+ * conservent EXACTEMENT leur rendu v2.9 : les rares divergences de markup
+ * (titre offres, sous-titre, note sécurisée, bannière d'inspection) sont
+ * conditionnées par abaya_is_front_offer() ci-dessous. Le badge ✓ de
+ * sélection (::before lié à .is-selected) et le ruban (::after) restent sans
+ * aucun état JS. */
 
 get_header();
 ?>
@@ -157,13 +162,25 @@ foreach ($cat['sizes'] as $size_name) : ?>
               <div class="form-result" id="form-result" role="status" hidden></div>
             </div>
           </section>
+<?php /* v3.0 : note de réassurance = ligne charte « VF » (crochet SVG émeraude
+       rempli + mention des toutes les villes) sur la vedette ; secondaires
+       inchangées. */ ?>
+<?php if (abaya_is_front_offer()) : ?>
+          <p class="secure-note"><span class="secure-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg></span> الدفع عند الاستلام • توصيل مجاني في جميع المدن</p>
+<?php else: ?>
           <p class="secure-note"><span aria-hidden="true">✓</span> الدفع عند الاستلام · توصيل مجاني</p>
+<?php endif; ?>
         </div>
       </section>
 
       <section class="bundles-section wrap" aria-labelledby="bundles-title">
         <div class="section-heading">
-          <h2 id="bundles-title">عروض خاصة</h2>
+<?php /* v3.0 : titre + sous-titre de la maquette « VF charte » sur la vedette
+       uniquement (les secondaires gardent le libellé v2.9). */ ?>
+          <h2 id="bundles-title"><?= abaya_is_front_offer() ? esc_html('عروض خاصة حصرية') : esc_html('عروض خاصة'); ?></h2>
+<?php if (abaya_is_front_offer()) : ?>
+          <p class="bundles-subtitle">اضغطي على العرض المناسب لكِ لاختياره</p>
+<?php endif; ?>
         </div>
         <div class="bundle-grid" role="group" aria-label="اختاري العرض">
 <?php /* P0-1 : prix, libellés et économies des offres générés depuis
@@ -242,7 +259,17 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
           <div class="visual-copy">
             <h2 class="visual-title" id="inspection-title"><?php echo esc_html($T['inspection_title']); ?></h2>
             <p class="visual-lead"><?php echo esc_html($T['inspection_lead']); ?></p>
+<?php /* v3.0 : bannière d'inspection = maquette « VF charte » (pastille
+       check-circle sur fond émeraude 10% + bloc crème à liseré émeraude) sur
+       la vedette ; les secondaires conservent la note v2.9 bit-exact. */ ?>
+<?php if (abaya_is_front_offer()) : ?>
+            <div class="inspection-banner">
+              <span class="inspection-banner-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+              <p class="inspection-note"><?php echo esc_html($T['inspection_note']); ?></p>
+            </div>
+<?php else: ?>
             <p class="inspection-note"><?php echo esc_html($T['inspection_note']); ?></p>
+<?php endif; ?>
           </div>
         </div>
       </section>
