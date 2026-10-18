@@ -14,13 +14,17 @@ $cat   = abaya_catalog($offer['id']);
 $T     = $offer['texts'];
 $I     = $offer['images'];
 
-/* Variantes LP (mandat « feat/lp-variants-styling ») : UNE classe conditionnelle
- * sur <main> pilote les deux déclinaisons visuelles — la vedette (racine) porte
- * la variante PRINCIPALE (thème émeraude : puces émeraude + crochet doré,
- * cartes/badges verts unifiés), les landings secondaires (tunnel upsell ⑭)
- * portent la variante INVERSÉE (puces dorées + crochet émeraude, contours
- * dorés, badge « الأكثر طلباً » doré à texte contrasté). Toute la gestion
- * conditionnelle vit dans offers.css (variables CSS inversées) — zéro duplication. */
+/* Variantes LP (mandat « feat/lp-variants-styling », correction v2.8 selon les
+ * maquettes HTML validées) : UNE classe conditionnelle sur <main> pilote les
+ * deux déclinaisons visuelles — la vedette (racine) porte la variante
+ * PRINCIPALE (design d'origine validé « VF charte » : puces à fond vert très
+ * léger #E8F0EE + cercle à contour émeraude + crochet émeraude rempli,
+ * carte active dorée #C5A059 à halo doré, badge ✓ doré), les landings
+ * secondaires (tunnel upsell ⑭) portent la variante INVERSÉE (puces à cercle
+ * doré plein + crochet émeraude stroke 3, contours de cartes dorés, badge
+ * « الأكثر طلباً » doré à texte contrasté). Chaque puce embarque les DEUX
+ * rendus SVG (fill + stroke) et l'anneau ; offers.css masque l'un ou l'autre
+ * par variante — zéro duplication de markup, zéro état JS. */
 $abaya_lp_variant = abaya_is_front_offer($offer['id']) ? 'principale' : 'upsell';
 
 get_header();
@@ -171,8 +175,9 @@ foreach ($cat['sizes'] as $size_name) : ?>
        la liaison dynamique carte active ⇄ badge est garantie sans aucun
        état JS additionnel, donc sans persistance erronée sur le 1er bloc.
        Le ruban « الأكثر طلباً » (carte 2, les deux maquettes validées)
-       se décline par variante : vert unifié (principale) / doré contrasté
-       (upsell) — structure identique, couleurs portées par offers.css. */
+       se décline par variante : vert à texte blanc (principale, maquette
+       « VF charte ») / doré à texte contrasté (upsell) — structure
+       identique, couleurs portées par offers.css. */
 foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
     $bundle_is_first = ($bundle_qty === 1);
 ?>
@@ -203,12 +208,12 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
         list($strong_part, $rest_part) = explode('|', $bullet_text, 2);
 ?>
               <li<?= $is_centered ?>>
-                <span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+                <span class="checkmark-badge" aria-hidden="true"><span class="lp-bullet-ring"><svg class="lp-check-fill" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg></span><svg class="lp-check-stroke" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
                 <span><strong><?php echo esc_html($strong_part); ?>:</strong> <?php echo esc_html($rest_part); ?></span>
               </li>
 <?php } else { ?>
               <li<?= $is_centered ?>>
-                <span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+                <span class="checkmark-badge" aria-hidden="true"><span class="lp-bullet-ring"><svg class="lp-check-fill" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg></span><svg class="lp-check-stroke" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
                 <span><?php echo esc_html($bullet_text); ?></span>
               </li>
 <?php } endforeach; ?>
@@ -226,7 +231,7 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
             <h2 class="visual-title" id="product-specs-title"><?php echo esc_html($T['specs_title']); ?></h2>
             <ul class="product-spec-list visual-check-list">
 <?php foreach ($T['specs_items'] as $spec_item) : ?>
-              <li><span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><?php echo esc_html($spec_item); ?></span></li>
+              <li><span class="checkmark-badge" aria-hidden="true"><span class="lp-bullet-ring"><svg class="lp-check-fill" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg></span><svg class="lp-check-stroke" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><?php echo esc_html($spec_item); ?></span></li>
 <?php endforeach; ?>
             </ul>
             <a class="primary-button description-cta" href="#formulaire-commande">اضغطي هنا للطلب</a>
