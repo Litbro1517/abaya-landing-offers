@@ -21,7 +21,7 @@
   font-size: 1rem;
 }
 /* Étoiles SVG = markup exact du composant avis (.review-star) : les couleurs
- * (doré #c49b55 / gris is-empty) et le rendu volumineux (stroke round +
+ * (doré #d4af37 / gris is-empty) et le rendu volumineux (stroke round +
  * drop-shadow) viennent des règles du socle. Seule la TAILLE est scopée ici
  * par .landing-rating pour l'agrandir (~1,4x les cartes d'avis) tout en
  * surpassant les tailles du socle (critical 15px / styles 22px), quel que
@@ -48,8 +48,8 @@
   width: var(--rating-fill, 0%);
   overflow: hidden;
 }
-.landing-rating-score { color: #792f3c; font-size: 1.05rem; }
-.landing-rating-count { color: #8a8378; font-size: .9rem; }
+.landing-rating-score { color: #2c1d11; font-size: 1.05rem; }
+.landing-rating-count { color: #75695f; font-size: .9rem; }
 
 /* ---------- 2) Pop-up d'évaluation « 1-clic » (/merci/) ---------- */
 .abaya-rating-overlay {
@@ -69,7 +69,7 @@
   width: min(420px, 100%);
   background: #fffdf9;
   border: 1px solid #e7e1d6;
-  border-top: 4px solid #c49b55;
+  border-top: 4px solid #d4af37;
   border-radius: 16px;
   padding: 30px 22px 24px;
   text-align: center;
@@ -102,7 +102,7 @@
   border-radius: 50%;
   background: #faf8f4;
   border: 1px solid #e7e1d6;
-  color: #c49b55;
+  color: #d4af37;
   font-size: 22px;
   line-height: 44px;
 }
@@ -140,8 +140,8 @@
 }
 .abaya-rating-star:hover { transform: scale(1.06); }
 .abaya-rating-star.is-hot svg,
-.abaya-rating-star.is-picked svg { fill: #c49b55; stroke: #a8813d; }
-.abaya-rating-star:focus-visible { outline: 2px solid #c49b55; outline-offset: 2px; border-radius: 8px; }
+.abaya-rating-star.is-picked svg { fill: #d4af37; stroke: #b38e1f; }
+.abaya-rating-star:focus-visible { outline: 2px solid #d4af37; outline-offset: 2px; border-radius: 8px; }
 
 /* Zone de texte optionnelle (persistance du pop-up après la note) —
  * apparition douce via l'animation de la modale. */
@@ -165,12 +165,12 @@
   line-height: 1.8;
   color: #2f2a24;
 }
-.abaya-rating-note:focus { outline: none; border-color: #4D9AA4; }
+.abaya-rating-note:focus { outline: none; border-color: #3A7D84; }
 .abaya-rating-send {
   margin: 10px 0 0;
   border: 0;
   border-radius: 999px;
-  background: #6B1D2F;
+  background: #3A7D84;
   color: #fff;
   font-family: inherit;
   font-size: .9rem;
@@ -179,7 +179,7 @@
   cursor: pointer;
   transition: background .15s ease;
 }
-.abaya-rating-send:hover { background: #521526; }
+.abaya-rating-send:hover { background: #2D6A70; }
 .abaya-rating-send[hidden] { display: none; }
 .abaya-rating-feedback { margin: 12px 0 0; color: #2f6e4f; font-size: .9rem; font-weight: 600; }
 .abaya-rating-feedback.is-error { color: #a32929; }
@@ -205,7 +205,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #6B1D2F;
+  color: #3A7D84;
   background: #fff;
   border: 1px solid #e5ded6;
   border-radius: 999px;
@@ -215,15 +215,15 @@
   text-decoration: none;
   transition: border-color .15s ease, background .15s ease;
 }
-.upsell-back-btn:hover { border-color: #6B1D2F; background: #FAF7F2; }
+.upsell-back-btn:hover { border-color: #3A7D84; background: #FAF7F2; }
 .upsell-back-btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
 
 .upsell-order-hint {
   margin: 0 0 14px;
   padding: 9px 14px;
-  background: #E8F1F2;
-  color: #3D8A95;
-  border: 1px solid #4D9AA4;
+  background: #E7F0EE;
+  color: #3A7D84;
+  border: 1px solid #3A7D84;
   border-radius: 10px;
   font-size: .82rem;
   font-weight: 600;
@@ -234,189 +234,4 @@
 @media (max-width: 560px) {
   .upsell-back-btn { font-size: 11.5px; padding: 6px 11px 7px; }
   .upsell-order-hint { font-size: .78rem; }
-}
-
-/* ---------- Variantes LP — correction v2.8 selon les maquettes HTML validées ----------
- * (mandat « feat/lp-variants-styling », corrigé « fix/lp-variants-visual-correction »)
- * Deux déclinaisons visuelles conditionnées par UNE classe posée sur <main>
- * par le gabarit unique (abaya_is_front_offer) :
- *   .lp-variant-principale — offre vedette (racine) : DESIGN D'ORIGINE VALIDÉ
- *     (« VF charte LP offres.html ») — puces de caractéristiques à carré arrondi
- *     au fond vert TRÈS LÉGER #E8F0EE contenant un petit cercle à CONTOUR
- *     émeraude 2px et un crochet émeraude REMPLI (bien visible) ; contours des
- *     cartes verts translucides rgba(58,125,132,.4) ; carte ACTIVE dorée
- *     #C5A059 à halo doré (fond blanc, translateY(-2px)) ; badge ✓ de sélection
- *     doré à ✓ blanc ; ruban « الأكثر طلباً » émeraude à texte blanc ;
- *     badges de quantité beige/dorés (teintes maquette) ; prix offre 2 en
- *     vert sapin #3B7A57 (maquette), économies émeraude ;
- *   .lp-variant-upsell — landings secondaires (tunnel post-achat) : INVERSION
- *     validée — puces à cercle PLEIN doré #D4AF37 + crochet émeraude #3A7D84
- *     (SVG stroke 3), contours des cartes DORÉS rgba(212,175,55,.55), carte
- *     active dorée pleine à halo doré, badge ✓ doré à ✓ émeraude (inversion
- *     exacte de la maquette « nuence »), ruban « الأكثر طلباً » DORÉ à texte
- *     contrasté #2C1D11 (≈8.5:1), badges de quantité teintes dorées.
- * Chaque puce embarque les DEUX rendus SVG (fill viewBox 20 / stroke 3
- * viewBox 24) et l'anneau intermédiaire ; la variante masque l'un ou l'autre
- * en pur CSS — zéro duplication de markup, zéro état JS. Palette : émeraude
- * #3A7D84 (deep #2A6268) · doré maquette VF #C5A059 · doré lumineux nuence
- * #D4AF37 (deep #B8952C) · fond de puce léger #E8F0EE · vert sapin #3B7A57 ·
- * texte contrasté sur doré #2C1D11.
- * Socle critical.css/styles.css inchangés : surcharges scopées aux landings,
- * aucun composant hors périmètre (merci, pop-up, pages légales) n'est touché. */
-
-/* ----- Puces de caractéristiques ----- */
-/* Principale — maquette « VF charte » : carré arrondi au fond TRÈS LÉGER
- * #E8F0EE + petit cercle à CONTOUR émeraude 2px + crochet émeraude rempli. */
-.lp-variant-principale .checkmark-badge {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
-  border-radius: 12px;
-  background: #E8F0EE;
-  box-shadow: none;
-}
-.lp-variant-principale .lp-bullet-ring {
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #3A7D84;
-  border-radius: 50%;
-}
-.lp-variant-principale .lp-check-fill { display: block; }
-.lp-variant-principale .lp-check-stroke { display: none; }
-/* Upsell — inversion validée : cercle PLEIN doré #D4AF37 + crochet émeraude
- * épais (SVG stroke 3, lisible mobile) — maquette « nuence » inversée. */
-.lp-variant-upsell .checkmark-badge {
-  background: #D4AF37;
-  color: #3A7D84;
-  box-shadow: 0 1px 3px rgb(44 29 17 / 18%);
-}
-.lp-variant-upsell .lp-bullet-ring { display: none; }
-.lp-variant-upsell .lp-check-fill { display: none; }
-.lp-variant-upsell .lp-check-stroke { display: block; }
-
-/* SVG des crochets : le rendu stroke 3 reste porté par le socle v2.6
- * (currentColor) ; le crochet fill de la principale l'écrase proprement. */
-.checkmark-badge svg,
-.bundle-check svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.lp-variant-principale .lp-check-fill {
-  width: 10px;
-  height: 10px;
-  fill: #3A7D84;
-  stroke: none;
-}
-.lp-variant-upsell .lp-check-stroke { width: 16px; height: 16px; }
-
-/* ----- Cartes d'offres ----- */
-/* Principale — contours verts translucides (maquette), carte ACTIVE DORÉE
- * #C5A059 à halo doré + fond blanc + translateY(-2px) (maquette « VF charte »).
- * Largeurs de bordure du socle conservées (1px / 2px active) : zéro décalage. */
-.lp-variant-principale .bundle-card,
-.lp-variant-upsell .bundle-card { position: relative; }
-.lp-variant-principale .bundle-card { border-color: rgb(58 125 132 / 40%); }
-.lp-variant-principale .bundle-card:hover { border-color: #C5A059; }
-.lp-variant-principale .bundle-card.is-selected {
-  border-color: #C5A059;
-  background: #fff;
-  box-shadow: 0 10px 25px -5px rgb(197 160 89 / 35%), 0 8px 10px -6px rgb(197 160 89 / 20%);
-}
-/* Upsell — contours DORÉS (règle : « contours des cartes doivent être dorés »),
- * carte active dorée pleine + halo de la même famille. */
-.lp-variant-upsell .bundle-card { border-color: rgb(212 175 55 / 55%); }
-.lp-variant-upsell .bundle-card:hover { border-color: #B8952C; }
-.lp-variant-upsell .bundle-card.is-selected {
-  border-color: #D4AF37;
-  background: #fffdf8;
-  box-shadow: 0 10px 25px -5px rgb(212 175 55 / 38%), 0 8px 10px -6px rgb(212 175 55 / 22%);
-}
-
-/* ----- Badges de quantité ----- */
-/* Principale — teintes maquette « VF charte » : beige (carte 1) puis teintes
- * dorées douces 20% / 30% (cartes 2 et 3), texte sombre. */
-.lp-variant-principale .bundle-badge { background: rgb(226 217 204 / 60%); color: #2C1D11; }
-.lp-variant-principale .bundle-card:nth-child(2) .bundle-badge { background: rgb(197 160 89 / 20%); color: #2C1D11; }
-.lp-variant-principale .bundle-card:nth-child(3) .bundle-badge { background: rgb(197 160 89 / 30%); color: #2C1D11; }
-/* Upsell — badges de quantité à teintes DORÉES + texte sombre contrasté. */
-.lp-variant-upsell .bundle-badge,
-.lp-variant-upsell .bundle-card:nth-child(2) .bundle-badge,
-.lp-variant-upsell .bundle-card:nth-child(3) .bundle-badge {
-  background: rgb(212 175 55 / 18%);
-  color: #2C1D11;
-}
-
-/* ----- Prix et économies ----- */
-/* Principale — maquette « VF charte » : prix carte 2 en vert sapin #3B7A57,
- * prix cartes 1/3 encre sombre ; économies émeraude (cartes 1/3) et vert
- * sapin en pilule pâle (carte 2). */
-.lp-variant-principale .bundle-price { color: #2C1D11; }
-.lp-variant-principale .bundle-card:nth-child(2) .bundle-price { color: #3B7A57; }
-.lp-variant-principale .bundle-saving { color: #3A7D84; }
-.lp-variant-principale .bundle-card:nth-child(2) .bundle-saving {
-  color: #3B7A57;
-  background: rgb(59 122 87 / 10%);
-  padding: 2px 9px;
-  border-radius: 999px;
-}
-/* Upsell — prix et économies ÉMERAUDE (maquette « nuence », lisible sur crème ;
- * l'accent doré reste réservé aux contours/badges/puces). */
-.lp-variant-upsell .bundle-price,
-.lp-variant-upsell .bundle-saving { color: #3A7D84; }
-
-/* ----- Badge ✓ de sélection ----- */
-/* Liaison DYNAMIQUE à la carte active : visibilité strictement dérivée de
- * .is-selected (bascule exhaustive par app.js sur les trois cartes), donc
- * aucune persistance erronée sur le premier bloc.
- * Principale : pastille DORÉE #C5A059 à ✓ blanc (maquette « VF charte »).
- * Upsell : pastille DORÉE #D4AF37 à ✓ émeraude (inversion exacte de la
- * maquette « nuence » qui portait émeraude/✓ doré). */
-.bundle-check {
-  position: absolute;
-  top: -9px;
-  inset-inline-start: -9px;
-  display: none;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #D4AF37;
-  color: #3A7D84;
-  box-shadow: 0 2px 6px rgb(44 29 17 / 22%);
-}
-.lp-variant-principale .bundle-check { background: #C5A059; color: #fff; }
-.bundle-check svg { width: 12px; height: 12px; }
-.bundle-card.is-selected .bundle-check { display: grid; }
-
-/* ----- Ruban « الأكثر طلباً » (carte 2) ----- */
-/* Principale : émeraude à texte blanc (maquette « VF charte »).
- * Upsell : DORÉ à texte contrasté sombre #2C1D11 (ratio ≈ 8.5:1 sur #D4AF37). */
-.bundle-flag {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px 11px 4px;
-  border-radius: 999px;
-  background: #D4AF37;
-  color: #2C1D11;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.5;
-  letter-spacing: .2px;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgb(44 29 17 / 18%);
-}
-.lp-variant-principale .bundle-flag { background: #3A7D84; color: #fff; }
-@media (max-width: 560px) {
-  .bundle-flag { font-size: 10px; padding: 2px 9px 3px; }
-  .bundle-check { width: 20px; height: 20px; top: -8px; inset-inline-start: -8px; }
-  .bundle-check svg { width: 11px; height: 11px; }
 }

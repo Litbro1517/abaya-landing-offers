@@ -115,7 +115,7 @@
 @font-face {
   font-family: 'Cairo';
   font-style: normal;
-  font-weight: 800;
+  font-weight: 800 900;
   font-display: swap;
   src: url(../fonts/Cairo-arabic.woff2) format('woff2');
   unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC4, U+10EFC-10EFF, U+1EE00-1EE03, U+1EE05-1EE1F, U+1EE21-1EE22, U+1EE24, U+1EE27, U+1EE29-1EE32, U+1EE34-1EE37, U+1EE39, U+1EE3B, U+1EE42, U+1EE47, U+1EE49, U+1EE4B, U+1EE4D-1EE4F, U+1EE51-1EE52, U+1EE54, U+1EE57, U+1EE59, U+1EE5B, U+1EE5D, U+1EE5F, U+1EE61-1EE62, U+1EE64, U+1EE67-1EE6A, U+1EE6C-1EE72, U+1EE74-1EE77, U+1EE79-1EE7C, U+1EE7E, U+1EE80-1EE89, U+1EE8B-1EE9B, U+1EEA1-1EEA3, U+1EEA5-1EEA9, U+1EEAB-1EEBB, U+1EEF0-1EEF1;
@@ -124,7 +124,7 @@
 @font-face {
   font-family: 'Cairo';
   font-style: normal;
-  font-weight: 800;
+  font-weight: 800 900;
   font-display: swap;
   src: url(../fonts/Cairo-latin-ext.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -133,7 +133,7 @@
 @font-face {
   font-family: 'Cairo';
   font-style: normal;
-  font-weight: 800;
+  font-weight: 800 900;
   font-display: swap;
   src: url(../fonts/Cairo-latin.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -213,16 +213,18 @@
 
 :root {
   color-scheme: light;
-  --ink: #282923;
-  --muted: #77776e;
-  --line: #e7e4dd;
-  --paper: #fbfaf7;
-  --cream: #f2eee6;
-  --olive: #517c79;
-  --olive-dark: #517c79;
-  --olive-hover: #3e6260;
-  --gold: #b39160;
+  --ink: #2c1d11;
+  --muted: #75695f;
+  --line: #e2d9cc;
+  --paper: #f5f0e8;
+  --cream: #faf7f2;
+  --olive: #3a7d84;
+  --olive-dark: #2d6a70;
+  --olive-hover: #2d6a70;
+  --gold: #d4af37;
   --white: #fff;
+  --check-bg: #3a7d84;
+  --check-mark: #d4af37;
   font-family: "Cairo", Tahoma, Arial, sans-serif;
   font-size: 16px;
   font-synthesis: none;
@@ -274,7 +276,7 @@ img { display: block; max-width: 100%; }
   object-fit: contain;
 }
 .footer-wordmark {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "Cairo", Tahoma, Arial, sans-serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: .13em;
@@ -358,7 +360,7 @@ img { display: block; max-width: 100%; }
   gap: 9px;
   margin: 0;
   color: var(--gold);
-  font: 600 10px/1.6 "DM Sans", "Cairo", sans-serif;
+  font: 600 10px/1.6 "Cairo", sans-serif;
   letter-spacing: .15em;
 }
 .eyebrow-line { display: inline-block; width: 27px; height: 1px; background: var(--gold); }
@@ -373,7 +375,7 @@ h1 {
 }
 .product-intro { margin-bottom: 17px; color: var(--muted); font-size: 13px; line-height: 1.9; }
 .price-row { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; direction: rtl; }
-.price { color: var(--olive); font: 700 31px/1.2 "DM Sans", "Cairo", sans-serif; }
+.price { color: var(--olive); font: 700 31px/1.2 "Cairo", sans-serif; }
 .price small { font: 600 14px "Cairo", sans-serif; }
 .old-price { color: #aaa79f; font-size: 13px; }
 .discount-pill { padding: 4px 9px; border-radius: 2px; background: #f2e8dd; color: #98694f; font-size: 10px; }
@@ -401,7 +403,7 @@ h1 {
   height: 39px;
   border: 1px solid var(--line);
   background: transparent;
-  font: 500 12px "DM Sans", sans-serif;
+  font: 500 12px "Cairo", sans-serif;
   cursor: pointer;
   transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
@@ -449,7 +451,7 @@ h1 {
 .bundle-badge { padding: 6px 13px; border-radius: 999px; background: #e8e0d0; color: #655842; font-size: 13px; font-weight: 700; }
 .bundle-card:nth-child(2) .bundle-badge { background: #e1eadb; color: #4e6742; }
 .bundle-card:nth-child(3) .bundle-badge { background: #f3e2ce; color: #8b5b2a; }
-.bundle-price { color: var(--olive); font: 700 27px "DM Sans", "Cairo", sans-serif; }
+.bundle-price { color: var(--olive); font: 700 27px "Cairo", sans-serif; }
 .bundle-price small { font: 600 14px "Cairo", Tahoma, sans-serif; }
 .bundle-saving { color: #6a675d; font-size: 13px; }
 
@@ -496,7 +498,7 @@ h1 {
 .summary-copy { min-width: 0; text-align: right; }
 .summary-copy > span { display: block; color: var(--muted); font-size: 12px; }
 .order-summary strong { font-size: 14px; font-weight: 700; }
-.order-summary .summary-price { flex: 0 0 auto; color: var(--olive); font: 700 20px/1.3 "DM Sans", "Cairo", sans-serif; text-align: left; }
+.order-summary .summary-price { flex: 0 0 auto; color: var(--olive); font: 700 20px/1.3 "Cairo", sans-serif; text-align: left; }
 .order-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
 .form-field { display: block; min-width: 0; }
 .form-field > span { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600; }
@@ -529,20 +531,20 @@ h1 {
 .review-feedback { width: min(1100px, 100%); margin: 18px auto 0; color: var(--olive-dark); font-size: 14px; font-weight: 700; }
 .review-feedback[hidden] { display: none; }
 .review-feedback.is-error { color: #a63a3a; }
-.review-card { flex: 1 1 320px !important; max-width: 100% !important; box-sizing: border-box !important; padding: 17px 19px; border: 1px solid var(--line); border-right: 3px solid #792f3c; background: #fff; text-align: right; }
+.review-card { flex: 1 1 320px !important; max-width: 100% !important; box-sizing: border-box !important; padding: 17px 19px; border: 1px solid var(--line); border-right: 3px solid var(--olive); background: #fff; text-align: right; }
 .review-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .review-card-stars { display: inline-flex; align-items: center; gap: 3px; direction: ltr; }
-.review-star { width: 22px; height: 22px; fill: #c49b55; stroke: #c49b55; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 1px 1.5px rgba(196, 155, 85, 0.35)); }
+.review-star { width: 22px; height: 22px; fill: #d4af37; stroke: #d4af37; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 1px 1.5px rgba(212, 175, 55, 0.35)); }
 .review-star.is-empty { fill: #e3dccc; stroke: #e3dccc; filter: none; }
-.review-card-score { color: var(--muted); font: 700 13px/1 "DM Sans", "Cairo", sans-serif; }
-.review-card-author { margin: 0 0 8px; color: #792f3c; font-size: 14px; line-height: 1.6; font-family: "Cairo", "DM Sans", sans-serif; }
-.review-card-author strong { font-weight: 700; color: #792f3c; }
+.review-card-score { color: var(--muted); font: 700 13px/1 "Cairo", sans-serif; }
+.review-card-author { margin: 0 0 8px; color: #2c1d11; font-size: 14px; line-height: 1.6; font-family: "Cairo", sans-serif; }
+.review-card-author strong { font-weight: 700; color: #2c1d11; }
 .review-card-city { color: #8a6e75; font-weight: 600; }
 .review-card-comment { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
 .review-card-reply { margin-top: 14px; margin-right: 14px; padding: 12px 14px; background: #faf8f4; border-right: 3px solid var(--olive); border-radius: 8px; }
 .review-card-reply-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .review-card-reply-logo { width: 18px; height: 18px; flex: 0 0 auto; }
-.review-card-reply-title { color: var(--olive-dark, #4a3f2a); font-weight: 700; font-size: 13px; font-family: "Cairo", "DM Sans", sans-serif; }
+.review-card-reply-title { color: var(--olive-dark, #4a3f2a); font-weight: 700; font-size: 13px; font-family: "Cairo", sans-serif; }
 .review-card-reply-text { margin: 0; color: var(--ink); font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
 
 .faq-section { padding-block: 55px 62px; background: #fbfaf7; }
@@ -601,7 +603,7 @@ h1 {
   text-align: right;
 }
 .info-modal::backdrop { background: rgb(32 32 27 / 55%); backdrop-filter: blur(2px); }
-.modal-close { position: absolute; top: 10px; left: 12px; width: 32px; height: 32px; border: 0; background: transparent; color: #77776e; font: 300 27px/1 "DM Sans", sans-serif; cursor: pointer; }
+.modal-close { position: absolute; top: 10px; left: 12px; width: 32px; height: 32px; border: 0; background: transparent; color: #77776e; font: 300 27px/1 "Cairo", sans-serif; cursor: pointer; }
 .info-modal .eyebrow { margin-bottom: 9px; }
 .info-modal h2 { margin: 0 0 10px; font-size: 20px; font-weight: 600; }
 .size-table-wrap { overflow-x: auto; }
@@ -631,7 +633,7 @@ h1 {
   flex: 1;
   line-height: 2;
 }
-.legal-eyebrow { margin-bottom: 8px; color: var(--gold); font: 600 11px/1.6 "DM Sans", "Cairo", sans-serif; letter-spacing: .12em; }
+.legal-eyebrow { margin-bottom: 8px; color: var(--gold); font: 600 11px/1.6 "Cairo", sans-serif; letter-spacing: .12em; }
 .legal-content h1 { max-width: none; margin: 0 0 26px; font-size: clamp(27px, 5vw, 38px); }
 .legal-content section { padding-block: 18px; border-top: 1px solid var(--line); }
 .legal-content h2 { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
@@ -840,7 +842,7 @@ body { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px; }
 }
 .review-field input:focus,
 .review-field select:focus,
-.review-field textarea:focus { outline: 2px solid #792f3c; outline-offset: -1px; border-color: #792f3c; }
+.review-field textarea:focus { outline: 2px solid var(--olive); outline-offset: -1px; border-color: var(--olive); }
 .review-field textarea { resize: vertical; }
 .review-submit { width: 100%; }
 
@@ -1017,7 +1019,7 @@ body { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px; }
   display: inline-block;
   margin-bottom: 11px;
   color: var(--olive);
-  font: 700 13px/1 "DM Sans", "Cairo", sans-serif;
+  font: 700 13px/1 "Cairo", sans-serif;
   letter-spacing: .08em;
   direction: ltr;
 }
@@ -1247,3 +1249,206 @@ body { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px; }
 @media (prefers-reduced-motion: reduce) {
   .stock-overlay { transition: none; }
 }
+
+/* Charte LP emeraude, commune aux offres principales et secondaires. */
+
+/* Cairo is the sole interface typeface; the local variable font includes weight 900. */
+.wordmark-name, .footer-wordmark, .eyebrow, .price, .size-option,
+.bundle-price, .order-summary .summary-price, .review-card-score,
+.modal-close, .legal-eyebrow, .order-step-number {
+  font-family: "Cairo", Tahoma, Arial, sans-serif;
+}
+body.product-landing { background: var(--paper); color: var(--ink); }
+.product-landing .announcement { background: var(--olive); }
+.product-landing main {
+  width: min(1280px, calc(100% - 40px));
+  margin: 22px auto 32px;
+  overflow: hidden;
+  border: 1px solid rgb(226 217 204 / 80%);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 24px 65px rgb(44 29 17 / 12%);
+}
+.product-landing .main-photo-wrap,
+.product-landing .thumbnail { border-radius: 14px; }
+.product-landing .thumbnail.is-current { border-color: var(--olive); }
+.product-landing .photo-tag { border-radius: 999px; color: var(--ink); }
+.product-landing .product-info h1 { color: var(--ink); font-weight: 900; }
+.product-landing .price,
+.product-landing .bundle-price { color: var(--olive); font-weight: 900; }
+.product-landing .discount-pill { border-radius: 999px; background: rgb(212 175 55 / 18%); color: var(--ink); }
+.product-landing .size-option { border-radius: 10px; }
+.product-landing .size-option:hover,
+.product-landing .size-option.is-selected { border-color: var(--olive); background: var(--olive); }
+
+.product-landing .hero-order .order-heading h2 { color: var(--ink); font-weight: 800; }
+.product-landing .hero-order .order-summary {
+  padding: 13px 15px;
+  border: 1.5px solid rgb(58 125 132 / 40%);
+  border-radius: 16px;
+  background: var(--cream);
+  box-shadow: 0 2px 8px rgb(44 29 17 / 5%);
+}
+.product-landing .hero-order .summary-copy > span { color: rgb(44 29 17 / 70%); }
+.product-landing .hero-order .summary-copy strong { color: var(--ink); font-weight: 800; }
+.product-landing .hero-order .order-summary .summary-price { color: var(--olive); font-weight: 900; }
+.product-landing .hero-order .form-field input,
+.product-landing .hero-order .form-field select {
+  border-color: var(--line);
+  border-radius: 12px;
+  background: rgb(250 247 242 / 40%);
+}
+.product-landing .hero-order .form-field input:focus,
+.product-landing .hero-order .form-field select:focus {
+  border-color: var(--olive);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(58 125 132 / 12%);
+}
+.product-landing .primary-button,
+.product-landing .review-button {
+  border-radius: 16px;
+  background: var(--olive);
+  box-shadow: 0 8px 20px rgb(58 125 132 / 20%);
+  font-family: "Cairo", Tahoma, Arial, sans-serif;
+  font-weight: 900;
+}
+.product-landing .primary-button:hover,
+.product-landing .review-button:hover { background: var(--olive-hover); }
+.product-landing .primary-button:active { transform: scale(.99); }
+.product-landing .secure-note { color: var(--olive); font-weight: 700; }
+.product-landing .secure-note span { color: var(--gold); }
+
+.product-landing .bundles-section .section-heading h2 {
+  color: var(--olive);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.product-landing .bundle-grid { gap: 13px; }
+.product-landing .bundle-card {
+  position: relative;
+  overflow: visible;
+  min-height: 160px;
+  border: 2px solid rgb(58 125 132 / 40%);
+  border-radius: 16px;
+  background: rgb(250 247 242 / 50%);
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.product-landing .bundle-card:hover { transform: translateY(-2px); }
+.product-landing .bundle-card.is-selected {
+  z-index: 1;
+  border-color: var(--olive);
+  background: #fff;
+  box-shadow: 0 10px 25px rgb(58 125 132 / 22%);
+  transform: translateY(-2px);
+}
+.product-landing .bundle-card::before {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
+  display: none;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--check-bg);
+  color: var(--check-mark);
+  content: "✓";
+  font: 800 12px/1 "Cairo", sans-serif;
+  box-shadow: 0 2px 6px rgb(44 29 17 / 18%);
+}
+.product-landing .bundle-card.is-selected::before { display: grid; }
+.product-landing .bundle-card:nth-child(2)::after {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  z-index: 2;
+  padding: 2px 10px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--olive);
+  color: #fff;
+  content: "الأكثر طلباً";
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 2px 7px rgb(44 29 17 / 14%);
+}
+.product-landing .bundle-badge {
+  border-radius: 999px;
+  background: rgb(226 217 204 / 65%);
+  color: var(--ink);
+  font-weight: 800;
+}
+.product-landing .bundle-card:nth-child(2) .bundle-badge,
+.product-landing .bundle-card:nth-child(3) .bundle-badge { background: rgb(226 217 204 / 65%); color: var(--ink); }
+.product-landing .bundle-saving { color: var(--olive); font-weight: 700; }
+
+.product-landing .visual-section-colors .visual-title {
+  padding-right: 14px;
+  border-right: 4px solid var(--olive);
+  color: var(--ink);
+  font-weight: 900;
+}
+.product-landing .visual-check-list { color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.8; }
+.product-landing .checkmark-badge {
+  background: var(--check-bg);
+  color: var(--check-mark);
+  font-size: 15px;
+  font-weight: 900;
+}
+.product-landing .inspection-note {
+  border-right-color: var(--olive);
+  border-radius: 0 14px 14px 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-weight: 800;
+}
+.product-landing .trust-strip { margin: 0 auto; background: transparent; border: 0; }
+.product-landing .trust-grid {
+  width: min(1160px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 20px 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--cream);
+}
+.product-landing .trust-item + .trust-item { border-right-color: rgb(226 217 204 / 80%); }
+.product-landing .trust-icon { border-color: var(--line); background: #fff; color: var(--olive); box-shadow: 0 2px 7px rgb(44 29 17 / 7%); }
+.product-landing .trust-item h2 { color: var(--ink); font-weight: 900; }
+.product-landing .trust-item p { color: var(--muted); }
+.product-landing .order-steps li {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--line);
+  border-radius: 16px;
+  background: rgb(250 247 242 / 60%);
+}
+.product-landing .order-step-number {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  margin: 0;
+  color: var(--olive);
+  font-size: 24px;
+  font-weight: 900;
+  opacity: .3;
+}
+.product-landing .order-steps h3 { color: var(--ink); font-weight: 800; }
+.product-landing .order-steps p { color: var(--muted); }
+
+/* Les pages d'upsell inversent uniquement les accents valides par la charte. */
+.product-landing.is-upsell { --check-bg: #d4af37; --check-mark: #3a7d84; }
+.product-landing.is-upsell .bundle-card { border-color: rgb(212 175 55 / 45%); }
+.product-landing.is-upsell .bundle-card.is-selected {
+  border-color: var(--gold);
+  box-shadow: 0 10px 25px rgb(212 175 55 / 28%);
+}
+.product-landing.is-upsell .bundle-card:nth-child(2)::after { background: var(--gold); color: var(--ink); }
+.product-landing.is-upsell .bundle-saving { color: var(--gold); }
+
+@media (max-width: 700px) {
+  .product-landing main { width: calc(100% - 20px); margin: 10px auto 22px; border-radius: 20px; }
+  .product-landing .trust-grid { width: calc(100% - 30px); }
+}
+
