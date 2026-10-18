@@ -1707,3 +1707,58 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   .product-landing .trust-grid { width: calc(100% - 30px); }
 }
 
+
+/* ==========================================================================
+   v3.2 — DISPOSITIONS MOBILE (mandat 4P « grilles offres + formulaire »)
+   Objectif 1 : formulaire = 1 colonne sur mobile (≤700px — chaque champ
+   occupe une ligne entière, 100% de largeur) ; > 700px conserve 2 colonnes
+   (socle inchangé). Équivalent grid-cols-1 sm:grid-cols-2 du mandat.
+   Objectif 2 : .bundle-grid = 3 colonnes FIXES (grid-cols-3) à TOUTES les
+   largeurs — les bascules socle ≤540px (ligne 738) et ≤420px (ligne 886)
+   en pile verticale sont neutralisées par spécificité 0,3,0 + fin de
+   cascade ; gap-2 8px ≤700px, gap socle 13px conservé au-dessus.
+   Charte émeraude/doré, typographies Cairo, badge ✓ doré et ruban
+   « الأكثر طلباً » : INCHANGÉS — seules les métriques internes des cartes
+   sont compactées ≤540px (référence mobile utilisateur) pour tenir dans
+   ~90px (320px / 3 colonnes) sans débordement.
+   Upsell : aucune règle hors :not(.is-upsell) → rendu bit-exact préservé. */
+
+.product-landing:not(.is-upsell) .bundle-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 700px) {
+  .product-landing:not(.is-upsell) .hero-order .order-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .product-landing:not(.is-upsell) .hero-order .form-submit { grid-column: auto; }
+  .product-landing:not(.is-upsell) .bundle-grid { gap: 8px; }
+}
+
+@media (max-width: 540px) {
+  .product-landing:not(.is-upsell) .bundle-card {
+    min-height: 0;
+    gap: 6px;
+    padding: 14px 6px 12px;
+    border-radius: 12px;
+  }
+  .product-landing:not(.is-upsell) .bundle-badge { padding: 3px 7px; font-size: 9px; }
+  .product-landing:not(.is-upsell) .bundle-price { font-size: 18px; }
+  .product-landing:not(.is-upsell) .bundle-price small { font-size: 10px; }
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { font-size: 20px; }
+  .product-landing:not(.is-upsell) .bundle-saving { font-size: 9px; }
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving { padding: 2px 6px; }
+  .product-landing:not(.is-upsell) .bundle-card::before {
+    top: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    font: 700 9px/1 "Cairo", sans-serif;
+  }
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2)::after {
+    top: -9px;
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+}

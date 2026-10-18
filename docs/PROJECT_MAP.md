@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **3.1** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **3.2** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -221,10 +221,21 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Script de sélection (objectif 3)** : app.js INCHANGÉ — `updateSummary()` bascule `.is-selected` + `aria-pressed` et met à jour `#summary-choice` (« اختاري اللون والمقاس - {offre} ») + `#summary-price` (« {prix} درهم ») = comportement exact du `selectOffer()` de la maquette (prouvé par assertions dynamiques).
 - **Validation v3.1** : statique **118/118** (S16 nouveau bloc : 10 invariants) ; visuelle Playwright **77/77** (16 assertions calculées v3.1 : CTA, ruban, emphasis, récap, note, bannière, tokens + contre-preuves upsell CTA 40px/15px/600 et ruban −11px/10px bit-exact) ; régressions tunnel 56/56 + orders 30/30 + avis 29/29 + canva 41/41 + thankyou 29/29 + badge 16/16 + badge SVG 10/10 = **406/406 in-scope** ; popup 10/14 = contrebaseline v2.3 INCHANGÉE ; php -l + node --check + accolades 571/571 & 226/226 ; captures desktop/mobile vérifiées contre le rendu de la maquette.
 
+## 5-undecies. DISPOSITIONS MOBILE — grilles offres + formulaire (v3.2 — branche « fix/mobile-grids-offers-form »)
+
+- **Mandat 4P** : « Disposition Mobile Formulaire + Disposition Mobile Offres » — sur mobile, les offres s'empilaient verticalement (trop volumineuses) et les champs du formulaire ne s'alignaient pas sur une ligne (2 colonnes à 421–700px) ; référence = capture mobile utilisateur (formulaire 1 colonne + 3 offres côte à côte en bas).
+- **Diagnostic mesuré (AVANT, harnais Playwright réel)** : `.bundle-grid` = **1 colonne** à 320/375/390/430px (bascules socle ≤540px ligne 738 + ≤420px ligne 886) ; `.hero-order .order-form-grid` = **2 colonnes à 430px** (règle socle ≤700px ligne 879, spécificité 0,2,0 gagnant sur le 1-col ≤540px 0,1,0) — 1 colonne déjà correcte à 320–390px.
+- **Objectif 1 — formulaire grid-cols-1** : `@media (max-width: 700px)` scopé vedette `.hero-order .order-form-grid { grid-template-columns: 1fr; gap: 12px }` + `.form-submit { grid-column: auto }` (chaque champ Nom/Téléphone/Ville/Adresse = 100% de largeur) ; > 700px inchangé (2 colonnes socle) — équivalent `grid-cols-1 sm:grid-cols-2` du mandat avec la frontière mobile du thème (700px).
+- **Objectif 2 — offres grid-cols-3 FIXE** : règle tous-widths scopée `.bundle-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) }` (0,3,0 + fin de cascade → neutralise les 2 bascules socle sans les toucher) + `gap: 8px` (gap-2) ≤700px, gap socle 13px conservé au-dessus.
+- **Compactage mobile ≤540px (référence utilisateur, ~90px/carte à 320px)** : carte (min-height 0, gap 6px, padding 14px 6px 12px, radius 12px), pilule (3px 7px, 9px), prix 18px / carte 2 20px (small 10px), économies 9px, badge ✓ 18px à −6px, ruban الأكثر طلباً 8px à −9px — **couleurs/graisse/halo/charte émeraude-doré INTACTES** (métriques seules, proportion compacte de la référence).
+- **Zéro changement PHP/JS** (gabarit + app.js bit-exact) ; **upsell bit-exact** (toutes les règles v3.2 scopées `:not(.is-upsell)` — zéro règle globale) ; desktop >700px bit-exact.
+- **Validation v3.2** : mesures calculées APRÈS = bundle_cols **3/3/3/3** + form_cols **1/1/1/1** à 320/375/390/430px, overflow_x 0 ; suites rescopées (voir rapport).
+
 ## 6. Historique
 
 | Version | Contenu |
 |---|---|
+| 3.2 | Mandat 4P « Dispositions Mobile » (branche `fix/mobile-grids-offers-form`) : offres dégressives = 3 colonnes FIXES à toute largeur (bascules socle ≤540/≤420px neutralisées par override scopé vedette, gap-2 8px ≤700px) + formulaire 1 colonne ≤700px (2 colonnes conservées au-dessus) ; compactage ≤540px des cartes (métriques seules, charte émeraude/doré intacte, référence mobile utilisateur) ; PHP/JS inchangés, upsell bit-exact ; validation mesures calculées 3-col + 1-col à 320/375/390/430px + suites rescopées |
 | 2.0 | Mandat multi-landing : registre 4 offres, gabarit unique, routing, REST additive (`offer`), badge étoiles BDD, pop-up 1-clic merci, cross-sell, code promo, mock dev-only, rebase socle v1.27 (restructuration : prototype → `preview/`, purge résidus), validation 30/30 REST + 59/59 statique + rendu racine bit-à-bit |
 | 2.1 | Mandat 4P LP « Ajustement Final & Badge Étoiles » (branche `feat/ratings-popup-adjustments`) : badge étoiles SVG au format EXACT de la section avis sous le H1 sur les 4 landings (avant : secondaires seules, étoiles Unicode), garnissage BDD 2 couches ; FIX P0 pop-up merci (`ratingCtx` closure PHP toujours null → auto-ouverture restaurée) ; correctif Échap mode mock ; offers.css chargée sur toutes les landings ; validation 59/59 statique + 30/30 REST + 14/14 E2E Playwright + 16/16 visuel + SVG byte-exact 10/10 |
 | 2.2 | Mandat 4P LP « Refonte UI/UX Thank You Page, Offres Upsell & Logique de Notation » (branche `feat/thankyou-page-redesign`) : /merci/ épurée (typographie fine Cairo/Arial, zéro bloc massif), tableau récap 2 colonnes à séparateurs fins + miniature, grille client compacte sans boîtes, upsell SANS cadres (visuels libres + bouton d'achat direct), promo fin ; pop-up perfectionné (remplissage progressif RTL, étoiles nues, persistance + texte optionnel, fermeture X/valider/délai 30 s) ; REST : texte optionnel, règle `max(note)` par commande (méta `review_order_id`), modération intelligente (étoiles seules = auto-approbation, texte = modération), réponse enrichie (rating/average/count) ; mock + preview miroirs (fix syntaxe `ockOrder` au passage) ; validation php -l + node ESM + E2E Playwright + visuel mobile/RTL |
