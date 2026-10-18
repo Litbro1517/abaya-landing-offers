@@ -2,7 +2,7 @@
 
 > Cartographie du dépôt de travail **`Litbro1517/abaya-landing-offers`** — architecture « N offres (landings) + une offre vedette à la racine » avec cross-sell sur /merci/.
 > Socle de référence (INTACT, jamais modifié ici) : **`Litbro1517/abayacollection-theme-clean` @ f25c7049 (v1.27)**.
-> Audit préalable complet : **`docs/AUDIT_PHASE0.md`**.
+> Audit préalable complet : **`docs/AUDIT_PHASE0.md`** (archivé hors dépôt — retiré du thème en v2.7, nettoyage minimal).
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **2.6** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **2.7** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -32,7 +32,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 ## 3. Arborescence
 
 ```
-├── style.css                     # En-tête thème — Version 2.6
+├── style.css                     # En-tête thème — Version 2.7
 ├── functions.php                 # Adaptateur abaya_catalog($offer_id), LCP par offre,
 │   │                             # window.LANDING (clés offre = secondaires SEULEMENT),
 │   │                             # Pixel/CAPI par offre, REST additive (offer/offer_id),
@@ -83,8 +83,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # + agrégat découplé des statuts (v2.4)
 ├── uploads/                      # = EXACTEMENT les 9 fichiers du socle (preuve S9.4)
 ├── uploads/offers/produit-{1,2,3}/   # Assets ISOLÉS par offre (hero + 7 couleurs + thumbs)
-├── preview/                      # Prototype HTML statique FIGÉ (dev uniquement)
-└── docs/                         # AUDIT_PHASE0.md, PROJECT_MAP.md, OFFRES.md, RAPPORT_TESTS.md
+└── docs/                         # PROJECT_MAP.md (seule documentation vivante)
 ```
 
 ## 4. Règles d'or respectées
@@ -112,7 +111,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
   - **Règle du maximum** : le serveur renvoie `rating = max(note_existante, nouvelle_note)` — l'affichage des étoiles s'aligne sur la valeur conservée (l'avis existant est retrouvé par la méta `review_order_id`) ;
   - **Modération intelligente** : étoiles seules + contexte commande valide (order_id + order_key revalidés `hash_equals`, `created_via = landing-abaya`) → `comment_approved = 1` (auto-approbation : la note alimente immédiatement la moyenne du badge sous le H1, agrégat découplé v2.4 — la carte correspondante ne s'affiche JAMAIS dans le listing) ; avis avec texte → `comment_approved = 0` (modération) ; sans contexte commande valide → statu quo anti-spam (0). Le formulaire avis de la landing (app.js) suit le même chemin serveur sans régression (texte toujours exigé côté client).
   - **Réponse REST enrichie** : `moderation` (bool), `rating` (note finale conservée), `average` + `count` (moyenne recalculée depuis la base = même source que le badge).
-- **Mock (dev)** : `saveMockReview` réplique la règle max + la modération (statuts `approved`/`pending`, filtrage d'affichage existant respecté) ; le mock injecte le design Canva complet (carte, logo via clé `logo` de ABAYA_MOCK, pastille, tableau 4 col + image, cadeau, WhatsApp, upsell 3:5, pied) — `preview/merci.css` miroir exact du style inline + pop-up (générateur `scripts/gen_preview_mirrors.py`).
+- **Mock (dev)** : `saveMockReview` réplique la règle max + la modération (statuts `approved`/`pending`, filtrage d'affichage existant respecté) ; le mock injecte le design Canva complet (carte, logo via clé `logo` de ABAYA_MOCK, pastille, tableau 4 col + image, cadeau, WhatsApp, upsell 3:5, pied) — (miroirs `preview/` retirés en v2.7, le mock racine `assets/js/mock-api.js` conservé).
 - **Sécurité inchangée** : accès récap `hash_equals` + 48 h + `created_via` ; anti-flood 3 avis/10 min/IP ; `no-referrer` ; version générique sans données personnelles.
 - **Historique v2.1 conservé** : le FIX déclenchement (`$GLOBALS['abaya_rating_ctx']`, closure PHP) reste en place et prouvé E2E (Playwright).
 
@@ -130,7 +129,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Global Score Ratio (étanchéité 1)** : `abaya_review_summary()` agrège TOUTES les notes de type « review » via une union déterministe `approve` + `hold` (spam/corbeille exclus par construction) — **chaque note attribuée met à jour la moyenne sous le H1 immédiatement**, indépendamment du corps du commentaire et de son statut de modération.
 - **Section Avis Clients (étanchéité 2)** : le listing n'affiche **QUE SI ET SEULEMENT SI** l'avis textuel est validé par l'administrateur. Garde double dans `abaya_render_review_card()` : (1) `comment_approved === 1` exigé ; (2) texte réel exigé (contenu vide ou placeholder du 1-clic banni) — les évaluations d'étoiles seules ne génèrent JAMAIS de carte. Requête listing : `status=approve` + nombre porté à 50 (fenêtre de cartes préservée).
 - **Liaison relationnelle préservée** : note et commentaire restent liés en base (même enregistrement « review » + méta `rating` + `review_order_id`) ; seuls les rendus visuels sont étanches et conditionnés par la modération.
-- **Mise à jour immédiate (Étape B)** : la réponse REST `submit-review` (average/count recalculés en base) pilote `updateRatingBadge()` dans `app.js` — score, garnissage `--rating-fill`, compteur et `aria-label` du badge H1 actualisés live à la soumission ; miroir `preview/app.js` (mock = agrégat local toutes notes).
+- **Mise à jour immédiate (Étape B)** : la réponse REST `submit-review` (average/count recalculés en base) pilote `updateRatingBadge()` dans `app.js` — score, garnissage `--rating-fill`, compteur et `aria-label` du badge H1 actualisés live à la soumission (miroirs `preview/` retirés en v2.7).
 - **Modération inchangée** : texte → `comment_approved = 0` (en attente de validation admin) ; étoiles seules + commande valide → 1 ; sans commande valide → 0. Règle `max(note)` et anti-flood intacts.
 - **Mock miroir (v2.4)** : `getReviewSummary` porte sur toutes les notes (approuvées ET en attente) ; `getMockReviews` (listing public) reste approuvé seul.
 - **Validation** : suite avis 29/29 (4 assertions découplage T7.1-T7.4 dont étanchéité renderer + affichage après validation admin) + 5 invariants statiques S12.1-S12.5 ; correction au passage d'un bug masqué du harnais T7 (nom 1 caractère rejeté 422 — l'ancienne assertion count=1 passait sans créer l'avis texte).
@@ -158,7 +157,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
   - **Rappel transparence** : `.upsell-order-hint` au-dessus du formulaire — « سيُضاف هذا المنتج إلى طلبكِ الحالي رقم #X — لن يُنشأ طلب جديد ».
 - **Contrat REST additif** : route `add-to-order` en ADDITION de create-order/submit-review ; `window.LANDING` reçoit `upsell_endpoint` + `upsell {order_id, order_key, offer, return}` UNIQUEMENT en contexte valide (clés additives — racine par défaut et visites directes inchangées).
 - **Résolveur partagé** : `abaya_resolve_tunnel_order()` = SEULE copie de la garde d'accès tunnel (hash_equals + 48 h + created_via) — consommée par /merci/, le contexte upsell et la route add-to-order (zéro duplication ; la garde contexte avis de submit-review reste distincte, hors périmètre 48 h).
-- **Miroirs preview synchronisés** : `addToMockOrder` (localStorage, duo revalidé, idempotence), branche upsell de `preview/app.js` (retour TYP + `&added=1`), URLs mock avec duo, bandeau mock (générateur `scripts/gen_preview_mirrors.py`).
+- **Miroirs preview retirés (v2.7)** : la logique mock demeure exclusivement dans `assets/js/mock-api.js` + `merci-review.js` + `app.js` au niveau racine (localStorage, duo revalidé, idempotence, retour TYP + `&added=1`).
 - **Validation** : 88/88 statique (17 nouveaux invariants S13 + S7.6 recalé) + 56/56 harnais tunnel post-achat (`test_post_purchase.php` : résolveur, contexte, garde, REST add-to-order, rendus) + régressions 30/30 orders + 29/29 avis + 29/29 E2E + 41/41 Canva + 16/16 badge + popup 10/14 (contrebaseline v2.3 inchangée) ; rendu racine bit-exact (diff harnais vide).
 
 ## 5-quinquies. Variantes LP « Émeraude & Doré » (v2.6 — mandat « feat/lp-variants-styling »)
@@ -172,6 +171,18 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Discipline socle** : `critical.css`/`styles.css`/`app.js` INCHANGÉS bit-à-bit (invariant S1/S14.10) ; largeurs de bordure du socle conservées (1px / 2px active — zéro décalage de mise en page) ; prix et économies en émeraude littéral `#3A7D84` dans les DEUX variantes (conforme aux 2 maquettes, lisible sur crème — l'accent doré reste réservé aux contours/badges/puces) ; pages /merci/, pop-up et pages légales hors périmètre (intouchés).
 - **Validation** : 98/98 statique (10 nouveaux invariants S14) + 42/42 visuel Playwright `test_lp_variants_visual.py` (couleurs calculées des 2 variantes desktop+mobile, liaison dynamique, aria-pressed, récap prix, zéro débordement 390px) + régressions 56/56 tunnel + 30/30 orders + 29/29 avis + 16/16 badge + 29/29 E2E thankyou + 41/41 Canva + popup 10/14 (contrebaseline v2.3 inchangée) — **341/341 in-scope**.
 
+## 5-sexies. Thème au strict minimum (v2.7 — nettoyage « chore/theme-minimal-cleanup »)
+
+- **Objectif** : alléger le thème déployé au strict nécessaire — conserver uniquement le code, les styles et les scripts indispensables à la visualisation des landing pages (2 variantes v2.6), à leurs fonctionnalités dynamiques (sélection des offres, liaison des badges ✓, tunnel de commande, /merci/, pop-up d'évaluation) et à leur bon fonctionnement global ; éliminer tout le superflu.
+- **Audit référentiel exhaustif** (script `scripts/audit_orphans.py`) : chaque fichier du dépôt croisé avec les références des 22 fichiers de production (PHP/CSS/JS/templates) + les points d'entrée WordPress. Constat : **zéro fonction PHP morte** (21 fonctions de `functions.php` toutes câblées), toutes les images `uploads/` et `assets/images/` référencées (registre d'offres, headers/footers, favicon, logo شكراً), les 8 graines `pages/*.html` chargées par `abaya_ensure_pages()`, les 4 polices Cairo + 2 DM Sans utilisées (styles + preload).
+- **36 fichiers superflus supprimés (~1,37 Mo, −26 % du poids du dépôt)** :
+  - `preview/` entier (33 fichiers : prototype HTML statique, miroirs mock, gros JPG de dev ~1,29 Mo) — harnais de développement JAMAIS chargé par WordPress (référencé uniquement par la documentation) ;
+  - `assets/images/logo-header-color.png` + `logo-footer-white.png` (10 Ko) — doublons PNG morts, seules les versions SVG sont rendues (`site-header.php`, `legal-header.php`, `site-footer.php`) ;
+  - `docs/AUDIT_PHASE0.md` (5 Ko) — audit historique v1.x supersédé par PROJECT_MAP.md (archivé hors dépôt).
+- **Conservé volontairement** : `assets/js/mock-api.js` (import statique de `merci-review.js` — filet de sécurité si REST injoignable 404/50x, prévisualisation du pop-up) ; `mock/` n'existe plus qu'au niveau racine.
+- **Zéro changement fonctionnel** : aucun PHP/JS/CSS de production modifié (hors en-tête `style.css` 2.7) — les landings, le tunnel, /merci/, le pop-up et les pages légales sont bit-à-bit identiques ; seuls des fichiers morts disparaissent de l'arborescence déployée par WP Pusher.
+- **Suites de validation rescopées** : invariants S9.3 (inversé : `preview/` absent + mock racine présent), S13.13 (styles bandeau dans le gabarit, sans miroir), S13.15 (logique mock racine : `addToMockOrder`/`add-to-order`/`upsellQuery` dans les fichiers racine) ; générateurs de miroirs (`scripts/gen_preview_mirrors.py`) et rapports historiques référençant `preview/` archivés hors dépôt.
+
 ## 6. Historique
 
 | Version | Contenu |
@@ -183,3 +194,4 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 | 2.5 | Mandat « MANDAT TECHNIQUE : Sécurisation du tunnel post-achat & flux d'upsell » (branche `fix/post-purchase-navigation-flow`) : logos non-cliquables + suppression des liens de retour sur toutes les pages tunnel (landings + /merci/, pages légales inchangées) ; landings secondaires TOTALEMENT cachées (302 vers la vedette sans duo valide, déverrouillage exclusif par les 3 cartes TYP portant `?order=&key=`) ; route REST `add-to-order` (ligne ajoutée à la MÊME commande, prix autoritaire, idempotence event_id, CAPI dédupliquée) → TYP mise à jour dynamiquement + bandeau confirmation `&added=1` ; flèche de retour « رجوع إلى طلبي » vers la TYP personnalisée (secondaires + racine) ; hint « ajout à la commande existante » ; exclusion des offres déjà commandées ; carte vedette corrigée (racine, l'ancien /accueil/ était un 404) ; résolveur partagé unique ; no-cache sur URLs personnalisées ; miroirs preview synchronisés ; validation 88/88 statique + 56/56 tunnel + 145/145 régressions in-scope |
 | 2.4 | Mandat « MANDAT COMBO : Audit Préalable & Protocole — Découplage Étoiles / Avis Clients » (branche `fix/rating-comments-decoupling`) : étanchéité stricte entre score global et avis — `abaya_review_summary()` agrège toutes les notes (union approve+hold, indépendante de la modération du texte), garde double dans `abaya_render_review_card()` (approved=1 + texte réel, placeholder 1-clic banni du listing), mise à jour live du badge H1 via `updateRatingBadge()` (réponse REST), requête listing approve + number 50, mock/preview miroirs (agrégat toutes notes) ; validation 72/72 statique + 29/29 avis + 30/30 orders + 16/16 badge + 29/29 E2E + 41/41 Canva (217/217) |
 | 2.6 | Mandat « VALIDATION ET DÉPLOIEMENT DES VARIANTES DE LANDING PAGES » (branche `feat/lp-variants-styling`) : harmonisation Émeraude & Doré des deux déclinaisons LP — classe variante unique sur `<main>` (vedette = principale émeraude, secondaires = upsell inversé) + variables CSS `--lp-*` inversées dans offers.css ; puces à cercle plein (émeraude↔doré) + crochets SVG stroke 3 ; bordures/badges de cartes unifiés par variante ; carte active contour plein + halo (maquettes) ; ruban « الأكثر طلباً » (vert/blanc en principale, doré/texte contrasté en upsell) ; badge ✓ de sélection lié en pur CSS à `.is-selected` (zéro persistance erronée, prouvé Playwright) ; socle critical/styles/app.js bit-exact ; validation 98/98 statique + 42/42 visuel + régressions (341/341 in-scope) |
+| 2.7 | Nettoyage « thème au strict minimum » (branche `chore/theme-minimal-cleanup`) : audit référentiel exhaustif (36 orphelins identifiés, zéro fonction PHP morte, tous les assets restants référencés) puis suppression de `preview/` entier (33 fichiers, ~1,29 Mo — harnais dev jamais chargé par WP), des 2 logos PNG morts (doublons SVG) et de `docs/AUDIT_PHASE0.md` (archivé) — ~1,37 Mo / −26 % du poids du dépôt ; mock racine `assets/js/mock-api.js` conservé (filet de sécurité REST) ; zéro changement fonctionnel (PHP/JS/CSS de production bit-à-bit, hors en-tête style.css 2.7) ; invariants S9.3/S13.13/S13.15 rescopés ; déploiement WP Pusher vérifié après push main |
