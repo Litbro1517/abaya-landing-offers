@@ -14,9 +14,18 @@ $cat   = abaya_catalog($offer['id']);
 $T     = $offer['texts'];
 $I     = $offer['images'];
 
+/* Variantes LP (mandat « feat/lp-variants-styling ») : UNE classe conditionnelle
+ * sur <main> pilote les deux déclinaisons visuelles — la vedette (racine) porte
+ * la variante PRINCIPALE (thème émeraude : puces émeraude + crochet doré,
+ * cartes/badges verts unifiés), les landings secondaires (tunnel upsell ⑭)
+ * portent la variante INVERSÉE (puces dorées + crochet émeraude, contours
+ * dorés, badge « الأكثر طلباً » doré à texte contrasté). Toute la gestion
+ * conditionnelle vit dans offers.css (variables CSS inversées) — zéro duplication. */
+$abaya_lp_variant = abaya_is_front_offer($offer['id']) ? 'principale' : 'upsell';
+
 get_header();
 ?>
-<main>
+<main class="lp-variant-<?= esc_attr($abaya_lp_variant) ?>">
       <section class="hero wrap" aria-labelledby="product-title">
         <div class="gallery">
           <div class="main-photo-wrap product-image-wrapper">
@@ -156,11 +165,20 @@ foreach ($cat['sizes'] as $size_name) : ?>
         </div>
         <div class="bundle-grid" role="group" aria-label="اختاري العرض">
 <?php /* P0-1 : prix, libellés et économies des offres générés depuis
-       la grille autoritaire du registre — plus aucune duplication front/serveur. */
+       la grille autoritaire du registre — plus aucune duplication front/serveur.
+       Variantes LP : le badge ✓ de sélection est un span CSS pur dont la
+       visibilité est liée à .is-selected (bascule exhaustive par app.js) —
+       la liaison dynamique carte active ⇄ badge est garantie sans aucun
+       état JS additionnel, donc sans persistance erronée sur le 1er bloc.
+       Le ruban « الأكثر طلباً » (carte 2, les deux maquettes validées)
+       se décline par variante : vert unifié (principale) / doré contrasté
+       (upsell) — structure identique, couleurs portées par offers.css. */
 foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
     $bundle_is_first = ($bundle_qty === 1);
 ?>
           <button class="bundle-card offer-card<?= $bundle_is_first ? ' is-selected' : '' ?>" type="button" data-quantity="<?= (int) $bundle_qty ?>" aria-pressed="<?= $bundle_is_first ? 'true' : 'false' ?>">
+            <span class="bundle-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+<?php if ($bundle_qty === 2) : ?><span class="bundle-flag">الأكثر طلباً</span><?php endif; ?>
             <span class="bundle-badge"><?= esc_html($cat['bundle_labels'][$bundle_qty]['label']) ?></span>
             <strong class="bundle-price"><?= (int) $bundle_price ?> <small>درهم</small></strong>
             <span class="bundle-saving"><?= esc_html($cat['bundle_labels'][$bundle_qty]['saving']) ?></span>
@@ -185,12 +203,12 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
         list($strong_part, $rest_part) = explode('|', $bullet_text, 2);
 ?>
               <li<?= $is_centered ?>>
-                <span class="checkmark-badge" aria-hidden="true">✓</span>
+                <span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
                 <span><strong><?php echo esc_html($strong_part); ?>:</strong> <?php echo esc_html($rest_part); ?></span>
               </li>
 <?php } else { ?>
               <li<?= $is_centered ?>>
-                <span class="checkmark-badge" aria-hidden="true">✓</span>
+                <span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
                 <span><?php echo esc_html($bullet_text); ?></span>
               </li>
 <?php } endforeach; ?>
@@ -208,7 +226,7 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
             <h2 class="visual-title" id="product-specs-title"><?php echo esc_html($T['specs_title']); ?></h2>
             <ul class="product-spec-list visual-check-list">
 <?php foreach ($T['specs_items'] as $spec_item) : ?>
-              <li><span class="checkmark-badge" aria-hidden="true">✓</span><span><?php echo esc_html($spec_item); ?></span></li>
+              <li><span class="checkmark-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><?php echo esc_html($spec_item); ?></span></li>
 <?php endforeach; ?>
             </ul>
             <a class="primary-button description-cta" href="#formulaire-commande">اضغطي هنا للطلب</a>

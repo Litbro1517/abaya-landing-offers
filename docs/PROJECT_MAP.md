@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **2.5** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **2.6** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -32,7 +32,7 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 ## 3. Arborescence
 
 ```
-├── style.css                     # En-tête thème — Version 2.4
+├── style.css                     # En-tête thème — Version 2.6
 ├── functions.php                 # Adaptateur abaya_catalog($offer_id), LCP par offre,
 │   │                             # window.LANDING (clés offre = secondaires SEULEMENT),
 │   │                             # Pixel/CAPI par offre, REST additive (offer/offer_id),
@@ -58,6 +58,10 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # + injection du design Canva en mode mock
 ├── header.php / footer.php       # abaya_is_landing_page() remplace is_front_page()
 ├── template-parts/landing-offer.php  # GABARIT UNIQUE du landing (toutes offres)
+│                                 # + classe variante UNIQUE sur <main>
+│                                 # (lp-variant-principale / lp-variant-upsell — v2.6)
+│                                 # + puces SVG stroke 3 + badge ✓ de sélection
+│                                 # + ruban « الأكثر طلباً » (carte 2)
 │                                 # + hint « ajout à la commande existante » (mode upsell v2.5)
 ├── pages/*.html                  # Graines des pages légales (inchangées, socle)
 ├── assets/css/{critical,styles}.css  # SOCLE INCHANGÉS bit-à-bit
@@ -66,6 +70,9 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 │                                 # bordeaux/turquoise charte) — chargée TOUTES
 │                                 # landings + merci ; la mise en page merci vit
 │                                 # dans le style inline du gabarit (v2.3)
+│                                 # + VARIANTES LP Émeraude & Doré (v2.6) : variables
+│                                 # --lp-* inversées (.lp-variant-principale / .lp-variant-upsell),
+│                                 # puces, cartes d'offres, badges unifiés, ruban, badge ✓
 ├── assets/images/merci-logo-shukran.webp  # Logo calligraphié شكراً (bordeaux #6B1D2F
 │                                 # sur blanc pur, 474×474, ~8 Ko) — remplaçable
 │                                 # sans code par l'asset officiel client
@@ -154,6 +161,17 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Miroirs preview synchronisés** : `addToMockOrder` (localStorage, duo revalidé, idempotence), branche upsell de `preview/app.js` (retour TYP + `&added=1`), URLs mock avec duo, bandeau mock (générateur `scripts/gen_preview_mirrors.py`).
 - **Validation** : 88/88 statique (17 nouveaux invariants S13 + S7.6 recalé) + 56/56 harnais tunnel post-achat (`test_post_purchase.php` : résolveur, contexte, garde, REST add-to-order, rendus) + régressions 30/30 orders + 29/29 avis + 29/29 E2E + 41/41 Canva + 16/16 badge + popup 10/14 (contrebaseline v2.3 inchangée) ; rendu racine bit-exact (diff harnais vide).
 
+## 5-quinquies. Variantes LP « Émeraude & Doré » (v2.6 — mandat « feat/lp-variants-styling »)
+
+- **Objectif** : harmoniser l'identité visuelle « Abaya Collection » à travers DEUX déclinaisons de landing pages (Principale & Upsell) validées en maquettes (`version nuence offres upsel.html` = thème émeraude ; `VF charte LP offres.html` = accents dorés), pour une immersion subtile sans perdre la cohérence de la charte.
+- **Une classe conditionnelle, zéro duplication** : le gabarit unique pose `lp-variant-principale` (vedette / racine — `abaya_is_front_offer()`) ou `lp-variant-upsell` (3 landings secondaires = tunnel upsell ⑭) sur `<main>` ; toute la déclinaison visuelle vit dans `offers.css` via des **variables CSS inversées** : `--lp-accent` (fond des cercles/badges) et `--lp-check` (couleur du crochet) s'échangent entre les deux variantes — l'inversion entière tient en 2 tokens.
+- **Version Principale (thème Émeraude)** : puces de caractéristiques à cercle plein émeraude `#3A7D84` + crochet SVG doré lumineux et épais `#D4AF37` (stroke-width 3) ; bordures de cartes unifiées vertes `rgb(58 125 132 / 45%)` ; carte active = contour émeraude plein + fond blanc + halo vert (maquette) ; badges de quantité UNIFIÉS (fini beige/vert/brun du socle — teinte verte unique + texte émeraude deep) ; ruban « الأكثر طلباً » vert à texte blanc.
+- **Version Secondaire / Upsell (Inversion Émeraude & Doré)** : puces à cercle doré `#D4AF37` + crochet émeraude `#3A7D84` ; contours des cartes d'offres dorés `rgb(212 175 55 / 55%)` ; carte active = contour doré plein + halo doré ; badges unifiés teinte dorée + texte sombre ; ruban « الأكثر طلباً » DORÉ à texte contrasté `#2C1D11` (ratio ≈ 8.5:1).
+- **Comportement dynamique conservé** : le badge ✓ de sélection est un span CSS pur présent dans la boucle des 3 cartes, dont la visibilité est STRICTEMENT dérivée de `.is-selected` (bascule exhaustive par `app.js` `updateSummary()` + `aria-pressed`) — la liaison carte active ⇄ badge est garantie **sans aucun état JS additionnel**, donc sans persistance erronée sur le premier bloc (prouvé Playwright : clic carte 3 → ✓ quitte la carte 1, clic carte 2 upsell → ✓ suit).
+- **Icônes SVG vectorielles** : les 3 jeux de puces (bullets couleurs + specs) et le badge ✓ remplacent le caractère texte par un SVG `M5 13l4 4L19 7` stroke 3 round — lisibilité optimale mobile, rendu identique cross-platform.
+- **Discipline socle** : `critical.css`/`styles.css`/`app.js` INCHANGÉS bit-à-bit (invariant S1/S14.10) ; largeurs de bordure du socle conservées (1px / 2px active — zéro décalage de mise en page) ; prix et économies en émeraude littéral `#3A7D84` dans les DEUX variantes (conforme aux 2 maquettes, lisible sur crème — l'accent doré reste réservé aux contours/badges/puces) ; pages /merci/, pop-up et pages légales hors périmètre (intouchés).
+- **Validation** : 98/98 statique (10 nouveaux invariants S14) + 42/42 visuel Playwright `test_lp_variants_visual.py` (couleurs calculées des 2 variantes desktop+mobile, liaison dynamique, aria-pressed, récap prix, zéro débordement 390px) + régressions 56/56 tunnel + 30/30 orders + 29/29 avis + 16/16 badge + 29/29 E2E thankyou + 41/41 Canva + popup 10/14 (contrebaseline v2.3 inchangée) — **341/341 in-scope**.
+
 ## 6. Historique
 
 | Version | Contenu |
@@ -164,3 +182,4 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 | 2.3 | Mandat 4PLP « Intégration Maquette Canva — Page de Remerciement » (branche `feat/merci-canva-integration`) : maquette Canva (`DAHYAa7V--E`) extraite par navigateur réel et intégrée fidèlement — carte blanche sur crème #FAF7F2, logo calligraphié شكراً WebP (bordeaux sur blanc pur), pastille n° commande, tableau 4 colonnes المنتج/اللون-المقاس/الكمية/السعر avec cellule image produit, bloc cadeau bordure turquoise + code promo en pilule pointillée (MAJUSCULES), bouton WhatsApp officiel vert + SVG, upsell EXACTEMENT 3 verticales 3:5 style Reels/Stories (carrousel scroll-snap mobile, badge تخفيض خاص + ancien prix optionnels via registre, boutons turquoise إضافة للطلب), pied © ; Cairo exclusif (DM Sans bannie) ; pop-up harmonisé (bouton bordeaux, focus turquoise) ; logo WebP généré Amiri Bold (remplaçable sans code) ; validation 67/67 statique + 29/29 E2E + 41/41 visuel Canva + 26/26 avis + 30/30 orders |
 | 2.5 | Mandat « MANDAT TECHNIQUE : Sécurisation du tunnel post-achat & flux d'upsell » (branche `fix/post-purchase-navigation-flow`) : logos non-cliquables + suppression des liens de retour sur toutes les pages tunnel (landings + /merci/, pages légales inchangées) ; landings secondaires TOTALEMENT cachées (302 vers la vedette sans duo valide, déverrouillage exclusif par les 3 cartes TYP portant `?order=&key=`) ; route REST `add-to-order` (ligne ajoutée à la MÊME commande, prix autoritaire, idempotence event_id, CAPI dédupliquée) → TYP mise à jour dynamiquement + bandeau confirmation `&added=1` ; flèche de retour « رجوع إلى طلبي » vers la TYP personnalisée (secondaires + racine) ; hint « ajout à la commande existante » ; exclusion des offres déjà commandées ; carte vedette corrigée (racine, l'ancien /accueil/ était un 404) ; résolveur partagé unique ; no-cache sur URLs personnalisées ; miroirs preview synchronisés ; validation 88/88 statique + 56/56 tunnel + 145/145 régressions in-scope |
 | 2.4 | Mandat « MANDAT COMBO : Audit Préalable & Protocole — Découplage Étoiles / Avis Clients » (branche `fix/rating-comments-decoupling`) : étanchéité stricte entre score global et avis — `abaya_review_summary()` agrège toutes les notes (union approve+hold, indépendante de la modération du texte), garde double dans `abaya_render_review_card()` (approved=1 + texte réel, placeholder 1-clic banni du listing), mise à jour live du badge H1 via `updateRatingBadge()` (réponse REST), requête listing approve + number 50, mock/preview miroirs (agrégat toutes notes) ; validation 72/72 statique + 29/29 avis + 30/30 orders + 16/16 badge + 29/29 E2E + 41/41 Canva (217/217) |
+| 2.6 | Mandat « VALIDATION ET DÉPLOIEMENT DES VARIANTES DE LANDING PAGES » (branche `feat/lp-variants-styling`) : harmonisation Émeraude & Doré des deux déclinaisons LP — classe variante unique sur `<main>` (vedette = principale émeraude, secondaires = upsell inversé) + variables CSS `--lp-*` inversées dans offers.css ; puces à cercle plein (émeraude↔doré) + crochets SVG stroke 3 ; bordures/badges de cartes unifiés par variante ; carte active contour plein + halo (maquettes) ; ruban « الأكثر طلباً » (vert/blanc en principale, doré/texte contrasté en upsell) ; badge ✓ de sélection lié en pur CSS à `.is-selected` (zéro persistance erronée, prouvé Playwright) ; socle critical/styles/app.js bit-exact ; validation 98/98 statique + 42/42 visuel + régressions (341/341 in-scope) |
