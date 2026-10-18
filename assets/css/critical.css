@@ -411,6 +411,7 @@ body{font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px;}
   font-weight: 600 !important;
   line-height: 1.3;
   transition: background-color .2s ease;}
+/* v3.1 : le CTA vedette est rétabli par override scopé :not(.is-upsell) en fin de fichier ; l'upsell conserve ce rendu compact v2.9. */
 .description-cta:hover,
 .form-submit:hover,
 .sticky-cta-btn:hover{background-color: var(--olive-hover) !important;}
@@ -423,3 +424,18 @@ body{font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px;}
 .hp-field{position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap; opacity: 0; pointer-events: none;}
 .form-result.is-error{color: #a63a3a;}
+/* ================================================================
+   v3.1 — RECTIFICATION CHARTE LP (« Correctif Sélection Offres »)
+   Sync above-the-fold des règles vedette :not(.is-upsell) — le rendu
+   final reste porté par styles.css (async) ; ce bloc évite le flash
+   inverse au premier paint. Upsell : aucune de ces règles ne s'applique
+   (scoping identique à styles.css).
+   ================================================================ */
+.product-landing:not(.is-upsell) .hero-order .order-summary{padding: 16px; margin-bottom: 16px; border-color: rgb(58 125 132 / 30%); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);}
+.product-landing:not(.is-upsell) .hero-order .summary-copy > span{font-size: 11px;}
+.product-landing:not(.is-upsell) .hero-order .order-summary .summary-price{letter-spacing: -.025em;}
+.product-landing:not(.is-upsell) .hero-order .order-heading{margin-bottom: 16px;}
+.product-landing:not(.is-upsell) .hero-order .order-heading h2{font-size: 16px;}
+.product-landing:not(.is-upsell) .hero-order .order-form-grid{gap: 12px;}
+.product-landing:not(.is-upsell) .hero-order .form-submit{min-height: 56px; font-size: 16px !important; font-weight: 900 !important; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);}
+.product-landing:not(.is-upsell) .secure-note{font-size: 12px;}

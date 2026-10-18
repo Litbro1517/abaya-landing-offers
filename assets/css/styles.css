@@ -225,6 +225,13 @@
   --white: #fff;
   --check-bg: #3a7d84;
   --check-mark: #d4af37;
+  /* v3.1 — aliases de la charte de référence « VF charte LP offres.html »
+     (config Tailwind de la maquette) : brandGreenVibrant / accentGold /
+     creamBg. Valeurs identiques aux tokens ci-dessus ; l'or VF (#C5A059)
+     est DISTINCT du doré upsell (--gold #D4AF37), volontairement. */
+  --brand-green-vibrant: #3A7D84;
+  --accent-gold: #C5A059;
+  --cream-bg: #F5F0E8;
   font-family: "Cairo", Tahoma, Arial, sans-serif;
   font-size: 16px;
   font-synthesis: none;
@@ -1159,6 +1166,12 @@ body { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px; }
   line-height: 1.3;
   transition: background-color .2s ease;
 }
+/* v3.1 (rectification charte) : ce bloc compact pré-charte (v2.0) écrasait le
+   CTA du formulaire (font-size 15px !important, font-weight 600 !important,
+   min-height 40px), contrairement à la maquette (#main-cta-btn : py-4 = 56px,
+   text-base, font-black). Le rendu vedette est rétabli par la section v3.1
+   scopée :not(.is-upsell) (override ciblé) ; les landings UPSELL conservent
+   EXACTEMENT ce rendu compact v2.9 (périmètre du mandat = vedette seule). */
 .description-cta:hover,
 .form-submit:hover,
 .sticky-cta-btn:hover {
@@ -1454,14 +1467,22 @@ body.product-landing { background: var(--paper); color: var(--ink); }
    crème #FAF7F2, encre #2C1D11, bord #E2D9CC)
    Chaque règle est scopée :not(.is-upsell) : les landings secondaires
    (tunnel upsell) conservent EXACTEMENT leur rendu v2.9 ci-dessus.
+   v3.1 (mandat « rectification charte LP ») : conformité POINT PAR POINT
+   à la version corrigée de la maquette (« Correctif Sélection Offres ») —
+   métriques du ruban, ombres Tailwind exactes (shadow / shadow-sm /
+   shadow-lg / shadow-xl), emphasis dégressive carte 2, graisses et
+   espacements du bloc formulaire, token --accent-gold référencé.
    Échelle typographique : le gabarit desktop reprend les COULEURS,
-   ÉTATS et STRUCTURES de la maquette mobile (tailles adaptées).
+   ÉTATS et STRUCTURES de la maquette (tailles adaptées hors bloc
+   formulaire, aligné 1:1 sur la maquette).
    ================================================================ */
 
-/* Titres des sections visuels : filet d'encre « border-r-4 » (maquette). */
+/* Titres des sections visuels : filet d'encre « border-r-4 » + pr-3
+   (12px) + graisse extrabold 800 (maquette h3.text-base.font-extrabold). */
 .product-landing:not(.is-upsell) .visual-title {
-  padding-right: 14px;
+  padding-right: 12px;
   border-right: 4px solid var(--ink);
+  font-weight: 800;
 }
 
 /* Puces de caractéristiques — structure EXACTE de la maquette : carré 28px
@@ -1473,11 +1494,14 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
+  margin-top: 2px; /* mt-0.5 (maquette) */
   border-radius: 12px;
   background: #E8F0EE;
   color: transparent;
   font-size: 0;
 }
+/* Espacement de la liste : space-y-3.5 = 14px (maquette). */
+.product-landing:not(.is-upsell) .visual-check-list { gap: 14px; }
 .product-landing:not(.is-upsell) .checkmark-badge::before {
   content: "";
   position: absolute;
@@ -1498,10 +1522,11 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   background: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%3E%3Cpath%20fill='%233A7D84'%20d='M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-/* Titre des offres : bordeaux « عروض خاصة حصرية » + sous-titre d'incitation. */
+/* Titre des offres : bordeaux « عروض خاصة حصرية » + sous-titre d'incitation
+   + tracking-wide (.025em, maquette). */
 .product-landing:not(.is-upsell) .bundles-section .section-heading h2 {
   color: #6B1D2F;
-  letter-spacing: .02em;
+  letter-spacing: .025em;
 }
 .product-landing:not(.is-upsell) .bundles-subtitle {
   margin: -4px 0 0;
@@ -1509,28 +1534,35 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   font-size: 11px;
 }
 
-/* Carte active DORÉE (maquette .offer-card.active) : contour #C5A059,
-   double halo doré, fond blanc, léger soulèvement. */
+/* Carte active DORÉE (maquette .offer-card.active) : contour #C5A059
+   (token --accent-gold), double halo doré, fond blanc, léger soulèvement. */
 .product-landing:not(.is-upsell) .bundle-card.is-selected {
-  border-color: #C5A059;
+  border-color: var(--accent-gold);
   background: #fff;
   box-shadow: 0 10px 25px -5px rgb(197 160 89 / 35%), 0 8px 10px -6px rgb(197 160 89 / 20%);
   transform: translateY(-2px);
 }
-/* Badge ✓ de sélection : pastille DORÉE à crochet blanc (maquette). */
+/* Badge ✓ de sélection : pastille DORÉE à crochet blanc (maquette),
+   ombre Tailwind « shadow » exacte. */
 .product-landing:not(.is-upsell) .bundle-card::before {
-  background: #C5A059;
+  background: var(--accent-gold);
   color: #fff;
   font: 700 10px/1 "Cairo", sans-serif;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
 }
 /* Pilules de quantité : beige 60% (carte 1) / doré 20% (carte 2) / doré 30%
-   (carte 3), texte encre — teintes exactes de la maquette. */
-.product-landing:not(.is-upsell) .bundle-card .bundle-badge { background: rgb(226 217 204 / 60%); }
+   (carte 3), texte encre, graisse bold 700 (maquette font-bold). */
+.product-landing:not(.is-upsell) .bundle-card .bundle-badge {
+  background: rgb(226 217 204 / 60%);
+  font-weight: 700;
+}
 .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-badge { background: rgb(197 160 89 / 20%); }
 .product-landing:not(.is-upsell) .bundle-card:nth-child(3) .bundle-badge { background: rgb(197 160 89 / 30%); }
-/* Prix en encre ; carte 2 en vert sapin #3B7A57 ; économies émeraude,
-   carte 2 en pilule pâle rgb(59 122 87 / 10%). */
+/* Prix en encre ; carte 2 en vert sapin #3B7A57 avec EMPHASIS DÉGRESSIVE
+   (maquette text-lg : +12.5% vs cartes 1/3 = 30px sur la base 27px) ;
+   économies émeraude, carte 2 en pilule pâle rgb(59 122 87 / 10%). */
 .product-landing:not(.is-upsell) .bundle-card .bundle-price { color: var(--ink); }
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { font-size: 30px; }
 .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { color: #3B7A57; }
 .product-landing:not(.is-upsell) .bundle-saving { color: #3A7D84; }
 .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving {
@@ -1542,15 +1574,36 @@ body.product-landing { background: var(--paper); color: var(--ink); }
 }
 
 /* Récapitulatif « اختيارك » : liseré émeraude 30% (valeur maquette) + padding
-   p-4 ; titre « معلومات الزبون » aligné avec filet d'encre border-r-4. */
+   p-4 + shadow-sm + espacement space-y-4 (16px) ; libellé « اختيارك »
+   text-[11px] ; prix tracking-tight (-.025em). */
 .product-landing:not(.is-upsell) .hero-order .order-summary {
   padding: 16px;
+  margin-bottom: 16px;
   border-color: rgb(58 125 132 / 30%);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
 }
-.product-landing:not(.is-upsell) .hero-order .order-heading { text-align: right; }
+.product-landing:not(.is-upsell) .hero-order .summary-copy > span { font-size: 11px; }
+.product-landing:not(.is-upsell) .hero-order .order-summary .summary-price { letter-spacing: -.025em; }
+.product-landing:not(.is-upsell) .hero-order .order-heading { margin-bottom: 16px; text-align: right; }
 .product-landing:not(.is-upsell) .hero-order .order-heading h2 {
   padding-right: 12px;
   border-right: 4px solid var(--ink);
+  font-size: 16px; /* text-base (maquette) */
+}
+/* Grille du formulaire : gap-3 uniforme (12px, maquette). */
+.product-landing:not(.is-upsell) .hero-order .order-form-grid { gap: 12px; }
+/* CTA principal : py-4 → hauteur 56px, text-base 16px, font-black 900,
+   shadow-lg + hover:shadow-xl (maquette #main-cta-btn). Les !important
+   neutralisent le bloc compact pré-charte (15px/600 !important) — UNICAMENT
+   sur la vedette ; l'upsell conserve le rendu compact v2.9 bit-exact. */
+.product-landing:not(.is-upsell) .hero-order .form-submit {
+  min-height: 56px;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+}
+.product-landing:not(.is-upsell) .hero-order .form-submit:hover {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }
 /* Libellés de champs : 12px gras (maquette). */
 .product-landing:not(.is-upsell) .hero-order .form-field > span {
@@ -1559,13 +1612,15 @@ body.product-landing { background: var(--paper); color: var(--ink); }
 }
 
 /* Note de réassurance : ligne charte émeraude à 90% + crochet SVG REMPLI
-   émeraude (maquette), en flex centré. */
+   émeraude 16px (w-4 h-4), gap-1.5 (6px), text-xs (12px), mt-2 (8px). */
 .product-landing:not(.is-upsell) .secure-note {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
+  margin-top: 8px;
   color: rgb(58 125 132 / 90%);
+  font-size: 12px;
   font-weight: 700;
 }
 .product-landing:not(.is-upsell) .secure-note .secure-check {
@@ -1573,23 +1628,23 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   color: #3A7D84;
 }
 .product-landing:not(.is-upsell) .secure-note .secure-check svg {
-  width: 15px;
-  height: 15px;
-  fill: #3A7D84;
+  width: 16px;
+  height: 16px;
+  fill: var(--brand-green-vibrant);
 }
 
 /* Bannière d'inspection : bloc crème à liseré émeraude border-r-4, arrondi
-   16px, pastille check-circle 40px sur fond émeraude 10% (maquette). */
+   16px, pastille check-circle 40px sur fond émeraude 10%, shadow-sm (maquette). */
 .product-landing:not(.is-upsell) .inspection-banner {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 24px 0 0;
   padding: 16px;
-  border-right: 4px solid #3A7D84;
+  border-right: 4px solid var(--brand-green-vibrant);
   border-radius: 16px;
   background: var(--cream);
-  box-shadow: 0 2px 6px rgb(44 29 17 / 4%);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
 }
 .product-landing:not(.is-upsell) .inspection-banner-icon {
   flex: 0 0 40px;
@@ -1599,7 +1654,7 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   height: 40px;
   border-radius: 12px;
   background: rgb(58 125 132 / 10%);
-  color: #3A7D84;
+  color: var(--brand-green-vibrant);
 }
 .product-landing:not(.is-upsell) .inspection-banner-icon svg {
   width: 20px;
@@ -1617,9 +1672,34 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   border-radius: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 12px; /* text-xs (maquette) */
   font-weight: 800;
-  line-height: 1.9;
+  line-height: 1.625; /* leading-relaxed (maquette) */
+}
+
+/* Ombres des pastilles de réassurance : shadow-sm exact (maquette). */
+.product-landing:not(.is-upsell) .trust-icon {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+}
+
+/* Lien « جدول المقاسات » : émeraude brandGreenVibrant + soulignement
+   (maquette text-brandGreenVibrant.hover:underline) — la vedette
+   uniquement (upsell conserve --olive-dark v2.9). */
+.product-landing:not(.is-upsell) .size-guide-link {
+  color: var(--brand-green-vibrant);
+}
+
+/* Ruban « الأكثر طلباً » : métriques EXACTES de la maquette (-top-2.5 =
+   -10px, px-2 py-0.5 = 2px 8px, text-[9px], tracking-wider .05em,
+   uppercase, shadow-sm) — la vedette uniquement ; le ruban upsell garde
+   les métriques v2.9 (rendu bit-exact préservé). */
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2)::after {
+  top: -10px;
+  padding: 2px 8px;
+  font-size: 9px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
 }
 
 @media (max-width: 700px) {
