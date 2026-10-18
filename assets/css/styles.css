@@ -1447,6 +1447,181 @@ body.product-landing { background: var(--paper); color: var(--ink); }
 .product-landing.is-upsell .bundle-card:nth-child(2)::after { background: var(--gold); color: var(--ink); }
 .product-landing.is-upsell .bundle-saving { color: var(--gold); }
 
+/* ================================================================
+   v3.0 — LP PRINCIPALE = MAQUETTE « VF charte » STRICTE
+   (upload « VF charte LP offres.html » — palette : émeraude #3A7D84,
+   or #C5A059, bordeaux #6B1D2F, vert sapin #3B7A57, fond puce #E8F0EE,
+   crème #FAF7F2, encre #2C1D11, bord #E2D9CC)
+   Chaque règle est scopée :not(.is-upsell) : les landings secondaires
+   (tunnel upsell) conservent EXACTEMENT leur rendu v2.9 ci-dessus.
+   Échelle typographique : le gabarit desktop reprend les COULEURS,
+   ÉTATS et STRUCTURES de la maquette mobile (tailles adaptées).
+   ================================================================ */
+
+/* Titres des sections visuels : filet d'encre « border-r-4 » (maquette). */
+.product-landing:not(.is-upsell) .visual-title {
+  padding-right: 14px;
+  border-right: 4px solid var(--ink);
+}
+
+/* Puces de caractéristiques — structure EXACTE de la maquette : carré 28px
+   arrondi 12px au fond #E8F0EE, anneau 16px à contour émeraude 2px, crochet
+   ÉMERAUDE REMPLI 10px (SVG inline viewBox 20, path fill M16.707). Le glyphe
+   ✓ du socle est masqué (font-size 0) : zéro markup additionnel. */
+.product-landing:not(.is-upsell) .checkmark-badge {
+  position: relative;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 12px;
+  background: #E8F0EE;
+  color: transparent;
+  font-size: 0;
+}
+.product-landing:not(.is-upsell) .checkmark-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  border: 2px solid #3A7D84;
+  border-radius: 50%;
+}
+.product-landing:not(.is-upsell) .checkmark-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 10px;
+  height: 10px;
+  margin: auto;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%3E%3Cpath%20fill='%233A7D84'%20d='M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Titre des offres : bordeaux « عروض خاصة حصرية » + sous-titre d'incitation. */
+.product-landing:not(.is-upsell) .bundles-section .section-heading h2 {
+  color: #6B1D2F;
+  letter-spacing: .02em;
+}
+.product-landing:not(.is-upsell) .bundles-subtitle {
+  margin: -4px 0 0;
+  color: rgb(44 29 17 / 60%);
+  font-size: 11px;
+}
+
+/* Carte active DORÉE (maquette .offer-card.active) : contour #C5A059,
+   double halo doré, fond blanc, léger soulèvement. */
+.product-landing:not(.is-upsell) .bundle-card.is-selected {
+  border-color: #C5A059;
+  background: #fff;
+  box-shadow: 0 10px 25px -5px rgb(197 160 89 / 35%), 0 8px 10px -6px rgb(197 160 89 / 20%);
+  transform: translateY(-2px);
+}
+/* Badge ✓ de sélection : pastille DORÉE à crochet blanc (maquette). */
+.product-landing:not(.is-upsell) .bundle-card::before {
+  background: #C5A059;
+  color: #fff;
+  font: 700 10px/1 "Cairo", sans-serif;
+}
+/* Pilules de quantité : beige 60% (carte 1) / doré 20% (carte 2) / doré 30%
+   (carte 3), texte encre — teintes exactes de la maquette. */
+.product-landing:not(.is-upsell) .bundle-card .bundle-badge { background: rgb(226 217 204 / 60%); }
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-badge { background: rgb(197 160 89 / 20%); }
+.product-landing:not(.is-upsell) .bundle-card:nth-child(3) .bundle-badge { background: rgb(197 160 89 / 30%); }
+/* Prix en encre ; carte 2 en vert sapin #3B7A57 ; économies émeraude,
+   carte 2 en pilule pâle rgb(59 122 87 / 10%). */
+.product-landing:not(.is-upsell) .bundle-card .bundle-price { color: var(--ink); }
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { color: #3B7A57; }
+.product-landing:not(.is-upsell) .bundle-saving { color: #3A7D84; }
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(59 122 87 / 10%);
+  color: #3B7A57;
+  font-weight: 800;
+}
+
+/* Récapitulatif « اختيارك » : liseré émeraude 30% (valeur maquette) + padding
+   p-4 ; titre « معلومات الزبون » aligné avec filet d'encre border-r-4. */
+.product-landing:not(.is-upsell) .hero-order .order-summary {
+  padding: 16px;
+  border-color: rgb(58 125 132 / 30%);
+}
+.product-landing:not(.is-upsell) .hero-order .order-heading { text-align: right; }
+.product-landing:not(.is-upsell) .hero-order .order-heading h2 {
+  padding-right: 12px;
+  border-right: 4px solid var(--ink);
+}
+/* Libellés de champs : 12px gras (maquette). */
+.product-landing:not(.is-upsell) .hero-order .form-field > span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Note de réassurance : ligne charte émeraude à 90% + crochet SVG REMPLI
+   émeraude (maquette), en flex centré. */
+.product-landing:not(.is-upsell) .secure-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: rgb(58 125 132 / 90%);
+  font-weight: 700;
+}
+.product-landing:not(.is-upsell) .secure-note .secure-check {
+  display: inline-flex;
+  color: #3A7D84;
+}
+.product-landing:not(.is-upsell) .secure-note .secure-check svg {
+  width: 15px;
+  height: 15px;
+  fill: #3A7D84;
+}
+
+/* Bannière d'inspection : bloc crème à liseré émeraude border-r-4, arrondi
+   16px, pastille check-circle 40px sur fond émeraude 10% (maquette). */
+.product-landing:not(.is-upsell) .inspection-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 16px;
+  border-right: 4px solid #3A7D84;
+  border-radius: 16px;
+  background: var(--cream);
+  box-shadow: 0 2px 6px rgb(44 29 17 / 4%);
+}
+.product-landing:not(.is-upsell) .inspection-banner-icon {
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgb(58 125 132 / 10%);
+  color: #3A7D84;
+}
+.product-landing:not(.is-upsell) .inspection-banner-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.product-landing:not(.is-upsell) .inspection-banner .inspection-note {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.9;
+}
+
 @media (max-width: 700px) {
   .product-landing main { width: calc(100% - 20px); margin: 10px auto 22px; border-radius: 20px; }
   .product-landing .trust-grid { width: calc(100% - 30px); }
