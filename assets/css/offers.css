@@ -172,6 +172,13 @@
  * + stroke NONE — zéro contour, l'arrondi naturel du tracé s'exprime. */
 .abaya-rating-star.is-active .star-shape { fill: var(--star-gradient); stroke: none; }
 .abaya-rating-star:hover svg { transform: scale(1.08); }
+/* v3.16 — Étape 2 (pop-up message) : étoiles STATIQUES et INFORMATIVES —
+ * verrouillage dur côté CSS une fois la note validée (.is-rated posé par
+ * le JS, qui pose aussi tabindex=-1 + aria-disabled) : plus aucun événement
+ * pointeur n'atteint les étoiles, l'affichage reste strictement fidèle à
+ * la note choisie à l'Étape 1. L'Étape 1 reste intégralement interactive. */
+.abaya-rating-modal.is-rated .abaya-rating-star { pointer-events: none; cursor: default; }
+.abaya-rating-modal.is-rated .abaya-rating-star:hover svg { transform: scale(1.06); }
 .abaya-rating-star:focus-visible { outline: 2px solid #3A7D84; outline-offset: 3px; }
 
 /* Zone de texte optionnelle (persistance du pop-up après la note) —
