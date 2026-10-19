@@ -278,7 +278,7 @@ function bindRatingFlow(root, ctx) {
       const result = await submitRating(selectedRating, ctx, text);
       if (!result.ok) throw new Error(result.body?.message || "تعذر إرسال ملاحظتك الآن.");
       const afterMsg = after?.querySelector(".abaya-rating-after-msg");
-      if (afterMsg) afterMsg.textContent = "شكراً لكِ! سيُنشر رأيك بعد المراجعة 🌿";
+      if (afterMsg) afterMsg.textContent = "شكراً لكِ! سيُنشر رأيك بعد المراجعة";
       if (note) note.hidden = true;
       send.hidden = true;
       feedback.hidden = true;
@@ -429,7 +429,7 @@ if (mockOrder && mockContainer) {
         '</div>' +
         '<p class="abaya-rating-feedback" role="status" hidden></p>' +
         '<div class="abaya-rating-after" hidden>' +
-          '<p class="abaya-rating-after-msg">شكراً جزيلًا على تقييمك! 🌿 هل ترغبين في إضافة كلمة بسيطة عن تجربتك؟</p>' +
+          '<p class="abaya-rating-after-msg">شكراً جزيلًا على تقييمك! هل ترغبين في إضافة كلمة بسيطة عن تجربتك؟</p>' +
           '<textarea class="abaya-rating-note" rows="3" maxlength="2000" placeholder="اكتبي كلمة بسيطة عن تجربتكِ (اختياري)"></textarea>' +
           '<button class="abaya-rating-send" type="button">إرسال</button>' +
         '</div>' +

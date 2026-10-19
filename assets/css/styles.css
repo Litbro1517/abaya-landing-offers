@@ -2087,3 +2087,56 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
  * gagnante. L'isolation conserve la stabilité des chiffres
  * occidentaux et de la devise, sans pollution bidi adjacente. */
 .merci-price bdi, .merci-upsell-price bdi { direction: rtl; unicode-bidi: isolate; }
+
+/* ================================================================
+   v3.17 — GARANTIES MOBILE EN GRILLE VERTICALE 3 LIGNES × 2 COLONNES
+   (mandat 4P LP « Audit des 3 derniers ajustements — Mobile & Modale » :
+   réagencement vertical des garanties sur mobile. Audit PHASE 1 :
+   docs/AUDIT-MOBILE-v3.17.md — le bloc garanties .trust-grid des
+   landings s'affichait en 3 COLONNES horizontales écrasées sur mobile
+   (règles racine v3.8/v3.9 ci-dessus + socle ≤800px/≤540px), séparateurs
+   verticaux apparents entre colonnes. Cette section ajoute le
+   restructurage MOBILE UNIQUEMENT (≤540px), placé en FIN de feuille pour
+   gagner la cascade sur les règles racines v3.8/v3.9 de même
+   spécificité. Desktop / tablette (>540px) BIT-À-BIT INCHANGÉS.)
+   ================================================================ */
+
+/* Garanties sur mobile (≤540px) : grille verticale de 3 LIGNES ×
+ * 2 conteneurs — chaque ligne = une garantie complète :
+ * [icône dans son petit conteneur rond, à DROITE en RTL]
+ * [texte descriptif, à GAUCHE en RTL].
+ * - grid-template-columns: 1fr → une piste unique = 3 lignes empilées
+ *   (row-gap 18px de respiration, fin des colonnes écrasées) ;
+ * - align-items: stretch → chaque ligne occupe toute la largeur
+ *   (neutralise le flex-start v3.9 qui rétrécissait les pistes) ;
+ * - .trust-item repasse en flex-direction: row → en RTL le PREMIER
+ *   enfant du markup (.trust-icon) se docke à DROITE, le texte à
+ *   GAUCHE — ordre du mandat respecté SANS retouche markup
+ *   (mise en page purement CSS) ; align-items: center → l'icône est
+ *   centrée VERTICALEMENT face à son texte ; text-align: start
+ *   !important (contre-dépôt du center !important v3.8) → le texte
+ *   lit depuis la droite, collé à son icône ;
+ * - .trust-item + .trust-item { border-right: 0 } → FIN des
+ *   séparateurs verticaux (aucune bordure de tableau apparente) ;
+ * - .trust-icon { margin-inline: 0 } → neutralise le centrage
+ *   colonne v3.9 (margin-inline: auto), l'icône se docke au DÉBUT de
+ *   la ligne (droite en RTL) ; 40px = petit conteneur rond dont le
+ *   glyphe reste parfaitement centré (display: grid +
+ *   place-items: center du socle, inchangé) — centrage horizontal
+ *   ET vertical garantis dans le conteneur.
+ * S'applique à toutes les landings (gabarit unique, socle v3.8/v3.9).
+ * Les TYP n'ont pas de .trust-grid — zéro effet de bord possible. */
+@media (max-width: 540px) {
+  .trust-grid { grid-template-columns: 1fr; row-gap: 18px; align-items: stretch; }
+  .trust-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    text-align: start !important;
+    padding-inline: 14px;
+  }
+  .trust-item + .trust-item { border-right: 0; }
+  .trust-icon { margin-inline: 0; flex-basis: 40px; width: 40px; height: 40px; }
+  .trust-icon svg { width: 20px; height: 20px; }
+}

@@ -190,7 +190,16 @@ body { background: #FAF7F2; }
   .merci-wa-btn { justify-content: center; }
   .merci-upsell-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .merci-upsell-grid::-webkit-scrollbar { display: none; }
-  .merci-upsell-item { flex: 0 0 60%; max-width: 200px; scroll-snap-align: center; }
+  /* v3.17 : peek de la 3ᵉ carte — les cartes passent de 60% (2 visibles,
+   * la 3ᵉ totalement masquée, aucune affordance) à 42% : cartes 1 et 2
+   * pleines + ~30px de la 3ᵉ carte VISIBLES au bord de fuite (gauche en
+   * RTL) = signal d'affordance natif « il y a la suite, glissez » ;
+   * scroll-snap-align: center → start pour un rythme de snap constant
+   * (chaque carte s'aligne au bord de départ, le peek de la suivante
+   * reste visible pendant tout le défilement). Largeurs : 320px →
+   * peek ≈ 19px ; 390px → ≈ 30px ; 520px → ≈ 51px. Le max-width 200px
+   * devient inutile (42% ≤ 196.6px dans tout le gabarit ≤520px). */
+  .merci-upsell-item { flex: 0 0 42%; scroll-snap-align: start; }
 }
 
 /* ================= v3.11 — MANDAT 4P LP : CENTRAGE DU LOGO GLOBAL =================
@@ -577,7 +586,7 @@ get_header();
        * optionnelle révélées après l'enregistrement de la note — la fermeture
        * se fait via la croix (X), le bouton valider, ou après un délai prolongé. */ ?>
       <div class="abaya-rating-after" id="abaya-rating-after" hidden>
-        <p class="abaya-rating-after-msg">شكراً جزيلًا على تقييمك! 🌿 هل ترغبين في إضافة كلمة بسيطة عن تجربتك؟</p>
+        <p class="abaya-rating-after-msg">شكراً جزيلًا على تقييمك! هل ترغبين في إضافة كلمة بسيطة عن تجربتك؟</p>
         <textarea class="abaya-rating-note" id="abaya-rating-note" rows="3" maxlength="2000" placeholder="اكتبي كلمة بسيطة عن تجربتكِ (اختياري)"></textarea>
         <button class="abaya-rating-send" type="button" id="abaya-rating-send">إرسال</button>
       </div>
