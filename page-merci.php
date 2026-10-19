@@ -165,6 +165,31 @@ body { background: #FAF7F2; }
   .merci-upsell-grid::-webkit-scrollbar { display: none; }
   .merci-upsell-item { flex: 0 0 60%; max-width: 200px; scroll-snap-align: center; }
 }
+
+/* ================= v3.11 — MANDAT 4P LP : CENTRAGE DU LOGO GLOBAL =================
+ * Sélecteur visé (audit docs/AUDIT-LOGO-v3.11.md) : body > header > div > span > img
+ * = sur les TYP : .legal-header > .logo-wrapper > .footer-wordmark > .header-logo-svg.
+ * CAUSE DU DÉCALAGE (alignement à droite en RTL, PROUVÉE) : .legal-header est
+ * display:flex + justify-content:space-between (styles.css:623) et son enfant UNIQUE
+ * .logo-wrapper est flex:0 0 auto (styles.css:633) → docké au début de l'axe
+ * principal = bord DROIT en RTL. Sur /merci/ il n'y a ni bouton retour ni lien
+ * légal (abaya_upsell_context() exige un slug offre → false sur « merci »).
+ * CORRECTIF : le wrapper OCCUPE la ligne (flex:1 1 auto, vainqueur de
+ * flex:0 0 auto) — son justify-content:center natif (styles.css:276) centre
+ * réellement le logo — puis prescription littérale du mandat sur l'img
+ * (display:block + margin:0 auto). Logo STRICTEMENT non-cliquable conservé
+ * (branche tunnel de legal-header.php = <span>, jamais <a>). ZÉRO interférence :
+ * ce style inline n'existe QUE sur les TYP — pages légales et LP secondaires
+ * (qui partagent le partial avec un 2e enfant) restent bit-à-bit inchangées. */
+body > header.legal-header > div.logo-wrapper {
+  flex: 1 1 auto !important;
+  justify-content: center !important;
+}
+body > header.legal-header > div.logo-wrapper > span.footer-wordmark > img.header-logo-svg {
+  display: block !important;
+  margin: 0 auto !important;
+}
+/* ================= fin v3.11 ================= */
 </style>
 <?php
 /* Mandat multi-landing + simulation dev (mock-api.js) : config exposée à
@@ -178,9 +203,10 @@ body { background: #FAF7F2; }
 echo '<script>window.ABAYA_MOCK = ' . wp_json_encode([
     'reviewEndpoint' => wp_make_link_relative(rest_url('landing/v1/submit-review')),
     'assetBase'      => get_template_directory_uri() . '/uploads/offers',
-    /* Maquette Canva 4PLP : logo calligraphié شكراً (WebP, bordeaux sur blanc)
-     * — utilisé par le gabarit natif ET par le design injecté en mode mock. */
-    'logo'           => get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp',
+    /* v3.11 (mandat 4P LP) : remplacement de la calligraphie par le fichier
+     * officiel léger assets/images/logo.webp — utilisé par le gabarit natif ET
+     * par le design injecté en mode mock (merci-review.js lit ce registre). */
+    'logo'           => get_template_directory_uri() . '/assets/images/logo.webp',
     'offers'         => isset($GLOBALS['abaya_mock_offers']) ? $GLOBALS['abaya_mock_offers'] : [],
     /* FIX mandat 4P LP (déclenchement pop-up) : une closure PHP n'hérite pas
      * de la portée du gabarit — $abaya_rating_ctx défini plus bas dans ce
@@ -361,7 +387,9 @@ get_header();
   <div class="merci-card">
 <?php if ($abaya_order) : ?>
   <header class="merci-head" aria-labelledby="merci-title">
-    <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
+    <?php /* v3.11 : fichier officiel logo.webp (remplace merci-logo-shukran.webp) —
+           dimensions/centrage CSS inchangés (object-fit: contain = zéro distorsion). */ ?>
+    <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
     <h1 id="merci-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>
     <p class="merci-lead">سنتصل بكِ هاتفياً في أقرب وقت لتأكيد طلبكِ قبل الشحن. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     <p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#<?php echo esc_html($abaya_order->get_order_number()); ?></strong></p>
@@ -476,7 +504,7 @@ get_header();
   <div id="mock-thanks-container" hidden></div>
   <section class="merci-generic" data-generic-thanks aria-labelledby="merci-title-generic">
     <header class="merci-head">
-      <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/merci-logo-shukran.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
+      <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
       <h1 id="merci-title-generic">شكراً لكِ! تم استلام طلبكِ</h1>
       <p class="merci-lead">سيتصل بكِ فريقنا هاتفياً في أقرب وقت لتأكيد المقاس واللون والكمية وعنوان التسليم. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     </header>
