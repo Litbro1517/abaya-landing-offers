@@ -545,27 +545,31 @@ get_header();
 <?php endif; ?>
   </div>
 
-<?php /* ---- Pop-up d'évaluation « 1-clic » (inchangé — validation v2.2) ---- --
+<?php /* ---- Pop-up d'évaluation « 1-clic » (v3.15 — système d'étoiles interactives fournies) ---- --
  * S'affiche dès l'arrivée sur /merci/ lorsqu'une commande active est validée.
- * Remplissage progressif (survol/clic sur la N-ième étoile → étoiles 1..N
- * allumées simultanément, sens RTL). Un clic enregistre DIRECTEMENT la note
- * en base (route REST submit-review, coordonnées de la commande attachées) ;
- * le pop-up NE SE FERME PAS instantanément : message de remerciement persistant
- * avec zone de texte OPTIONNELLE — fermeture via la croix (X), le bouton
- * valider, ou après un délai prolongé. Étoiles seules = auto-approbation
- * (comment_approved = 1) ; avis avec texte = modération (approved = 0). */ ?>
+ * v3.15 (mandat 4P LP) : le code des étoiles est remplacé par le système
+ * interactif fourni (index.html / styles.css / app.js) — boutons VIDES dans le
+ * markup (les tracés SVG arrondis + dégradé satiné sont injectés par
+ * merci-review.js), liseré fin #927936 au repos, remplissage en dégradé satiné
+ * au survol/clic, bandeau supérieur = bande div 6px vert turquoise #3A7D84 ;
+ * l'ancienne étoile centrale du cercle est supprimée (absente du
+ * design fourni). Le flux tunnel est INCHANGÉ : un clic enregistre DIRECTEMENT
+ * la note en base (route REST submit-review, coordonnées de la commande
+ * attachées) ; le pop-up NE SE FERME PAS instantanément : message de
+ * remerciement persistant avec zone de texte OPTIONNELLE — fermeture via la
+ * croix (X), le bouton valider, ou après un délai prolongé. Étoiles seules =
+ * auto-approbation (comment_approved = 1) ; avis avec texte = modération
+ * (approved = 0). */ ?>
 <?php if ($abaya_order) : ?>
   <div class="abaya-rating-overlay" id="abaya-rating-overlay" hidden>
     <div class="abaya-rating-modal" role="dialog" aria-modal="true" aria-labelledby="abaya-rating-title">
+      <div class="abaya-rating-band" aria-hidden="true"></div>
       <button class="abaya-rating-close" type="button" id="abaya-rating-close" aria-label="إغلاق">×</button>
-      <div class="abaya-rating-emoji" aria-hidden="true">★</div>
       <h2 id="abaya-rating-title">يسعدنا كثيراً خدمتك!</h2>
       <p class="abaya-rating-text">إذا أعجبتك تجربتك معنا، نرجو منك اختيار تقييمك بنقرة واحدة لمساعدتنا على تحسين خدمتنا.</p>
       <div class="abaya-rating-stars" id="abaya-rating-stars" role="radiogroup" aria-label="اختياري التقييم بنقرة واحدة">
 <?php for ($abaya_star = 1; $abaya_star <= 5; $abaya_star++) : ?>
-        <button class="abaya-rating-star" type="button" role="radio" aria-checked="false" data-rating="<?= $abaya_star ?>" aria-label="<?= $abaya_star ?> من 5">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg>
-        </button>
+        <button class="abaya-rating-star" type="button" role="radio" aria-checked="false" data-rating="<?= $abaya_star ?>" aria-label="<?= $abaya_star ?> من 5"></button>
 <?php endfor; ?>
       </div>
       <p class="abaya-rating-feedback" id="abaya-rating-feedback" role="status" hidden></p>

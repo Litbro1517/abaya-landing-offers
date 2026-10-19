@@ -53,20 +53,25 @@
 .landing-rating-count { color: #75695f; font-size: .9rem; }
 
 /* ---------- 2) Pop-up d'évaluation « 1-clic » (/merci/) ----------
- * v3.14 (mandat 4P LP « Harmonisation design des modales d'avis ») : la
- * charte du pop-up s'aligne sur le reste du site — fin du jaune vif :
- *   - bandeau supérieur : border-top passe du doré #d4af37 au VERT
- *     TURQUOISE CTA de la marque #3A7D84 (même teinte que le bouton
- *     .abaya-rating-send et le focus .abaya-rating-note, déjà conformes) ;
- *   - étoiles de notation : DORÉ PREMIUM #c0a758 (teinte exacte des
- *     étoiles d'avis de la LP vedette, règle v3.4 styles.css) avec
- *     !important prescrit par le mandat — étoile centrale du cercle
- *     (.abaya-rating-emoji, glyph ★ texte) ET rangée des 5 étoiles ;
- *   - fin du contour déformant : le stroke foncé #b38e1f des étoiles
- *     actives est remplacé par un stroke ALIGNÉ sur le fill #c0a758
- *     (même pattern que la règle v3.4 de la LP : stroke = fill) — l'arrondi
- *     naturel des étoiles n'est plus détérioré par un contour contrastant ;
- *   - anneau de focus clavier harmonisé #c0a758 (doré résiduel banni).
+ * v3.15 (mandat 4P LP « Intégration du système d'étoiles interactives ») :
+ * le code des étoiles est remplacé par le système FOURNI (index.html /
+ * styles.css / app.js) — audit docs/AUDIT-MODALES-v3.15.md :
+ *   - étoiles SVG 48×48 à TRACÉS ARRONDIS injectées par merci-review.js
+ *     (boutons VIDES dans le markup — les coins adoucis sont dans la
+ *     géométrie du tracé, plus aucun stroke déformant) ;
+ *   - état VIDE au repos : liseré FIN #927936 (fill transparent,
+ *     stroke-width 1.8) — fin du remplissage gris #e7e1d6/#d8d0c2 ;
+ *   - état REMPLI (survol souris/plume, focus, clic) : DÉGRADÉ SATINÉ or
+ *     (radialGradient #f5dfa7 → #dfbd72 → #c7973d → #a87824, posé en var
+ *     inline par le JS) + stroke NONE + scale — fluide (transitions 150ms) ;
+ *   - bandeau supérieur : BANDE div dédiée 6px en vert turquoise CTA
+ *     #3A7D84 (teinte maintenue, implémentation .modal-band fournie — la
+ *     bordure 4px v3.14 est retirée) ; l'ancienne étoile centrale du
+ *     cercle est SUPPRIMÉE (absente du design fourni) ;
+ *   - close-button fourni (cercle 34px #f5f3ed, × 25px) ; focus clavier
+ *     #3A7D84 (étoiles + close, fourni) ;
+ *   - flux tunnel INCHANGÉ (POST REST 1-clic, règle du maximum,
+ *     persistance textarea/إرسال — bouton et focus note déjà conformes).
  * Périmètre : les sélecteurs .abaya-rating-* ne s'affichent que sur les
  * Thank You Pages (markup page-merci.php + injection mock merci-review.js)
  * — zéro interférence landings / socle .review-star / règle v3.4. */
@@ -85,86 +90,89 @@
 .abaya-rating-modal {
   position: relative;
   width: min(420px, 100%);
-  background: #fffdf9;
-  border: 1px solid #e7e1d6;
-  /* v3.14 : bandeau supérieur = vert turquoise CTA de la marque (fin du jaune vif) */
-  border-top: 4px solid #3A7D84;
-  border-radius: 16px;
-  padding: 30px 22px 24px;
+  background: #fff;
+  border: 1px solid #e2dfd5;
+  border-radius: 17px;
+  /* v3.15 : le bandeau turquoise devient une bande div (fournie) —
+   * overflow hidden + radius 17px arrondissent ses coins comme la démo. */
+  overflow: hidden;
+  padding: 0 22px 24px;
   text-align: center;
-  box-shadow: 0 18px 50px rgba(47, 42, 36, .25);
+  box-shadow: 0 18px 56px rgb(48 42 27 / 9%);
   animation: abaya-rating-in .25s ease-out;
 }
 @keyframes abaya-rating-in {
   from { opacity: 0; transform: translateY(14px) scale(.98); }
   to   { opacity: 1; transform: none; }
 }
+/* v3.15 : bandeau supérieur FOURNI (.modal-band) — vert turquoise CTA. */
+.abaya-rating-band { height: 6px; background: #3A7D84; }
 .abaya-rating-close {
   position: absolute;
-  top: 10px;
-  inset-inline-end: 10px;
+  z-index: 1;
+  top: 18px;
+  inset-inline-end: 18px;
+  display: grid;
   width: 34px;
   height: 34px;
-  border: 1px solid #ded8ce;
+  padding: 0 0 3px;
+  place-items: center;
+  border: 0;
   border-radius: 50%;
-  background: #fff;
-  color: #5c554a;
-  font-size: 18px;
-  line-height: 1;
+  background: #f5f3ed;
+  color: #5d594e;
   cursor: pointer;
+  font: inherit;
+  font-size: 25px;
+  line-height: 1;
 }
-.abaya-rating-close:hover { background: #faf8f4; }
-.abaya-rating-emoji {
-  width: 46px;
-  height: 46px;
-  margin: 0 auto 10px;
-  border-radius: 50%;
-  background: #faf8f4;
-  border: 1px solid #e7e1d6;
-  /* v3.14 : étoile centrale du cercle = doré premium LP (prescription mandat) */
-  color: #c0a758 !important;
-  font-size: 22px;
-  line-height: 44px;
-}
-.abaya-rating-modal h2 { margin: 0 0 8px; font-size: 1.15rem; color: #2f2a24; }
+/* Assombrissement léger au survol (continuité UX — la démo n'en définit pas). */
+.abaya-rating-close:hover { background: #ece9e1; }
+.abaya-rating-close:focus-visible { outline: 2px solid #3A7D84; outline-offset: 2px; }
+.abaya-rating-modal h2 { margin: 28px 0 8px; font-size: 1.15rem; color: #2f2a24; }
 .abaya-rating-text { margin: 0 0 16px; color: #5c554a; font-size: .92rem; line-height: 1.8; }
 /* Après enregistrement de la note : le texte d'invite cède la place au
  * message de remerciement persistant (mandat : pas de fermeture brusque). */
 .abaya-rating-modal.is-rated .abaya-rating-text { display: none; }
 .abaya-rating-modal.is-rated { padding-bottom: 20px; }
 
-/* Étoiles NUES (mandat : plus d'étoiles isolées dans des boîtes) — le
- * remplissage progressif (survol/clic 1..N, sens RTL) est piloté par les
- * classes .is-hot (survol) et .is-picked (note enregistrée) posées en JS. */
-.abaya-rating-stars { display: flex; justify-content: center; gap: 6px; }
+/* v3.15 : étoiles interactives FOURNIES — boutons VIDES remplis par le JS
+ * (tracés arrondis + radialGradient satiné) ; rendu .is-active piloté par
+ * renderRating (survol = hovered, clic = selected, sens RTL préservé). */
+.abaya-rating-stars { display: flex; justify-content: center; gap: clamp(8px, 2vw, 16px); }
 .abaya-rating-star {
-  width: 48px;
-  height: 48px;
+  display: grid;
+  width: clamp(42px, 11vw, 58px);
+  height: clamp(42px, 11vw, 58px);
+  padding: 2px;
+  place-items: center;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: transform .12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .abaya-rating-star svg {
-  width: 40px;
-  height: 40px;
-  fill: #e7e1d6;
-  stroke: #d8d0c2;
-  stroke-width: 1;
-  stroke-linejoin: round;
-  transition: fill .12s ease, stroke .12s ease;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition: transform 150ms ease, filter 150ms ease;
 }
-.abaya-rating-star:hover { transform: scale(1.06); }
-/* v3.14 : doré premium #c0a758 (!important, prescription mandat) + stroke
- * ALIGNÉ sur le fill (pattern LP v3.4) — le contour foncé #b38e1f qui
- * détériorait l'arrondi naturel des étoiles est supprimé. */
-.abaya-rating-star.is-hot svg,
-.abaya-rating-star.is-picked svg { fill: #c0a758 !important; stroke: #c0a758 !important; }
-.abaya-rating-star:focus-visible { outline: 2px solid #c0a758; outline-offset: 2px; border-radius: 8px; }
+/* État VIDE au repos : liseré FIN #927936 (fourni) — le tracé reste transparent. */
+.abaya-rating-star .star-shape {
+  fill: transparent;
+  stroke: #927936;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  transition: fill 150ms ease, stroke 150ms ease;
+}
+.abaya-rating-star.is-active svg { transform: scale(1.06); }
+/* État REMPLI : DÉGRADÉ SATINÉ (var posée en inline style par starSvg)
+ * + stroke NONE — zéro contour, l'arrondi naturel du tracé s'exprime. */
+.abaya-rating-star.is-active .star-shape { fill: var(--star-gradient); stroke: none; }
+.abaya-rating-star:hover svg { transform: scale(1.08); }
+.abaya-rating-star:focus-visible { outline: 2px solid #3A7D84; outline-offset: 3px; }
 
 /* Zone de texte optionnelle (persistance du pop-up après la note) —
  * apparition douce via l'animation de la modale. */
@@ -208,14 +216,14 @@
 .abaya-rating-feedback.is-error { color: #a32929; }
 @media (prefers-reduced-motion: reduce) {
   .abaya-rating-modal, .abaya-rating-after { animation: none; }
-  .abaya-rating-star { transition: none; }
+  .abaya-rating-star, .abaya-rating-star svg, .abaya-rating-star .star-shape { transition: none; }
 }
 
-/* ---------- Responsive /merci/ ---------- */
+/* ---------- Responsive /merci/ ----------
+ * v3.15 : plus d'override étoiles mobile — le clamp(42px, 11vw, 58px)
+ * FOURNI dimensionne les boutons à toutes les largeurs (390px ≈ 42,9px). */
 @media (max-width: 560px) {
   .landing-rating .review-star { width: 26px; height: 26px; }
-  .abaya-rating-star { width: 42px; height: 42px; }
-  .abaya-rating-star svg { width: 34px; height: 34px; }
 }
 
 /* ---------- Tunnel post-achat (mandat « fix/post-purchase-navigation-flow ») ----------
