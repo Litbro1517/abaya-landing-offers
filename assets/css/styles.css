@@ -2025,3 +2025,46 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
 @media (max-width: 768px) {
   .footer-columns { display: flex; flex-direction: column; gap: 16px; }
 }
+
+/* ================================================================
+   v3.9 — ICÔNES DE GARANTIE CENTRÉES + FOOTER MOBILE CENTRÉ
+   + GARANTIE DE DIRECTION PRIX TYP
+   (mandat 4P « Correction des icônes de garanties (Réassurance) +
+   Footer mobile centrage parfait + Inversion stricte prix/devise » ;
+   l'inversion prix « 499 درهم » est déjà portée par page-merci.php
+   v3.8 — montant PUIS درهم dans <bdi dir="ltr"> — cette section
+   ajoute la garantie CSS de direction sur ces unités de prix)
+   ================================================================ */
+
+/* 1 — Icônes de garantie (Réassurance) : chaque icône est CENTRÉE
+ * HORIZONTALEMENT au milieu de sa colonne (flex-direction: column +
+ * align-items: center + margin-inline: auto — l'icône est empilée
+ * AU-DESSUS du texte, exactement au milieu de sa colonne) ;
+ * l'alignement vertical strict vers le HAUT est conservé
+ * (.trust-grid align-items: flex-start — le sommet de toutes les
+ * icônes reste parfaitement aligné sur le même axe horizontal) ;
+ * le texte reste CENTRÉ sous chaque icône
+ * (text-align: center !important, hérité de la v3.8).
+ * S'applique à toutes les landings (gabarit unique). */
+.trust-grid { grid-template-columns: repeat(3, 1fr); align-items: flex-start; }
+.trust-item { flex-direction: column; align-items: center; justify-content: flex-start; }
+.trust-icon { margin-inline: auto; }
+
+/* 2 — Footer mobile (< 768px) : CENTRAGE PARFAIT — l'ensemble des
+ * éléments et des textes du footer (logo, 3 colonnes, liens,
+ * téléphone, copyright) est centré horizontalement au milieu de
+ * l'écran (text-align: center !important + align-items: center
+ * !important) ; l'empilement colonne unique v3.8 est conservé. */
+@media (max-width: 768px) {
+  .site-footer { text-align: center !important; }
+  .footer-inner { align-items: center !important; }
+  .footer-columns { display: flex; flex-direction: column; align-items: center !important; gap: 16px; }
+  .footer-columns section { align-items: center !important; }
+}
+
+/* 3 — Inversion stricte prix/devise TYP « 499 درهم » : garantie CSS de
+ * direction sur les unités de prix (le markup v3.8 enveloppe déjà
+ * montant PUIS درهم dans <bdi dir="ltr"> ; si un attribut était un jour
+ * altéré, l'ordre visuel reste forcé : montant à gauche, devise درهم à
+ * droite). Tableau récapitulatif ET cartes d'upsell. */
+.merci-price bdi, .merci-upsell-price bdi { direction: ltr; unicode-bidi: isolate; }
