@@ -60,7 +60,26 @@ body { background: #FAF7F2; }
  * (zéro distorsion, object-fit: contain conservé), max-width 82% = garde-fou
  * anti-débordement petits écrans, centrage horizontal inchangé (display
  * block + margin auto). */
-.merci-logo { width: 240px; height: auto; max-width: 82%; object-fit: contain; display: block; margin: 0 auto 4px; }
+/* v3.13 (mandat 4P LP) : VERROUILLAGE DU CENTRAGE OPTIQUE VALIDÉ — bloc CSS
+ * prescrit par le mandat, appliqué RIGOUREUSEMENT à .merci-logo sur l'ensemble
+ * des 4 Thank You Pages. Les 6 déclarations v3.12 (grand format 240px, height
+ * auto = ratio source préservé, garde-fou 82%, contain, block, margin auto +
+ * 4px) sont reprises à l'identique ; la déclaration nouvelle — un décalage
+ * horizontal de 25px vers la droite — compense la masse visuelle décentrée
+ * de la calligraphie : le centrage GÉOMÉTRIQUE de la boîte (margin:0 auto)
+ * devient centrage OPTIQUE du dessin.
+ * La règle mobile ≤520px (width 170px, validée v3.12) reste en place et ne
+ * surcharge que width/height : le verrou d'optique s'applique donc à TOUTES
+ * les largeurs, zéro autre paramètre graphique touché. */
+.merci-logo {
+    width: 240px;
+    height: auto;
+    max-width: 82%;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 4px;
+    transform: translateX(25px) !important;
+}
 /* v3.6 (mandat 4P « Thank You Page ») : centrage PARFAIT du sous-titre et du
  * bloc explicatif sous le logo شكراً. Cause du défaut : la règle de base
  * h1 { max-width: 480px; margin: 18px 0 10px } collait la BOÎTE du titre au
