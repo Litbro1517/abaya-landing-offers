@@ -249,11 +249,16 @@ if ($abaya_order) {
     $abaya_total       = (float) $abaya_order->get_total();
     $abaya_total_text  = ($abaya_total == floor($abaya_total)) ? number_format($abaya_total, 0) : number_format($abaya_total, 2);
 
-    /* Format prix de la maquette Canva : « DH 450 » (préfixe latin, chiffres
-     * occidentaux) — rendu LTR stable à l'intérieur des cellules RTL. */
+    /* Format prix — devise en toutes lettres en arabe « 299 درهم » (mandat 4P
+     * v3.8 « Uniformisation de la Devise sur les Thank You Pages ») : montant
+     * PUIS درهم (devise affichée à droite du montant, fin du préfixe latin
+     * « DH » LTR) — rendu stable à l'intérieur des cellules RTL (les 5 points
+     * d'appel — lignes + total du récapitulatif + prix/ancien prix upsell —
+     * restent enveloppés dans <bdi dir="ltr">). Tableau récapitulatif ET blocs
+     * d'upsell de la Thank You Page ; les landing pages ne sont PAS concernées. */
     $abaya_dh = function ($abaya_amount) {
         $abaya_text = ($abaya_amount == floor($abaya_amount)) ? number_format($abaya_amount, 0) : number_format($abaya_amount, 2);
-        return 'DH ' . $abaya_text;
+        return $abaya_text . ' درهم';
     };
 
     /* Visuel de la couleur choisie : chemin issu du catalogue DE CETTE OFFRE

@@ -2002,3 +2002,26 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
 #avis-clients > div.reviews-list-container .review-card-reply-title {
   color: #3A7D84 !important;
 }
+
+/* ================================================================
+   v3.8 — GARANTIES ÉGALES/CENTRÉES + FOOTER MOBILE COLONNE
+   (mandat 4P « Uniformisation devise + Réassurance + Footer » —
+   la devise TYP درهم est portée par page-merci.php, zéro CSS ;
+   les LP ne sont PAS concernées par la devise)
+   ================================================================ */
+
+/* 1 — Section des Garanties (Réassurance) : les 3 blocs en colonnes
+ * de largeur STRICTEMENT ÉGALE (repeat(3, 1fr) réaffirmé), icônes et
+ * contenu alignés vers le HAUT (align-items: flex-start — les sommets
+ * des 3 blocs partagent le même axe horizontal) et texte CENTRÉ à
+ * l'intérieur de chaque bloc (text-align: center !important).
+ * S'applique à toutes les landings (gabarit unique). */
+.trust-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
+.trust-item { align-items: flex-start; text-align: center !important; }
+
+/* 2 — Pied de page sur mobile : empilement vertical en COLONNE UNIQUE
+ * (≤768px) pour éliminer toute césure ou chevauchement du numéro de
+ * téléphone (fin de la grille 3 colonnes trop étroite sur mobile). */
+@media (max-width: 768px) {
+  .footer-columns { display: flex; flex-direction: column; gap: 16px; }
+}
