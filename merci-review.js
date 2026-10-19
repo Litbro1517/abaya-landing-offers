@@ -159,6 +159,9 @@ function bindRatingFlow(root, ctx) {
   const stars    = box ? [...box.querySelectorAll(".abaya-rating-star")] : [];
   let selectedRating = 0;
   let hoveredRating = 0;
+  /* v3.16 : verrou de l'Étape 2 — une fois la note validée, les étoiles
+   * deviennent STATIQUES et INFORMATIVES (plus aucune interaction). */
+  let locked = false;
 
   /* v3.15 : les boutons du markup sont VIDES — injection des tracés SVG
    * arrondis + dégradé satiné fournis (IDs uniques par note). */
@@ -171,12 +174,29 @@ function bindRatingFlow(root, ctx) {
    * A11y : sémantie radiogroup v2.2 conservée — aria-checked posé sur
    * l'étoile choisie uniquement (équivalent exact de l'aria-pressed fourni). */
   function renderRating() {
-    const visibleRating = hoveredRating || selectedRating;
+    /* v3.16 : verrou Étape 2 — affichage FIGÉ sur la note exacte validée
+     * (selectedRating post-submit = résultat de la règle du maximum) ;
+     * hoveredRating est ignoré : plus aucune prévisualisation ne peut
+     * diverger du choix de l'utilisatrice. */
+    const visibleRating = locked ? selectedRating : (hoveredRating || selectedRating);
     stars.forEach((star, index) => {
       const active = index < visibleRating;
       star.classList.toggle("is-active", active);
       star.setAttribute("aria-checked", String(Number(star.dataset.rating) === selectedRating));
     });
+  }
+
+  /* v3.16 : passage en Étape 2 — pose du verrou + sortie des étoiles de
+   * l'ordre de tabulation (seuls le champ de texte et إرسال restent actifs,
+   * avec la croix de fermeture — flux inchangé). */
+  function lockStars() {
+    locked = true;
+    hoveredRating = 0;
+    box?.setAttribute("aria-disabled", "true");
+    for (const star of stars) {
+      star.tabIndex = -1;
+      star.setAttribute("aria-disabled", "true");
+    }
   }
 
   /* Événements FOURNIS (app.js) : pointerenter filtré souris/plume (le
@@ -186,22 +206,26 @@ function bindRatingFlow(root, ctx) {
     const rating = Number(star.dataset.rating);
 
     star.addEventListener("pointerenter", (event) => {
+      if (locked) return; /* v3.16 : Étape 2 = étoiles statiques */
       if (event.pointerType === "mouse" || event.pointerType === "pen") {
         hoveredRating = rating;
         renderRating();
       }
     });
     star.addEventListener("focus", () => {
+      if (locked) return; /* v3.16 : Étape 2 = étoiles statiques */
       hoveredRating = rating;
       renderRating();
     });
     star.addEventListener("blur", () => {
+      if (locked) return; /* v3.16 : Étape 2 = étoiles statiques */
       hoveredRating = 0;
       renderRating();
     });
   }
 
   box?.addEventListener("pointerleave", (event) => {
+    if (locked) return; /* v3.16 : Étape 2 = étoiles statiques */
     if (event.pointerType === "mouse" || event.pointerType === "pen") {
       hoveredRating = 0;
       renderRating();
@@ -211,7 +235,8 @@ function bindRatingFlow(root, ctx) {
   /* 1-clic : enregistrement DIRECT (flux tunnel inchangé) + rendu fourni. */
   box?.addEventListener("click", async (event) => {
     const star = event.target.closest(".abaya-rating-star");
-    if (!star || box.dataset.busy === "1") return;
+    /* v3.16 : Étape 2 = plus aucune re-soumission possible (note verrouillée). */
+    if (locked || !star || box.dataset.busy === "1") return;
     box.dataset.busy = "1";
     try {
       const result = await submitRating(Number(star.dataset.rating), ctx);
@@ -219,7 +244,11 @@ function bindRatingFlow(root, ctx) {
       /* Règle du maximum : le serveur renvoie la note conservée — le rendu
        * s'aligne sur max(note_existante, nouvelle_note). */
       selectedRating = Math.max(selectedRating, Number(result.body?.rating) || Number(star.dataset.rating));
-      hoveredRating = 0;
+      /* v3.16 : la note est VALIDÉE — verrouillage immédiat de l'Étape 2 :
+       * les étoiles se figent sur la note exacte (dégradé satiné pour les
+       * remplies, liseré fin pour les vides) et ne répondent plus à aucun
+       * survol/clic/focus ; seul le formulaire de message reste actif. */
+      lockStars();
       renderRating();
       /* Persistance (mandat) : le pop-up reste ouvert — message de
        * remerciement + zone de texte optionnelle, apparition douce. */
