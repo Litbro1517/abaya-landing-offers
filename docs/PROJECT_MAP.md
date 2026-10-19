@@ -10,7 +10,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Thème WordPress | **Abaya Canvas** — Version **3.2** (style.css) |
+| Thème WordPress | **Abaya Canvas** — Version **3.3** (style.css) |
 | Architecture | 1 offre vedette à la racine + 3 landing pages secondaires = 4 landings |
 | Gabarit | UNIQUE (`template-parts/landing-offer.php`) — une offre = une entrée de données, PAS un fichier PHP |
 | Dépôt source | `abayacollection-theme-clean` (socle : tunnel REST, CAPI/Pixel, tracking) |
@@ -231,10 +231,23 @@ Replis : produit inconnu du registre → `abaya_bad_product` (500) ; `LANDING_PR
 - **Zéro changement PHP/JS** (gabarit + app.js bit-exact) ; **upsell bit-exact** (toutes les règles v3.2 scopées `:not(.is-upsell)` — zéro règle globale) ; desktop >700px bit-exact.
 - **Validation v3.2** : mesures calculées APRÈS = bundle_cols **3/3/3/3** + form_cols **1/1/1/1** à 320/375/390/430px, overflow_x 0 ; suites rescopées (voir rapport).
 
+## 5-duodecies. CHARTE UNIFIÉE — coins droits, fond unifié, cartes harmonisées, sélection émeraude (v3.3 — branche « fix/charte-unifiee-v33 »)
+
+- **Mandat 4P** : supprimer les coins arrondis galerie, l'effet « boîte dans une boîte », harmoniser l'intérieur des 3 cartes (modèle carte 3) et passer la sélection à l'émeraude CTA (fin du doré vedette) ; captures d'erreurs fournies par l'utilisateur (sélection dorée, prix vert carte 2, pilules différenciées, galerie arrondie).
+- **1 — Galerie rectangulaire** : `.main-photo-wrap` / `.main-photo` / `.thumbnail` / `.thumbnail img` → `border-radius: 0 !important` (socle 14px neutralisé, coins nets 90°).
+- **2 — Fond unifié #F5F0E8** : le cadre blanc de `main` (bordure #E2D9CC + radius 24px + ombre 65px) supprimé (transparent, zéro bordure/arrondi/ombre) + bandeau trust aplati — textes, galerie, formulaire et offres déposés directement sur le fond body `#F5F0E8` (token `--cream-bg`/`--paper` déjà en place) ; modules de contenu bas de page (order-steps, faq, avis) HORS périmètre (conservés).
+- **3 — Cartes unifiées (modèle carte 3)** : pilules toutes `#F2E8DD` / texte `#2C1D11` (fond vert carte 2 supprimé), prix tous encre `#2C1D11` 27px (emphasis sapin 30px carte 2 retirée), économies émeraude `#3A7D84` SANS pilule (fond pâle carte 2 supprimé).
+- **4 — Sélection émeraude** : cadre actif `#3A7D84` (identique CTA) + halo émeraude 25/15% + badge ✓ cercle `#3A7D84` à crochet blanc — le doré `#C5A059` n'est plus utilisé pour la sélection vedette (token :root conservé, règles v3.1 dorées laissées en cascade-morte sous la section v3.3 qui gagne).
+- **5 — Bloc milieu conservé** : ruban الأكثر طلباً (métriques v3.1) + cadre standard `rgb(58 125 132 / 40%)` — aucune règle nouvelle.
+- **6 — Mobile v3.2 conservé** (offres 3 colonnes fixes, formulaire 1 colonne ≤700px) + réharmonisation ≤540px (prix 18px unifiés sur les 3 cartes, pilule unique, économies sans fond).
+- **Zéro changement PHP/JS** ; upsell bit-exact (scoping intégral `:not(.is-upsell)`, socle intouché) ; desktop >700px : seul le fond/cadre main change (mandat).
+- **Validation v3.3** : suites rescopées S15.2-S15.5 + 4 assertions [P] visuelles (émeraude/crème/encre) + nouveau bloc S18 (12 invariants) — voir rapport.
+
 ## 6. Historique
 
 | Version | Contenu |
 |---|---|
+| 3.3 | Mandat 4P « Charte Unifiée » (branche `fix/charte-unifiee-v33`) : galerie hero + miniatures coins nets 90° (border-radius 0) ; fond global unifié #F5F0E8 (cadre blanc de main + bandeau trust supprimés — fin de l'effet boîte dans boîte) ; intérieur des 3 cartes harmonisé sur le modèle carte 3 (pilules #F2E8DD/encre, prix encre 27px unifiés, économies émeraude sans pilule) ; sélection = émeraude CTA #3A7D84 (cadre + badge ✓ blanc, fin du doré vedette) ; ruban الأكثر طلباً + cadre milieu conservés ; mobile v3.2 conservé + prix ≤540px unifiés 18px ; PHP/JS inchangés, upsell bit-exact |
 | 3.2 | Mandat 4P « Dispositions Mobile » (branche `fix/mobile-grids-offers-form`) : offres dégressives = 3 colonnes FIXES à toute largeur (bascules socle ≤540/≤420px neutralisées par override scopé vedette, gap-2 8px ≤700px) + formulaire 1 colonne ≤700px (2 colonnes conservées au-dessus) ; compactage ≤540px des cartes (métriques seules, charte émeraude/doré intacte, référence mobile utilisateur) ; PHP/JS inchangés, upsell bit-exact ; validation mesures calculées 3-col + 1-col à 320/375/390/430px + suites rescopées |
 | 2.0 | Mandat multi-landing : registre 4 offres, gabarit unique, routing, REST additive (`offer`), badge étoiles BDD, pop-up 1-clic merci, cross-sell, code promo, mock dev-only, rebase socle v1.27 (restructuration : prototype → `preview/`, purge résidus), validation 30/30 REST + 59/59 statique + rendu racine bit-à-bit |
 | 2.1 | Mandat 4P LP « Ajustement Final & Badge Étoiles » (branche `feat/ratings-popup-adjustments`) : badge étoiles SVG au format EXACT de la section avis sous le H1 sur les 4 landings (avant : secondaires seules, étoiles Unicode), garnissage BDD 2 couches ; FIX P0 pop-up merci (`ratingCtx` closure PHP toujours null → auto-ouverture restaurée) ; correctif Échap mode mock ; offers.css chargée sur toutes les landings ; validation 59/59 statique + 30/30 REST + 14/14 E2E Playwright + 16/16 visuel + SVG byte-exact 10/10 |

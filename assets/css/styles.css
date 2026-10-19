@@ -1762,3 +1762,87 @@ body.product-landing { background: var(--paper); color: var(--ink); }
     font-size: 8px;
   }
 }
+
+/* ==========================================================================
+   v3.3 — CHARTE UNIFIÉE (mandat 4P : coins droits, fond unifié, cartes
+   harmonisées, sélection émeraude) — scopé vedette :not(.is-upsell),
+   l'upsell garde son inversion dorée v2.9 bit-exact.
+   1. Galerie : image principale + conteneur + miniatures = coins nets 90°.
+   2. Fond unifié : le cadre blanc de main (bordure + radius 24px + grande
+      ombre) est supprimé — textes, galerie, formulaire et offres sont
+      déposés directement sur le fond crème unifié #F5F0E8 (token
+      --cream-bg / --paper, « blanc crémeux très subtil » du mandat) ;
+      bandeau trust aplati lui aussi (bordure/arrondi superflus).
+   3. Intérieur des 3 cartes unifié sur le modèle de la carte 3 (699) :
+      pilules #F2E8DD / encre #2C1D11 (fond vert de la pilule carte 2
+      supprimé), prix encre #2C1D11 identiques (27px — emphasis sapin 30px
+      retirée), économies émeraude #3A7D84 posées SANS pilule.
+   4. Sélection = émeraude CTA : cadre actif #3A7D84 + halo émeraude (FIN du
+      doré #C5A059 pour la sélection vedette) ; badge ✓ cercle #3A7D84 à
+      crochet blanc.
+   5. Bloc milieu : ruban الأكثر طلباً + cadre rgb(58 125 132 / 40%)
+      CONSERVÉS (base intouchée — aucune règle nouvelle).
+   6. Ergonomie mobile v3.2 conservée (offres 3 colonnes fixes / formulaire
+      1 colonne ≤700px) ; compactage ≤540px réharmonisé (prix 18px unifiés,
+      pilule unique, économies sans fond). */
+
+/* 1 — Galerie parfaitement rectangulaire */
+.product-landing:not(.is-upsell) .main-photo-wrap,
+.product-landing:not(.is-upsell) .main-photo,
+.product-landing:not(.is-upsell) .thumbnail,
+.product-landing:not(.is-upsell) .thumbnail img { border-radius: 0 !important; }
+
+/* 2 — Fond unifié (suppression de la boîte dans la boîte) */
+body.product-landing:not(.is-upsell) { background: #F5F0E8; }
+.product-landing:not(.is-upsell) main {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.product-landing:not(.is-upsell) .order-card { background: transparent; box-shadow: none; }
+.product-landing:not(.is-upsell) .trust-grid {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* 3 — Intérieur des cartes unifié (modèle carte 3 : 699 درهم) */
+.product-landing:not(.is-upsell) .bundle-card .bundle-badge,
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-badge,
+.product-landing:not(.is-upsell) .bundle-card:nth-child(3) .bundle-badge {
+  background: #F2E8DD;
+  color: #2C1D11;
+}
+.product-landing:not(.is-upsell) .bundle-card .bundle-price,
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price {
+  color: #2C1D11;
+  font-size: 27px;
+}
+.product-landing:not(.is-upsell) .bundle-saving,
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #3A7D84;
+  font-weight: 700;
+}
+
+/* 4 — Sélection émeraude CTA (fin du doré vedette) */
+.product-landing:not(.is-upsell) .bundle-card.is-selected {
+  border-color: #3A7D84;
+  box-shadow: 0 10px 25px -5px rgb(58 125 132 / 25%), 0 8px 10px -6px rgb(58 125 132 / 15%);
+}
+.product-landing:not(.is-upsell) .bundle-card::before {
+  background: #3A7D84;
+  color: #fff;
+}
+
+/* 6 — réharmonisation mobile ≤540px (unification totale des 3 cartes :
+   le 27px tous-widths de la section v3.3 ne doit pas écraser le compactage
+   v3.2 — les 3 prix repassent à 18px, pilule unique, économies sans fond) */
+@media (max-width: 540px) {
+  .product-landing:not(.is-upsell) .bundle-card .bundle-price,
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { font-size: 18px; }
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving { padding: 0; }
+}
