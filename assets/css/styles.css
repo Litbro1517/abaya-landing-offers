@@ -1846,3 +1846,42 @@ body.product-landing:not(.is-upsell) { background: #F5F0E8; }
   .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-price { font-size: 18px; }
   .product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving { padding: 0; }
 }
+
+/* ==========================================================================
+   v3.4 — AJUSTEMENT FINAL : FOND GLOBAL #FBFBF8 + ÉTOILES #C0A758
+   (mandat 4P) — scopé vedette :not(.is-upsell) ; l'upsell garde son
+   inversion dorée v2.9 bit-exact (socle .review-star #d4af37 INTACT).
+   1. Fond global unifié : le crème #F5F0E8 de la v3.3 est remplacé par
+      #fbfbf8 (blanc cassé chaud) ; les dernières bandes de teinte de
+      section (trust-strip #f1eee8 + liserés, faq-section et
+      contact-section #fbfaf7) deviennent transparentes — un seul fond
+      sur toute la page, plus aucun conteneur double.
+   2. Offres : les 3 cartes (et le fond #fffdf8 de l'état sélectionné
+      du socle) deviennent transparentes — textes, pilules, prix,
+      économies et cadres reposent directement sur le fond unique.
+   3. Étoiles d'avis (cartes avis + badge sous le titre) : #c0a758.
+      Le socle .review-star #d4af37 reste global pour l'upsell ; la
+      règle vedette (0,3,0) écraserait .review-star.is-empty (0,2,0)
+      → les étoiles vides sont ré-ancrées #e3dccc explicitement.
+   4. Continuité : galerie 90°, cartes harmonisées, sélection émeraude
+      #3A7D84 (v3.3) et dispositions mobile v3.2 inchangées. */
+
+/* 1 — Fond global unique #fbfbf8 (remplace le crème v3.3) */
+body.product-landing:not(.is-upsell) { background: #fbfbf8; }
+.product-landing:not(.is-upsell) .order-section,
+.product-landing:not(.is-upsell) .trust-strip,
+.product-landing:not(.is-upsell) .faq-section,
+.product-landing:not(.is-upsell) .contact-section { background: transparent; }
+.product-landing:not(.is-upsell) .trust-strip { border: 0; }
+
+/* 2 — Cartes d'offres posées directement sur le fond unique */
+.product-landing:not(.is-upsell) .bundle-card,
+.product-landing:not(.is-upsell) .bundle-card.is-selected { background: transparent; }
+
+/* 3 — Étoiles d'avis #c0a758 (avis clients + badge sous le titre) */
+.product-landing:not(.is-upsell) .review-star {
+  fill: #c0a758;
+  stroke: #c0a758;
+  filter: drop-shadow(0 1px 1.5px rgb(192 167 88 / 35%));
+}
+.product-landing:not(.is-upsell) .review-star.is-empty { fill: #e3dccc; stroke: #e3dccc; filter: none; }
