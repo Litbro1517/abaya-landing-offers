@@ -238,8 +238,12 @@ if (mockOrder && mockContainer) {
 
   /* Récapitulatif en mode mock : miroir EXACT du design « maquette Canva 4PLP »
    * (carte blanche + logo شكراً, pastille n° commande, tableau 4 colonnes avec
-   * cellule image, bloc cadeau turquoise, WhatsApp officiel, upsell 3:5). */
-  const dh = (n) => "DH " + String(n);
+   * cellule image, bloc cadeau turquoise, WhatsApp officiel, upsell 3:5).
+   * v3.10 : dh() alignée sur la closure PHP $abaya_dh de page-merci.php —
+   * montant PUIS درهم, espace insecable U+00A0 (fin du préfixe latin « DH »
+   * jamais corrigé en v3.8 côté JS) ; les bdi de prix passent en dir="rtl"
+   * (parité LP : درهم affiché à GAUCHE du montant). */
+  const dh = (n) => String(n) + "\u00A0درهم";
   const logoSrc = config.logo || "";
   /* Mandat ⑭ : les offres déjà ajoutées à la commande (upsell mock) disparaissent
    * des cartes — chaque lien porte le duo order+key (déverrouillage de la
@@ -254,7 +258,7 @@ if (mockOrder && mockContainer) {
       '<a class="merci-upsell-item" href="' + escapeHtml((offer.url || ("/" + encodeURIComponent(offer.id) + "/")).split("#")[0] + upsellQuery + "#order-form-section") + '">' +
       '<span class="merci-upsell-frame"><img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" loading="lazy" /></span>' +
       '<strong class="merci-upsell-name">' + escapeHtml(offer.headline) + '</strong>' +
-      '<span class="merci-upsell-price"><bdi dir="ltr">' + escapeHtml(dh(offer.price || 299)) + '</bdi></span>' +
+      '<span class="merci-upsell-price"><bdi dir="rtl">' + escapeHtml(dh(offer.price || 299)) + '</bdi></span>' +
       '<span class="merci-upsell-btn">إضافة للطلب</span></a>'
     ).join("");
 
@@ -271,9 +275,9 @@ if (mockOrder && mockContainer) {
         '<tr><td><p class="merci-item-name">' + escapeHtml(offerName) + '</p></td>' +
         '<td class="merci-qty">' + escapeHtml(selection.color || "—") + ' / ' + escapeHtml(selection.size || "—") + '</td>' +
         '<td class="merci-qty">' + escapeHtml(String(quantity)) + '</td>' +
-        '<td class="merci-price"><bdi dir="ltr">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
+        '<td class="merci-price"><bdi dir="rtl">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
         '<tr class="merci-total-row"><td colspan="3">المجموع الإجمالي:</td>' +
-        '<td class="merci-price"><bdi dir="ltr">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
+        '<td class="merci-price"><bdi dir="rtl">' + escapeHtml(dh(mockOrder.value)) + '</bdi></td></tr>' +
       '</tbody></table></div>' +
       '<figure class="merci-product-img"><img src="' + escapeHtml(itemImg) + '" alt="العباية" loading="lazy" /></figure></div>' +
       '<aside class="merci-gift" aria-labelledby="mock-gift-title">' +
