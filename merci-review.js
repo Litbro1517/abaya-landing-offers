@@ -264,7 +264,10 @@ if (mockOrder && mockContainer) {
 
   mockContainer.innerHTML =
     '<header class="merci-head" aria-labelledby="mock-thanks-title">' +
-      (logoSrc ? '<img class="merci-logo" src="' + escapeHtml(logoSrc) + '" alt="شكراً" width="92" height="92" />' : "") +
+      /* v3.12 : attributs = ratio naturel du visuel haute résolution (500×337,
+       * anti-CLS) — la taille d'affichage (240px desktop / 170px mobile,
+       * height auto) est pilotée par CSS dans le bloc abaya-merci. */
+      (logoSrc ? '<img class="merci-logo" src="' + escapeHtml(logoSrc) + '" alt="شكراً" width="240" height="162" />' : "") +
       '<h1 id="mock-thanks-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>' +
       '<p class="merci-lead">طلب تجريبي محفوظ محلياً على هذا المتصفح فقط؛ لم يُرسل طلب إلى المتجر.</p>' +
       '<p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#' + escapeHtml(String(mockOrder.order_id)) + '</strong></p>' +

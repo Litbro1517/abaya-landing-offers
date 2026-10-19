@@ -52,7 +52,15 @@ body { background: #FAF7F2; }
 
 /* ---- En-tête : logo WebP centré sur blanc pur + confirmation + pastille ---- */
 .merci-head { padding: 32px 26px 28px; text-align: center; background: #fff; }
-.merci-logo { width: 92px; height: 92px; object-fit: contain; display: block; margin: 0 auto 4px; }
+/* v3.12 (mandat 4P LP) : calligraphie شكراً GRAND FORMAT — le visuel haute
+ * résolution logo-thank-you-2.webp (500×337, ratio 1.484) remplace logo.webp
+ * (120×67). FIN de la contrainte miniature 92×92 : la boîte carrée + contain
+ * réduisaient le rendu effectif à ≈92×52 px sur une image paysage. Désormais
+ * width 240px desktop / 170px mobile, height auto = ratio source préservé
+ * (zéro distorsion, object-fit: contain conservé), max-width 82% = garde-fou
+ * anti-débordement petits écrans, centrage horizontal inchangé (display
+ * block + margin auto). */
+.merci-logo { width: 240px; height: auto; max-width: 82%; object-fit: contain; display: block; margin: 0 auto 4px; }
 /* v3.6 (mandat 4P « Thank You Page ») : centrage PARFAIT du sous-titre et du
  * bloc explicatif sous le logo شكراً. Cause du défaut : la règle de base
  * h1 { max-width: 480px; margin: 18px 0 10px } collait la BOÎTE du titre au
@@ -148,7 +156,7 @@ body { background: #FAF7F2; }
 @media (max-width: 520px) {
   .merci-page { padding: 20px 10px 48px; }
   .merci-head { padding: 26px 16px 22px; }
-  .merci-logo { width: 80px; height: 80px; }
+  .merci-logo { width: 170px; height: auto; } /* v3.12 : grand format mobile (ratio préservé) */
   .merci-head h1 { font-size: 1.14rem; }
   .merci-added { margin: 0 16px; font-size: .8rem; }
   .merci-sec, .merci-upsell { padding-inline: 16px; }
@@ -203,10 +211,11 @@ body > header.legal-header > div.logo-wrapper > span.footer-wordmark > img.heade
 echo '<script>window.ABAYA_MOCK = ' . wp_json_encode([
     'reviewEndpoint' => wp_make_link_relative(rest_url('landing/v1/submit-review')),
     'assetBase'      => get_template_directory_uri() . '/uploads/offers',
-    /* v3.11 (mandat 4P LP) : remplacement de la calligraphie par le fichier
-     * officiel léger assets/images/logo.webp — utilisé par le gabarit natif ET
-     * par le design injecté en mode mock (merci-review.js lit ce registre). */
-    'logo'           => get_template_directory_uri() . '/assets/images/logo.webp',
+    /* v3.12 (mandat 4P LP) : visuel haute résolution logo-thank-you-2.webp
+     * (500×337 — remplace logo.webp 120×67, taille d'affichage revue à la
+     * hausse via CSS) — utilisé par le gabarit natif ET par le design injecté
+     * en mode mock (merci-review.js lit ce registre). */
+    'logo'           => get_template_directory_uri() . '/assets/images/logo-thank-you-2.webp',
     'offers'         => isset($GLOBALS['abaya_mock_offers']) ? $GLOBALS['abaya_mock_offers'] : [],
     /* FIX mandat 4P LP (déclenchement pop-up) : une closure PHP n'hérite pas
      * de la portée du gabarit — $abaya_rating_ctx défini plus bas dans ce
@@ -387,9 +396,11 @@ get_header();
   <div class="merci-card">
 <?php if ($abaya_order) : ?>
   <header class="merci-head" aria-labelledby="merci-title">
-    <?php /* v3.11 : fichier officiel logo.webp (remplace merci-logo-shukran.webp) —
-           dimensions/centrage CSS inchangés (object-fit: contain = zéro distorsion). */ ?>
-    <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
+    <?php /* v3.12 : visuel haute résolution logo-thank-you-2.webp 500×337
+           (remplace logo.webp 120×67) — grand format CSS (240px desktop /
+           170px mobile), height auto + object-fit contain = zéro distorsion,
+           centrage conservé ; width/height = ratio naturel (anti-CLS). */ ?>
+    <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-thank-you-2.webp'); ?>" alt="شكراً" width="240" height="162" decoding="async" />
     <h1 id="merci-title">تم استلام طلبكِ بنجاح! يسعدنا انضمامكِ إلينا</h1>
     <p class="merci-lead">سنتصل بكِ هاتفياً في أقرب وقت لتأكيد طلبكِ قبل الشحن. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     <p class="merci-order-pill"><span>رقم الطلب:</span> <strong dir="ltr">#<?php echo esc_html($abaya_order->get_order_number()); ?></strong></p>
@@ -504,7 +515,7 @@ get_header();
   <div id="mock-thanks-container" hidden></div>
   <section class="merci-generic" data-generic-thanks aria-labelledby="merci-title-generic">
     <header class="merci-head">
-      <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.webp'); ?>" alt="شكراً" width="92" height="92" decoding="async" />
+      <img class="merci-logo" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-thank-you-2.webp'); ?>" alt="شكراً" width="240" height="162" decoding="async" />
       <h1 id="merci-title-generic">شكراً لكِ! تم استلام طلبكِ</h1>
       <p class="merci-lead">سيتصل بكِ فريقنا هاتفياً في أقرب وقت لتأكيد المقاس واللون والكمية وعنوان التسليم. الدفع عند الاستلام، ويحق لكِ معاينة العباية قبل الدفع.</p>
     </header>
