@@ -1450,15 +1450,12 @@ body.product-landing { background: var(--paper); color: var(--ink); }
 .product-landing .order-steps h3 { color: var(--ink); font-weight: 800; }
 .product-landing .order-steps p { color: var(--muted); }
 
-/* Les pages d'upsell inversent uniquement les accents valides par la charte. */
-.product-landing.is-upsell { --check-bg: #d4af37; --check-mark: #3a7d84; }
-.product-landing.is-upsell .bundle-card { border-color: rgb(212 175 55 / 45%); }
-.product-landing.is-upsell .bundle-card.is-selected {
-  border-color: var(--gold);
-  box-shadow: 0 10px 25px rgb(212 175 55 / 28%);
-}
-.product-landing.is-upsell .bundle-card:nth-child(2)::after { background: var(--gold); color: var(--ink); }
-.product-landing.is-upsell .bundle-saving { color: var(--gold); }
+/* v3.6 (mandat 4P « Uniformisation LP secondaires ») : l'ancienne inversion
+ * dorée upsell (body.is-upsell : --check-bg #d4af37, carte active dorée,
+ * ruban doré, économies dorées) est SUPPRIMÉE — header.php ne pose plus la
+ * classe is-upsell, les landings secondaires rendent la charte vedette
+ * « VF charte » v3.0-v3.5 via les règles :not(.is-upsell) ci-dessous
+ * (scopages devenus inertes mais conservés). */
 
 /* ================================================================
    v3.0 — LP PRINCIPALE = MAQUETTE « VF charte » STRICTE
@@ -1944,3 +1941,27 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
 /* 3 — Garanties + étapes de commande sur le fond unique #fbfbf8 */
 .product-landing:not(.is-upsell) .trust-grid { background-color: #fbfbf8; }
 .product-landing:not(.is-upsell) .order-steps li { background-color: #fbfbf8; }
+
+/* ================================================================
+   v3.6 — THANK YOU PAGE + UNIFORMISATION LP SECONDAIRES + TUNNEL
+   (mandat 4P « protocole mandat 4P » — page-merci recentrée, LP
+   secondaires = copies conformes de la vedette, formulaire
+   pré-rempli et verrouillé)
+   ================================================================ */
+
+/* 1 — Champs de coordonnées VERROUILLÉS en mode upsell (mandat 4P
+ * « Automatisation & Pré-remplissage ») : les inputs portent readonly
+ * depuis le gabarit quand une commande tunnel valide est dans l'URL
+ * (?order=&key=). Style grisé/désactivé (suggestion mandat : gris +
+ * curseur interdit + opacité réduite). Aucun input[readonly] n'existe
+ * sur la racine publique (rendu sans contexte = bit-exact, règle
+ * dormante). Le JS de validation lit les valeurs normalement. */
+.product-landing .order-form-grid input[readonly] {
+  background-color: #f1efe8;
+  cursor: not-allowed;
+  opacity: .78;
+}
+.product-landing .order-form-grid input[readonly]:focus {
+  outline: none;
+  box-shadow: none;
+}

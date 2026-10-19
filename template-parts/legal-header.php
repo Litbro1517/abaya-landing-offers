@@ -24,7 +24,7 @@ $abaya_upsell_ctx  = function_exists('abaya_upsell_context') ? abaya_upsell_cont
        le lien), jamais la landing principale. Sens de la flèche adapté au RTL. */ ?>
   <a class="upsell-back-btn" href="<?php echo esc_url($abaya_upsell_ctx['merci_url']); ?>">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span>رجوع إلى طلبي</span>
+    <span>العودة إلى صفحة التأكيد</span>
   </a>
 <?php elseif (!$abaya_tunnel_page) : ?>
   <a class="legal-home-link" href="/">العودة إلى صفحة الطلب</a>
