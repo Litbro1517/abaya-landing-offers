@@ -1885,3 +1885,62 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   filter: drop-shadow(0 1px 1.5px rgb(192 167 88 / 35%));
 }
 .product-landing:not(.is-upsell) .review-star.is-empty { fill: #e3dccc; stroke: #e3dccc; filter: none; }
+
+/* ==========================================================================
+   v3.5 — GALERIE STICKY DESKTOP + ESPACEMENTS 26/42 + GARANTIES/ÉTAPES
+   (mandat 4P) — scopé vedette :not(.is-upsell) ; l'upsell conserve son
+   rendu bit-exact (sticky dormant top 108px du bloc « Landing page
+   corrections », main encadré v2.x, paddings socle inchangés).
+   1. Galerie sticky desktop (≥801px) : un sticky .gallery existait déjà
+      (top 108px) mais il est MORT depuis l'origine — ancêtre
+      .product-landing main { overflow: hidden } = sticky sans effet par
+      rapport au viewport (d'où la conjoncture « la galerie disparaît vers
+      le haut de l'écran »). Correction : overflow: visible sur main vedette
+      (son cadre/radius/ombre sont déjà supprimés v3.3 — l'overflow n'a plus
+      de rôle), sticky top 90px (header sticky 76px + 14px de respiration,
+      conforme mandat), z-index 5 (sous le header z-10). Désactivé < 800px
+      (hero 1 colonne) : position static, défilement naturel.
+   2. Espacements : hero padding-top 26px exactement sous le logo
+      (padding-bottom 58px du bloc corrections conservé) ; chaque section
+      de page à padding-block: 42px = 84px cumulés entre deux sections.
+      .order-section (formulaire du hero) est DÉJÀ à 42px au socle : aucune
+      règle nécessaire, l'alignement grid du hero est préservé.
+      .benefits-section (intitulé mandat) n'existe pas dans le gabarit —
+      son équivalent garanties est .trust-strip.
+   3. Garanties + étapes de commande : trust-grid déjà transparent (v3.3 =
+      rendu #fbfbf8) — le literal du mandat est appliqué explicitement ;
+      les cartes order-steps li (crème rgb(250 247 242 / 60%) du bloc
+      charte v2.x, dernière nuance de fond de la vedette) passent à
+      #fbfbf8 — posées directement sur le fond unique.
+   4. Continuité : étoiles #c0a758 (v3.4), galerie 90° + cartes
+      harmonisées + sélection émeraude (v3.3), dispositions mobile v3.2,
+      offres 3 colonnes fixes. */
+
+/* 1 — Galerie sticky desktop (le sticky existant était neutralisé par
+      l'overflow: hidden de main) */
+.product-landing:not(.is-upsell) main { overflow: visible; }
+@media (min-width: 801px) {
+  .product-landing:not(.is-upsell) .hero { align-items: start; }
+  .product-landing:not(.is-upsell) .gallery {
+    position: sticky;
+    top: 90px;
+    z-index: 5;
+  }
+}
+@media (max-width: 800px) {
+  .product-landing:not(.is-upsell) .gallery { position: static; }
+}
+
+/* 2 — Espacements : hero 26px sous le logo, sections 42px (84px cumulés) */
+.product-landing:not(.is-upsell) .hero { padding-top: 26px; }
+.product-landing:not(.is-upsell) .bundles-section,
+.product-landing:not(.is-upsell) .visual-section,
+.product-landing:not(.is-upsell) .trust-strip,
+.product-landing:not(.is-upsell) .order-guide,
+.product-landing:not(.is-upsell) .social-section,
+.product-landing:not(.is-upsell) .faq-section,
+.product-landing:not(.is-upsell) .contact-section { padding-block: 42px; }
+
+/* 3 — Garanties + étapes de commande sur le fond unique #fbfbf8 */
+.product-landing:not(.is-upsell) .trust-grid { background-color: #fbfbf8; }
+.product-landing:not(.is-upsell) .order-steps li { background-color: #fbfbf8; }
