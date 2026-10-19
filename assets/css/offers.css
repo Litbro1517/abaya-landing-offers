@@ -21,8 +21,9 @@
   font-size: 1rem;
 }
 /* Étoiles SVG = markup exact du composant avis (.review-star) : les couleurs
- * (doré #d4af37 / gris is-empty) et le rendu volumineux (stroke round +
- * drop-shadow) viennent des règles du socle. Seule la TAILLE est scopée ici
+ * (doré #c0a758 sur la vedette v3.4 / #d4af37 socle-upsell / gris is-empty)
+ * et le rendu volumineux (stroke round + drop-shadow) viennent des règles du
+ * socle + de l'ajustement v3.4. Seule la TAILLE est scopée ici
  * par .landing-rating pour l'agrandir (~1,4x les cartes d'avis) tout en
  * surpassant les tailles du socle (critical 15px / styles 22px), quel que
  * soit l'ordre de chargement des feuilles. */
@@ -51,7 +52,24 @@
 .landing-rating-score { color: #2c1d11; font-size: 1.05rem; }
 .landing-rating-count { color: #75695f; font-size: .9rem; }
 
-/* ---------- 2) Pop-up d'évaluation « 1-clic » (/merci/) ---------- */
+/* ---------- 2) Pop-up d'évaluation « 1-clic » (/merci/) ----------
+ * v3.14 (mandat 4P LP « Harmonisation design des modales d'avis ») : la
+ * charte du pop-up s'aligne sur le reste du site — fin du jaune vif :
+ *   - bandeau supérieur : border-top passe du doré #d4af37 au VERT
+ *     TURQUOISE CTA de la marque #3A7D84 (même teinte que le bouton
+ *     .abaya-rating-send et le focus .abaya-rating-note, déjà conformes) ;
+ *   - étoiles de notation : DORÉ PREMIUM #c0a758 (teinte exacte des
+ *     étoiles d'avis de la LP vedette, règle v3.4 styles.css) avec
+ *     !important prescrit par le mandat — étoile centrale du cercle
+ *     (.abaya-rating-emoji, glyph ★ texte) ET rangée des 5 étoiles ;
+ *   - fin du contour déformant : le stroke foncé #b38e1f des étoiles
+ *     actives est remplacé par un stroke ALIGNÉ sur le fill #c0a758
+ *     (même pattern que la règle v3.4 de la LP : stroke = fill) — l'arrondi
+ *     naturel des étoiles n'est plus détérioré par un contour contrastant ;
+ *   - anneau de focus clavier harmonisé #c0a758 (doré résiduel banni).
+ * Périmètre : les sélecteurs .abaya-rating-* ne s'affichent que sur les
+ * Thank You Pages (markup page-merci.php + injection mock merci-review.js)
+ * — zéro interférence landings / socle .review-star / règle v3.4. */
 .abaya-rating-overlay {
   position: fixed;
   inset: 0;
@@ -69,7 +87,8 @@
   width: min(420px, 100%);
   background: #fffdf9;
   border: 1px solid #e7e1d6;
-  border-top: 4px solid #d4af37;
+  /* v3.14 : bandeau supérieur = vert turquoise CTA de la marque (fin du jaune vif) */
+  border-top: 4px solid #3A7D84;
   border-radius: 16px;
   padding: 30px 22px 24px;
   text-align: center;
@@ -102,7 +121,8 @@
   border-radius: 50%;
   background: #faf8f4;
   border: 1px solid #e7e1d6;
-  color: #d4af37;
+  /* v3.14 : étoile centrale du cercle = doré premium LP (prescription mandat) */
+  color: #c0a758 !important;
   font-size: 22px;
   line-height: 44px;
 }
@@ -139,9 +159,12 @@
   transition: fill .12s ease, stroke .12s ease;
 }
 .abaya-rating-star:hover { transform: scale(1.06); }
+/* v3.14 : doré premium #c0a758 (!important, prescription mandat) + stroke
+ * ALIGNÉ sur le fill (pattern LP v3.4) — le contour foncé #b38e1f qui
+ * détériorait l'arrondi naturel des étoiles est supprimé. */
 .abaya-rating-star.is-hot svg,
-.abaya-rating-star.is-picked svg { fill: #d4af37; stroke: #b38e1f; }
-.abaya-rating-star:focus-visible { outline: 2px solid #d4af37; outline-offset: 2px; border-radius: 8px; }
+.abaya-rating-star.is-picked svg { fill: #c0a758 !important; stroke: #c0a758 !important; }
+.abaya-rating-star:focus-visible { outline: 2px solid #c0a758; outline-offset: 2px; border-radius: 8px; }
 
 /* Zone de texte optionnelle (persistance du pop-up après la note) —
  * apparition douce via l'animation de la modale. */
