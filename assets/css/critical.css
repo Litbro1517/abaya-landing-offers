@@ -239,7 +239,7 @@ h1{max-width: 480px;
 .review-feedback{width: min(720px, 100%); margin: 18px auto 0; color: var(--olive-dark); font-size: 14px; font-weight: 700;}
 .review-feedback[hidden]{display: none;}
 .review-feedback.is-error{color: #a63a3a;}
-.review-card{padding: 17px 19px; border: 1px solid var(--line); background: #fff; text-align: right;}
+.review-card{padding: 17px 19px; border: 1px solid #E2D9CC; border-right: 4px solid #3A7D84; border-radius: 14px; background: #fffefb; text-align: right;}
 .review-card-header{display: flex; align-items: center; gap: 10px; margin-bottom: 8px;}
 .review-card-stars{display: inline-flex; align-items: center; gap: 2px; direction: ltr;}
 .review-star{width: 15px; height: 15px; fill: #d4af37;}
