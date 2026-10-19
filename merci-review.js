@@ -1,6 +1,7 @@
 /* =====================================================================
  * Page /merci/ — Pop-up d'évaluation « 1-clic » perfectionné
- * (mandat 4P LP « Thank You Page Redesign »)
+ * (mandat 4P LP « Thank You Page Redesign » ; étoiles v3.15 — système
+ * interactif fourni : tracés SVG arrondis + dégradé satiné)
  * ---------------------------------------------------------------------
  * UX imposée par le mandat :
  *   1. Remplissage progressif : au survol ou au clic sur la N-ième étoile,
@@ -65,18 +66,43 @@ function closeRatingPopup() {
   sessionStorage.setItem(RATING_DONE_KEY, "1");
 }
 
-/* ---------- Remplissage progressif : étoiles 1..N allumées (sens RTL) ---------- */
-/* En RTL les étoiles DOM 1→5 se rendent de droite à gauche : allumer les
- * étoiles de rang <= N allume les N premières — le remplissage suit le sens
- * de lecture arabe. Le même mécanisme sert l'état « survolé » (is-hot) et
- * l'état « enregistré » (is-picked). */
-function paintStars(box, upTo, cls) {
-  box.querySelectorAll(".abaya-rating-star").forEach((el) => {
-    const active = Number(el.dataset.rating) <= upTo;
-    el.classList.toggle(cls, active);
-    if (cls === "is-picked") el.setAttribute("aria-checked", active ? "true" : "false");
+/* ---------- v3.15 : système d'étoiles interactives FOURNI (app.js) ----------
+ * Tracés SVG ARRONDIS générés en JS : 10 sommets (rayons 21 / 9.4), coins
+ * adoucis par courbes quadratiques Q — l'arrondi naturel est DANS la
+ * géométrie du tracé, plus aucun stroke déformant. Dégradé satiné or injecté
+ * par bouton via <radialGradient> (liseré fin #927936 au repos côté CSS).
+ * Le résidu d'accolade du fichier de démo fourni est volontairement écarté. */
+function createRoundedStarPath() {
+  const vertices = Array.from({ length: 10 }, (_, index) => {
+    const angle = -Math.PI / 2 + index * Math.PI / 5;
+    const radius = index % 2 === 0 ? 21 : 9.4;
+    return {
+      x: 24 + Math.cos(angle) * radius,
+      y: 24 + Math.sin(angle) * radius,
+      corner: index % 2 === 0 ? 2.2 : 1.1,
+    };
   });
+  const rounded = vertices.map((vertex, index) => {
+    const previous = vertices[(index + vertices.length - 1) % vertices.length];
+    const next = vertices[(index + 1) % vertices.length];
+    const point = (neighbor) => {
+      const distance = Math.hypot(neighbor.x - vertex.x, neighbor.y - vertex.y);
+      const ratio = vertex.corner / distance;
+      return {
+        x: vertex.x + (neighbor.x - vertex.x) * ratio,
+        y: vertex.y + (neighbor.y - vertex.y) * ratio,
+      };
+    };
+    return { vertex, entry: point(previous), exit: point(next) };
+  });
+
+  return 'M ' + rounded[0].entry.x + ' ' + rounded[0].entry.y + ' ' + rounded.map(({ vertex, exit }, index) => {
+    const nextEntry = rounded[(index + 1) % rounded.length].entry;
+    return 'Q ' + vertex.x + ' ' + vertex.y + ' ' + exit.x + ' ' + exit.y + ' L ' + nextEntry.x + ' ' + nextEntry.y;
+  }).join(' ') + ' Z';
 }
+
+const starSvg = (gradientId) => '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><defs><radialGradient id="' + gradientId + '" cx="50%" cy="42%" r="72%"><stop offset="0%" stop-color="#f5dfa7"/><stop offset="42%" stop-color="#dfbd72"/><stop offset="78%" stop-color="#c7973d"/><stop offset="100%" stop-color="#a87824"/></radialGradient></defs><path class="star-shape" style="--star-gradient: url(#' + gradientId + ')" d="' + createRoundedStarPath() + '"/></svg>';
 
 /* ---------- Soumission REST (note + texte optionnel) ---------- */
 async function submitRating(rating, ctx, comment = "") {
@@ -130,16 +156,59 @@ function bindRatingFlow(root, ctx) {
   const note     = root.querySelector(".abaya-rating-note");
   const send     = root.querySelector(".abaya-rating-send");
   const closeBtn = root.querySelector(".abaya-rating-close");
-  let currentRating = 0;
+  const stars    = box ? [...box.querySelectorAll(".abaya-rating-star")] : [];
+  let selectedRating = 0;
+  let hoveredRating = 0;
 
-  /* Remplissage progressif : survol ET focus clavier (sens RTL). */
-  const hotTo = (star) => paintStars(box, star ? Number(star.dataset.rating) : currentRating, "is-hot");
-  box?.addEventListener("mouseover", (event) => hotTo(event.target.closest(".abaya-rating-star")));
-  box?.addEventListener("mouseleave", () => hotTo(null));
-  box?.addEventListener("focusin", (event) => hotTo(event.target.closest(".abaya-rating-star")));
-  box?.addEventListener("focusout", () => hotTo(null));
+  /* v3.15 : les boutons du markup sont VIDES — injection des tracés SVG
+   * arrondis + dégradé satiné fournis (IDs uniques par note). */
+  for (const star of stars) star.innerHTML = starSvg("gold-fill-" + star.dataset.rating);
 
-  /* 1-clic : enregistrement direct puis PERSISTANCE (message + texte optionnel). */
+  /* Rendu FOURNI (renderRating) : visible = survolé || choisi — is-active sur
+   * les étoiles 1..N. En RTL les étoiles DOM 1→5 se rendent de droite à
+   * gauche : le remplissage suit le sens de lecture arabe (comportement
+   * validé depuis v2.2, identique en logique fournie `index < visible`).
+   * A11y : sémantie radiogroup v2.2 conservée — aria-checked posé sur
+   * l'étoile choisie uniquement (équivalent exact de l'aria-pressed fourni). */
+  function renderRating() {
+    const visibleRating = hoveredRating || selectedRating;
+    stars.forEach((star, index) => {
+      const active = index < visibleRating;
+      star.classList.toggle("is-active", active);
+      star.setAttribute("aria-checked", String(Number(star.dataset.rating) === selectedRating));
+    });
+  }
+
+  /* Événements FOURNIS (app.js) : pointerenter filtré souris/plume (le
+   * tactile n'a pas de survol — l'allumage tactile passe par le clic),
+   * focus/blur clavier, pointerleave du groupe. */
+  for (const star of stars) {
+    const rating = Number(star.dataset.rating);
+
+    star.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse" || event.pointerType === "pen") {
+        hoveredRating = rating;
+        renderRating();
+      }
+    });
+    star.addEventListener("focus", () => {
+      hoveredRating = rating;
+      renderRating();
+    });
+    star.addEventListener("blur", () => {
+      hoveredRating = 0;
+      renderRating();
+    });
+  }
+
+  box?.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse" || event.pointerType === "pen") {
+      hoveredRating = 0;
+      renderRating();
+    }
+  });
+
+  /* 1-clic : enregistrement DIRECT (flux tunnel inchangé) + rendu fourni. */
   box?.addEventListener("click", async (event) => {
     const star = event.target.closest(".abaya-rating-star");
     if (!star || box.dataset.busy === "1") return;
@@ -147,11 +216,11 @@ function bindRatingFlow(root, ctx) {
     try {
       const result = await submitRating(Number(star.dataset.rating), ctx);
       if (!result.ok) throw new Error(result.body?.message || "تعذر تسجيل التقييم الآن.");
-      /* Règle du maximum : le serveur renvoie la note conservée — l'affichage
+      /* Règle du maximum : le serveur renvoie la note conservée — le rendu
        * s'aligne sur max(note_existante, nouvelle_note). */
-      currentRating = Math.max(currentRating, Number(result.body?.rating) || Number(star.dataset.rating));
-      paintStars(box, currentRating, "is-picked");
-      paintStars(box, currentRating, "is-hot");
+      selectedRating = Math.max(selectedRating, Number(result.body?.rating) || Number(star.dataset.rating));
+      hoveredRating = 0;
+      renderRating();
       /* Persistance (mandat) : le pop-up reste ouvert — message de
        * remerciement + zone de texte optionnelle, apparition douce. */
       if (after) {
@@ -177,7 +246,7 @@ function bindRatingFlow(root, ctx) {
     if (text.length < 3) { showFeedback(feedback, "يرجى كتابة كلمة من 3 أحرف على الأقل.", true); return; }
     send.dataset.busy = "1";
     try {
-      const result = await submitRating(currentRating, ctx, text);
+      const result = await submitRating(selectedRating, ctx, text);
       if (!result.ok) throw new Error(result.body?.message || "تعذر إرسال ملاحظتك الآن.");
       const afterMsg = after?.querySelector(".abaya-rating-after-msg");
       if (afterMsg) afterMsg.textContent = "شكراً لكِ! سيُنشر رأيك بعد المراجعة 🌿";
@@ -315,16 +384,18 @@ if (mockOrder && mockContainer) {
     const popup = document.createElement("div");
     popup.className = "abaya-rating-overlay";
     popup.id = "abaya-rating-overlay";
+    /* v3.15 : même gabarit que le pop-up natif — bande turquoise, boutons
+     * VIDES (les tracés fournis sont injectés par bindRatingFlow), sans
+     * étoile centrale du cercle. */
     popup.innerHTML =
       '<div class="abaya-rating-modal" role="dialog" aria-modal="true" aria-labelledby="abaya-rating-title">' +
+        '<div class="abaya-rating-band" aria-hidden="true"></div>' +
         '<button class="abaya-rating-close" type="button" aria-label="إغلاق">×</button>' +
-        '<div class="abaya-rating-emoji" aria-hidden="true">★</div>' +
         '<h2 id="abaya-rating-title">يسعدنا كثيراً خدمتك!</h2>' +
         '<p class="abaya-rating-text">إذا أعجبتك تجربتك معنا، نرجو منك اختيار تقييمك بنقرة واحدة لمساعدتنا على تحسين خدمتنا.</p>' +
         '<div class="abaya-rating-stars" role="radiogroup" aria-label="اختياري التقييم بنقرة واحدة">' +
           [1, 2, 3, 4, 5].map((n) =>
-            '<button class="abaya-rating-star" type="button" role="radio" aria-checked="false" data-rating="' + n + '" aria-label="' + n + ' من 5">' +
-            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button>'
+            '<button class="abaya-rating-star" type="button" role="radio" aria-checked="false" data-rating="' + n + '" aria-label="' + n + ' من 5"></button>'
           ).join("") +
         '</div>' +
         '<p class="abaya-rating-feedback" role="status" hidden></p>' +
