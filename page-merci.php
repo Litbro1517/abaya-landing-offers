@@ -250,15 +250,20 @@ if ($abaya_order) {
     $abaya_total_text  = ($abaya_total == floor($abaya_total)) ? number_format($abaya_total, 0) : number_format($abaya_total, 2);
 
     /* Format prix — devise en toutes lettres en arabe « 299 درهم » (mandat 4P
-     * v3.8 « Uniformisation de la Devise sur les Thank You Pages ») : montant
-     * PUIS درهم (devise affichée à droite du montant, fin du préfixe latin
-     * « DH » LTR) — rendu stable à l'intérieur des cellules RTL (les 5 points
-     * d'appel — lignes + total du récapitulatif + prix/ancien prix upsell —
-     * restent enveloppés dans <bdi dir="ltr">). Tableau récapitulatif ET blocs
-     * d'upsell de la Thank You Page ; les landing pages ne sont PAS concernées. */
+     * LP v3.10 « Alignement RTL strict » — audit comparatif docs/
+     * AUDIT-DEVISE-TYP-v3.10.md) : montant PUIS درهم, espace insecable
+     * U+00A0 (fin du collement « درهم299 »), rendu identique à la LP —
+     * le montant est LU en premier et درهم s'affiche à sa GAUCHE dans les
+     * cellules RTL (parité LP : texte brut bidi naturel). Les unités de prix
+     * restent isolées dans <bdi dir="rtl"> (5 points d'appel — lignes + unité
+     * + total du récapitulatif + prix/ancien prix upsell) ; le forçage LTR
+     * v3.8/v3.9 (« درهم 299 ») est aboli, y compris côté CSS (styles.css
+     * v3.10) et côté chemin JS (merci-review.js dh() alignée). Tableau
+     * récapitulatif ET blocs d'upsell ; les landing pages ne sont PAS
+     * concernées (déjà conformes). */
     $abaya_dh = function ($abaya_amount) {
         $abaya_text = ($abaya_amount == floor($abaya_amount)) ? number_format($abaya_amount, 0) : number_format($abaya_amount, 2);
-        return $abaya_text . ' درهم';
+        return $abaya_text . "\u{00A0}درهم";
     };
 
     /* Visuel de la couleur choisie : chemin issu du catalogue DE CETTE OFFRE
@@ -388,12 +393,12 @@ get_header();
               <td><p class="merci-item-name"><?php echo esc_html($abaya_row_name); ?></p></td>
               <td class="merci-qty"><?php echo esc_html($abaya_color !== '' ? $abaya_color : '—'); ?> / <?php echo esc_html($abaya_size !== '' ? $abaya_size : '—'); ?></td>
               <td class="merci-qty"><?php echo esc_html($abaya_qty); ?></td>
-              <td class="merci-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_row['total'])); ?></bdi><?php if ($abaya_qty > 1) : ?><small><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_unit)); ?></bdi> / القطعة</small><?php endif; ?></td>
+              <td class="merci-price"><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_row['total'])); ?></bdi><?php if ($abaya_qty > 1) : ?><small><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_unit)); ?></bdi> / القطعة</small><?php endif; ?></td>
             </tr>
 <?php endforeach; ?>
             <tr class="merci-total-row">
               <td colspan="3">المجموع الإجمالي:</td>
-              <td class="merci-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_total)); ?></bdi></td>
+              <td class="merci-price"><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_total)); ?></bdi></td>
             </tr>
           </tbody>
         </table>
@@ -457,7 +462,7 @@ get_header();
           <img src="<?php echo esc_url(get_template_directory_uri() . '/' . $abaya_cross_entry['images']['lcp']); ?>" alt="<?php echo esc_attr($abaya_cross_entry['texts']['headline']); ?>" loading="lazy" decoding="async" />
         </span>
         <strong class="merci-upsell-name"><?php echo esc_html($abaya_cross_entry['texts']['headline']); ?></strong>
-        <span class="merci-upsell-price"><bdi dir="ltr"><?php echo esc_html($abaya_dh((float) $abaya_cross_entry['bundles'][1])); ?></bdi><?php if ($abaya_cross_old > 0) : ?><s><bdi dir="ltr"><?php echo esc_html($abaya_dh($abaya_cross_old)); ?></bdi></s><?php endif; ?></span>
+        <span class="merci-upsell-price"><bdi dir="rtl"><?php echo esc_html($abaya_dh((float) $abaya_cross_entry['bundles'][1])); ?></bdi><?php if ($abaya_cross_old > 0) : ?><s><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_cross_old)); ?></bdi></s><?php endif; ?></span>
         <span class="merci-upsell-btn">إضافة للطلب</span>
       </a>
 <?php endforeach; ?>
