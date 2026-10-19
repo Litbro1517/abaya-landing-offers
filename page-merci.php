@@ -53,8 +53,13 @@ body { background: #FAF7F2; }
 /* ---- En-tête : logo WebP centré sur blanc pur + confirmation + pastille ---- */
 .merci-head { padding: 32px 26px 28px; text-align: center; background: #fff; }
 .merci-logo { width: 92px; height: 92px; object-fit: contain; display: block; margin: 0 auto 4px; }
-.merci-head h1 { color: #6B1D2F; font-size: 1.28rem; line-height: 1.9; margin: 0 0 10px; }
-.merci-lead { color: #8a7f75; font-size: .92rem; line-height: 2; margin: 0 auto; max-width: 470px; }
+/* v3.6 (mandat 4P « Thank You Page ») : centrage PARFAIT du sous-titre et du
+ * bloc explicatif sous le logo شكراً. Cause du défaut : la règle de base
+ * h1 { max-width: 480px; margin: 18px 0 10px } collait la BOÎTE du titre au
+ * bord droit du RTL (pas de margin-inline: auto) — le texte restait centré
+ * DANS sa boîte, mais la boîte elle-même était décalée à droite. */
+.merci-head h1 { color: #6B1D2F; font-size: 1.28rem; line-height: 1.9; letter-spacing: 0; max-width: none; margin: 0 auto 10px; text-align: center; }
+.merci-lead { color: #8a7f75; font-size: .92rem; line-height: 2; margin: 0 auto; max-width: 470px; text-align: center; }
 .merci-order-pill { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0; background: #F4E6E9; color: #6B1D2F; border-radius: 999px; padding: 7px 22px; font-size: .86rem; font-weight: 600; }
 .merci-order-pill strong { font-weight: 700; letter-spacing: .3px; }
 
@@ -85,16 +90,21 @@ body { background: #FAF7F2; }
 .merci-product-img { flex: 0 0 104px; align-self: flex-start; margin: 0; border: 1px solid #F0EAE1; border-radius: 12px; background: #FAF7F2; overflow: hidden; aspect-ratio: 3 / 4; }
 .merci-product-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* ---- Bloc cadeau : bordure turquoise, code promo en pilule pointillée ---- */
-.merci-gift { margin: 22px 0 0; display: flex; align-items: center; gap: 16px; background: #FBF8F3; border: 1.5px solid #4D9AA4; border-radius: 14px; padding: 16px 18px; }
-.merci-gift-body { flex: 1 1 auto; min-width: 0; }
+/* ---- Bloc cadeau : bordure turquoise, code promo en pilule pointillée ----
+ * v3.6 (mandat 4P) : disposition en COLONNE — le texte de l'offre s'étale
+ * fluidement sur toute la largeur du bloc (fin de la compression à droite)
+ * et l'encadré du code promo passe SOUS le texte explicatif, centré en bas
+ * du bloc. La pastille décorative (déjà masquée ≤520px) disparaît : le
+ * cadeau 🎁 reste porté par le titre lui-même. */
+.merci-gift { margin: 22px 0 0; display: flex; flex-direction: column; align-items: stretch; gap: 12px; background: #FBF8F3; border: 1.5px solid #4D9AA4; border-radius: 14px; padding: 16px 18px; }
+.merci-gift-body { min-width: 0; }
 .merci-gift-title { color: #3D8A95; font-weight: 700; font-size: .95rem; margin: 0 0 5px; }
 .merci-gift-desc { color: #6f655c; font-size: .85rem; line-height: 1.9; margin: 0; }
 .merci-gift-desc strong { color: #4D9AA4; font-weight: 700; }
-.merci-gift-code { flex: 0 0 auto; background: #fff; border: 1.5px dashed #4D9AA4; border-radius: 10px; padding: 9px 18px 10px; text-align: center; }
+.merci-gift-code { flex: 0 0 auto; align-self: center; background: #fff; border: 1.5px dashed #4D9AA4; border-radius: 10px; padding: 9px 18px 10px; text-align: center; }
 .merci-gift-code small { display: block; color: #8a8378; font-size: .72rem; margin: 0 0 2px; }
 .merci-gift-code code { font-family: 'Cairo', Arial, sans-serif; font-weight: 700; color: #3D8A95; font-size: 1.02rem; letter-spacing: .5px; word-break: break-all; }
-.merci-gift-icon { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 12px; background: #E8F1F2; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.merci-gift-icon { display: none; }
 
 /* ---- معلومات المراسلة : coordonnées + bouton WhatsApp officiel ---- */
 .merci-contact { display: flex; align-items: center; gap: 18px; }
@@ -102,7 +112,10 @@ body { background: #FAF7F2; }
 .merci-contact dl > div { display: flex; gap: 6px; align-items: baseline; padding: 4px 0; }
 .merci-contact dt { color: #3a2f2b; font-weight: 700; font-size: .92rem; flex: 0 0 auto; }
 .merci-contact dd { margin: 0; color: #6f655c; font-size: .92rem; line-height: 1.8; }
-.merci-wa-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #fff; border-radius: 12px; padding: 13px 20px; font-weight: 700; font-size: .9rem; line-height: 1.6; text-decoration: none; box-shadow: 0 6px 16px rgba(37, 211, 102, .26); transition: background .15s ease; }
+/* v3.6 (mandat 4P) : bouton raccourci (« تابع طلبك عبر الواتساب ») et
+ * compacté (13px / 10px 16px) pour laisser l'espace nécessaire au libellé
+ * complet du téléphone dans la grille de coordonnées. */
+.merci-wa-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #fff; border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 13px; line-height: 1.6; text-decoration: none; box-shadow: 0 6px 16px rgba(37, 211, 102, .26); transition: background .15s ease; }
 .merci-wa-btn:hover { background: #1FB958; }
 .merci-wa-btn svg { width: 22px; height: 22px; fill: #fff; flex: 0 0 auto; }
 .merci-wa-line { text-align: center; margin: 4px 0 0; }
@@ -144,9 +157,8 @@ body { background: #FAF7F2; }
   .merci-order thead th { padding: 8px 6px; font-size: .74rem; }
   .merci-order tbody td { padding: 10px 6px; }
   .merci-product-img { flex: 0 0 78px; }
-  .merci-gift { flex-wrap: wrap; }
-  .merci-gift-icon { display: none; }
-  .merci-gift-code { flex: 1 1 100%; order: 3; }
+  /* v3.6 : overrides cadeau supprimés — la disposition colonne (texte pleine
+   * largeur + code centré) s'applique désormais à TOUTES les largeurs. */
   .merci-contact { flex-direction: column; align-items: stretch; }
   .merci-wa-btn { justify-content: center; }
   .merci-upsell-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -408,12 +420,12 @@ get_header();
     <div class="merci-contact">
       <dl>
         <div><dt>الاسم:</dt><dd><?php echo esc_html(trim($abaya_first . ' ' . $abaya_last) !== '' ? trim($abaya_first . ' ' . $abaya_last) : '—'); ?></dd></div>
-        <div><dt>الرقم الهـ:</dt><dd dir="ltr"><?php echo esc_html($abaya_phone !== '' ? $abaya_phone : '—'); ?></dd></div>
+        <div><dt>الرقم الهاتفي:</dt><dd dir="ltr"><?php echo esc_html($abaya_phone !== '' ? $abaya_phone : '—'); ?></dd></div>
         <div><dt>العنوان:</dt><dd><?php echo esc_html($abaya_address_full !== '' ? $abaya_address_full : '—'); ?></dd></div>
       </dl>
       <a class="merci-wa-btn" href="<?php echo esc_url($abaya_wa_link); ?>" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span>تواصل معنا أو تابع طلبك عبر الواتساب</span>
+        <span>تابع طلبك عبر الواتساب</span>
       </a>
     </div>
   </section>

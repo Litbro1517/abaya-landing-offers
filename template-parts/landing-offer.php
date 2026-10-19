@@ -14,21 +14,23 @@ $cat   = abaya_catalog($offer['id']);
 $T     = $offer['texts'];
 $I     = $offer['images'];
 
-/* Charte graphique (v3.0 — LP principale = maquette « VF charte » stricte) :
- * le socle v2.9 (variables --check-bg/--check-mark + section « Charte LP
- * émeraude ») reste la base commune ; la section v3.0 de styles.css rescope la
- * VEDETTE sur la maquette validée (puces carré #E8F0EE + anneau émeraude +
- * crochet émeraude REMPLI, carte active DORÉE #C5A059, badge ✓ doré/blanc,
- * pilules quantité 60/20/30, prix encre & vert sapin #3B7A57, titre offres
- * bordeaux + sous-titre, bannière d'inspection à pastille, note sécurisée
- * émeraude) — tout est scopé .product-landing:not(.is-upsell) et rendu en PUR
- * CSS (pseudo-éléments + SVG inline), sans markup variante dédié. Les
- * landings secondaires (tunnel upsell ⑭, body.is-upsell posé par header.php)
- * conservent EXACTEMENT leur rendu v2.9 : les rares divergences de markup
- * (titre offres, sous-titre, note sécurisée, bannière d'inspection) sont
- * conditionnées par abaya_is_front_offer() ci-dessous. Le badge ✓ de
- * sélection (::before lié à .is-selected) et le ruban (::after) restent sans
- * aucun état JS. */
+/* Charte graphique (v3.6 — UNIFORMISATION : les landings secondaires sont des
+ * COPIES CONFORMES de la LP principale validée, mandat 4P « Duplication &
+ * Uniformisation des LP Secondaires ») :
+ *   - les 4 conditionnels abaya_is_front_offer() (titre offres, sous-titre,
+ *     note sécurisée SVG, bannière d'inspection) sont SUPPRIMÉS — le markup
+ *     vedette « VF charte » (v3.0-v3.5) est rendu sur TOUTES les landings ;
+ *   - header.php ne pose plus body.is-upsell : les règles :not(.is-upsell)
+ *     de styles.css s'appliquent désormais partout (scopages devenus inertes
+ *     mais conservés) et l'ancienne inversion dorée v2.9 est supprimée ;
+ *   - spécificités tunnel conservées : logo non-cliquable (legal-header),
+ *     barre de retour « العودة إلى صفحة التأكيد », bandeau « سيُضاف هذا
+ *     المنتج إلى طلبكِ الحالي » et formulaire PRÉ-REMPLI depuis la commande
+ *     tunnel (?order=&key=) avec champs VERROUILLÉS (readonly + style grisé)
+ *     — la cliente ne ressaisit plus ses coordonnées, elle ne fait que
+ *     choisir couleur/taille/offre puis valider.
+ * Le badge ✓ de sélection (::before lié à .is-selected) et le ruban (::after)
+ * restent sans aucun état JS. */
 
 get_header();
 ?>
@@ -133,25 +135,44 @@ foreach ($cat['sizes'] as $size_name) : ?>
 <?php if ($abaya_upsell_ctx) : ?>
               <p class="upsell-order-hint">سيُضاف هذا المنتج إلى طلبكِ الحالي رقم <strong dir="ltr">#<?php echo esc_html($abaya_upsell_ctx['order']->get_order_number()); ?></strong> — لن يُنشأ طلب جديد</p>
 <?php endif; ?>
+<?php /* v3.6 (mandat 4P « Automatisation & Pré-remplissage ») : en mode upsell
+ * (commande tunnel valide dans l'URL ?order=&key=), les coordonnées de la
+ * 1ère commande (Nom, Téléphone, Ville, Adresse) sont injectées dans les
+ * champs et VERROUILLÉS (readonly + style grisé) — l'utilisateur ne peut pas
+ * les modifier car le produit s'ajoute automatiquement à sa commande
+ * existante (cohérence avec le bandeau ci-dessus) ; il ne lui reste qu'à
+ * choisir couleur/taille/offre puis cliquer sur « اضغطي هنا للطلب ».
+ * Le rendu SANS contexte upsell (racine publique, cacheable) reste bit-exact :
+ * aucun attribut value/readonly ajouté. Un champ vide dans la commande
+ * historique resterait modifiable (défense : jamais de formulaire bloqué). */
+$abaya_pf = ['name' => '', 'phone' => '', 'city' => '', 'address' => ''];
+if ($abaya_upsell_ctx) {
+    $abaya_pf_order = $abaya_upsell_ctx['order'];
+    $abaya_pf['name']    = trim((string) $abaya_pf_order->get_billing_first_name() . ' ' . (string) $abaya_pf_order->get_billing_last_name());
+    $abaya_pf['phone']   = (string) $abaya_pf_order->get_billing_phone();
+    $abaya_pf['city']    = (string) $abaya_pf_order->get_billing_city();
+    $abaya_pf['address'] = trim((string) $abaya_pf_order->get_billing_address_1() . ' ' . (string) $abaya_pf_order->get_billing_address_2());
+}
+?>
               <form class="order-form-grid" id="order-form" novalidate>
                 <label class="form-field">
                   <span>الاسم الكامل</span>
-                  <input name="name" autocomplete="name" placeholder="الاسم الكامل" required />
+                  <input name="name" autocomplete="name" placeholder="الاسم الكامل" required<?= $abaya_pf['name'] !== '' ? ' value="' . esc_attr($abaya_pf['name']) . '" readonly' : '' ?> />
                   <small class="field-error"></small>
                 </label>
                 <label class="form-field">
                   <span>الهاتف</span>
-                  <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="الهاتف" required />
+                  <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="الهاتف" required<?= $abaya_pf['phone'] !== '' ? ' value="' . esc_attr($abaya_pf['phone']) . '" readonly' : '' ?> />
                   <small class="field-error"></small>
                 </label>
                 <label class="form-field">
                   <span>المدينة</span>
-                  <input name="city" autocomplete="address-level2" placeholder="المدينة" required />
+                  <input name="city" autocomplete="address-level2" placeholder="المدينة" required<?= $abaya_pf['city'] !== '' ? ' value="' . esc_attr($abaya_pf['city']) . '" readonly' : '' ?> />
                   <small class="field-error"></small>
                 </label>
                 <label class="form-field">
                   <span>العنوان</span>
-                  <input name="address" autocomplete="street-address" placeholder="العنوان" required />
+                  <input name="address" autocomplete="street-address" placeholder="العنوان" required<?= $abaya_pf['address'] !== '' ? ' value="' . esc_attr($abaya_pf['address']) . '" readonly' : '' ?> />
                   <small class="field-error"></small>
                 </label>
                 <div class="hp-field" aria-hidden="true">
@@ -162,25 +183,19 @@ foreach ($cat['sizes'] as $size_name) : ?>
               <div class="form-result" id="form-result" role="status" hidden></div>
             </div>
           </section>
-<?php /* v3.0 : note de réassurance = ligne charte « VF » (crochet SVG émeraude
-       rempli + mention des toutes les villes) sur la vedette ; secondaires
-       inchangées. */ ?>
-<?php if (abaya_is_front_offer()) : ?>
+<?php /* v3.6 : note de réassurance = ligne charte « VF » (crochet SVG émeraude
+       rempli + mention de toutes les villes) sur TOUTES les landings —
+       l'ancienne variante secondaire « ✓ · توصيل مجاني » est supprimée. */ ?>
           <p class="secure-note"><span class="secure-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg></span> الدفع عند الاستلام • توصيل مجاني في جميع المدن</p>
-<?php else: ?>
-          <p class="secure-note"><span aria-hidden="true">✓</span> الدفع عند الاستلام · توصيل مجاني</p>
-<?php endif; ?>
         </div>
       </section>
 
       <section class="bundles-section wrap" aria-labelledby="bundles-title">
         <div class="section-heading">
-<?php /* v3.0 : titre + sous-titre de la maquette « VF charte » sur la vedette
-       uniquement (les secondaires gardent le libellé v2.9). */ ?>
-          <h2 id="bundles-title"><?= abaya_is_front_offer() ? esc_html('عروض خاصة حصرية') : esc_html('عروض خاصة'); ?></h2>
-<?php if (abaya_is_front_offer()) : ?>
+<?php /* v3.6 : titre + sous-titre de la maquette « VF charte » sur TOUTES les
+       landings (l'ancien libellé secondaire « عروض خاصة » est supprimé). */ ?>
+          <h2 id="bundles-title"><?= esc_html('عروض خاصة حصرية'); ?></h2>
           <p class="bundles-subtitle">اضغطي على العرض المناسب لكِ لاختياره</p>
-<?php endif; ?>
         </div>
         <div class="bundle-grid" role="group" aria-label="اختاري العرض">
 <?php /* P0-1 : prix, libellés et économies des offres générés depuis
@@ -259,17 +274,13 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
           <div class="visual-copy">
             <h2 class="visual-title" id="inspection-title"><?php echo esc_html($T['inspection_title']); ?></h2>
             <p class="visual-lead"><?php echo esc_html($T['inspection_lead']); ?></p>
-<?php /* v3.0 : bannière d'inspection = maquette « VF charte » (pastille
-       check-circle sur fond émeraude 10% + bloc crème à liseré émeraude) sur
-       la vedette ; les secondaires conservent la note v2.9 bit-exact. */ ?>
-<?php if (abaya_is_front_offer()) : ?>
+<?php /* v3.6 : bannière d'inspection = maquette « VF charte » (pastille
+       check-circle sur fond émeraude 10% + bloc à liseré émeraude) sur
+       TOUTES les landings — l'ancienne note simple secondaire est supprimée. */ ?>
             <div class="inspection-banner">
               <span class="inspection-banner-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
               <p class="inspection-note"><?php echo esc_html($T['inspection_note']); ?></p>
             </div>
-<?php else: ?>
-            <p class="inspection-note"><?php echo esc_html($T['inspection_note']); ?></p>
-<?php endif; ?>
           </div>
         </div>
       </section>
