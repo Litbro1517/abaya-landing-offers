@@ -269,6 +269,88 @@ body > header.legal-header > div.logo-wrapper > span.footer-wordmark > img.heade
   .merci-order .merci-price { overflow-wrap: anywhere; }
 }
 /* ================= fin v3.18 ================= */
+
+/* ================= v3.19 — ERGONOMIE MOBILE : RÉCAP VERTICAL « MINIATURE ALIGNÉE À LA LIGNE PRODUIT » + CODE PROMO COURT + UPSELLS EMPILÉS =================
+ * (mandat 4P LP — audit docs/AUDIT-ERGONOMIE-v3.19.md, captures client
+ * 015930 carrousel tronqué / 015952 code promo cassé / 020024 vignette
+ * isolée sous le tableau tassé.)
+ * 1) TABLEAU « تفاصيل الطلب » → CARTE VERTICALE (maquette « Option 1 :
+ *    Miniature Alignée à la Ligne Produit ») : v3.18 avait supprimé le
+ *    débordement (table-layout fixed + vignette SOUS le tableau) mais la
+ *    miniature restait isolée sous un tableau 4 colonnes tassé = grand vide
+ *    blanc latéral. ≤520px : thead masqué, lignes empilées AVEC libellés
+ *    (::before), bloc beige #F8F3EC (teinte des en-têtes existante — tons
+ *    beiges harmonieux) regroupant 1.Produit(+miniature) 2.اللون/المقاس
+ *    3.الكمية, miniature positionnée ABSOLUMENT sur la ligne produit (bord
+ *    droit RTL, espacement réservé par padding-inline-start), 4.السعر
+ *    séparé, 5.المجموع الإجمالي tout en bas, valeur en bordeaux marque
+ *    #6B1D2F (couleur de mise en valeur). Desktop >520px BIT-À-BIT
+ *    INCHANGÉ (les règles v3.18 restent posées — sans objet sous
+ *    display:block — et l'invariant S33.13 racine est conservé).
+ * 2) CODE PROMO : pilule `white-space: nowrap` (fin du word-break:break-all
+ *    qui cassait le code sur 2 lignes) — la ville est supprimée À LA SOURCE
+ *    (closure PHP + mock merci-review.js) : format [PRÉNOM]-[N°COMMANDE].
+ * 3) UPSELLS : fin du carrousel horizontal coupé (cartes tronquées aux deux
+ *    bords, capture 015930) — empilement VERTICAL, chaque carte occupe 100%
+ *    de la largeur (image grand format 3:5, titre, prix, bouton empilés).
+ *    Desktop : grille 3 colonnes INCHANGÉE. Les règles v3.17 (42% + snap)
+ *    restent posées mais sont vaincues par la cascade (section plus bas). */
+
+/* --- 2) code promo : une seule ligne centrée (toutes largeurs) --- */
+.merci-gift-code { max-width: 100%; }
+.merci-gift-code code { white-space: nowrap; word-break: normal; }
+
+@media (max-width: 520px) {
+  /* --- 1) carte verticale du récapitulatif --- */
+  .merci-order { position: relative; }
+  .merci-order table, .merci-order tbody, .merci-order tr, .merci-order td { display: block; }
+  .merci-order thead { display: none; }
+  /* libellés de lignes (les en-têtes thead étant masqués) — mêmes teintes
+   * que les th (#5c4f47 / .78rem / 600) pour une harmonie parfaite */
+  .merci-order tbody td::before { font-weight: 600; font-size: .78rem; color: #5c4f47; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(2)::before { content: "اللون / المقاس:"; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(3)::before { content: "الكمية:"; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(4)::before { content: "السعر:"; }
+  /* bloc beige : Produit + Couleur/Taille + Quantité (coins arrondis) */
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(-n+3) { background: #F8F3EC; border-bottom: 0; text-align: start; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(1) {
+    border-radius: 12px 12px 0 0;
+    padding: 14px 106px 6px 14px; /* start 106px = miniature 84px + inset 10px + gap 12px */
+    min-height: 74px; /* garantit la hauteur du bloc ≥ boîte miniature (84×4/3 + 2×10 = 132px) */
+  }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(2),
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(3) { padding: 4px 106px 4px 14px; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(3) { border-radius: 0 0 12px 12px; padding-bottom: 14px; }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(1) .merci-item-name { color: #6B1D2F; }
+  /* commande multi-lignes (ajout upsell) : respiration entre les blocs */
+  .merci-order tbody tr:not(.merci-total-row):not(:first-child) td:nth-child(1) { margin-top: 12px; }
+  /* miniature alignée sur la ligne produit : bord droit RTL (start), DANS
+   * le bloc beige — remplace la vignette v3.18 isolée sous le tableau */
+  .merci-order .merci-product-img {
+    position: absolute; top: 10px; inset-inline-start: 10px;
+    width: 84px; flex: none; margin: 0;
+  }
+  /* sans visuel (couleur hors catalogue) : pas de miniature → espacement
+   * normal (la classe conditionnelle évite tout vide réservé) */
+  .merci-order.merci-order-noimg tbody tr:not(.merci-total-row) td:nth-child(1) { padding-inline: 14px; min-height: 0; }
+  .merci-order.merci-order-noimg tbody tr:not(.merci-total-row) td:nth-child(2),
+  .merci-order.merci-order-noimg tbody tr:not(.merci-total-row) td:nth-child(3) { padding-inline: 14px; }
+  /* 4.السعر : ligne séparée libellé ↔ valeur */
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(4) {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    padding: 13px 2px 14px; margin-top: 14px;
+  }
+  .merci-order tbody tr:not(.merci-total-row) td:nth-child(4) small { flex: 1 1 100%; }
+  /* 5.المجموع الإجمالي tout en bas (valeur bordeaux marque par socle .merci-price) */
+  .merci-order tbody tr.merci-total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 2px 2px; }
+  .merci-order tbody tr.merci-total-row td { padding: 2px 0; }
+  .merci-order tbody tr.merci-total-row td.merci-price { color: #6B1D2F; /* couleur de mise en valeur de la marque (maquette) — bat #3a2f2b du socle */ }
+
+  /* --- 3) upsells empilés verticalement (100% largeur, fin du carrousel) --- */
+  .merci-upsell-grid { flex-direction: column; overflow-x: visible; scroll-snap-type: none; gap: 24px; padding-bottom: 0; }
+  .merci-upsell-item { flex: 0 0 auto; width: 100%; scroll-snap-align: none; }
+}
+/* ================= fin v3.19 ================= */
 </style>
 <?php
 /* Mandat multi-landing + simulation dev (mock-api.js) : config exposée à
@@ -396,17 +478,19 @@ if ($abaya_order) {
     $abaya_wa_link = 'https://wa.me/' . $abaya_wa_number . '?text=' . $abaya_wa_text;
 
     /* Code promo « prochain achat » (mandat 4P) : format strict
-     * [PRÉNOM]-[VILLE]-[N°COMMANDE] (tirets moyens, sans espace). En cas de
-     * saisie incomplète : valeur par défaut nettoyée depuis la base de
-     * données (CLIENTE / MAROC) — le code conserve toujours 3 segments. */
+     * [PRÉNOM]-[N°COMMANDE] — v3.19 (mandat 4P LP, audit
+     * docs/AUDIT-ERGONOMIE-v3.19.md) : la composante VILLE est supprimée
+     * (« ABDERRAZZAK-MARRAKECH-101 » = 26 caractères débordait sur deux
+     * lignes dans la pilule pointillée ≤520px, capture client 015952) ;
+     * ex. « ABDERRAZZAK-101 ». En cas de saisie incomplète : valeur par
+     * défaut nettoyée depuis la base de données (CLIENTE) — le code
+     * conserve toujours 2 segments. */
     $abaya_promo_prenom = preg_replace('/[^\p{L}\p{N}]+/u', '', trim((string) $abaya_first));
-    $abaya_promo_ville  = preg_replace('/[^\p{L}\p{N}]+/u', '', trim((string) $abaya_city));
     if ($abaya_promo_prenom === '') $abaya_promo_prenom = 'CLIENTE';
-    if ($abaya_promo_ville === '') $abaya_promo_ville = 'MAROC';
     $abaya_promo_num    = (string) $abaya_order->get_order_number();
-    /* Présentation MAJUSCULES (fidèle à la maquette Canva « RAK - ABD - 89421 ») :
-     * sans effet sur l'arabe, normalise les segments latins du code. */
-    $abaya_promo_code   = mb_strtoupper($abaya_promo_prenom . '-' . $abaya_promo_ville . '-' . $abaya_promo_num, 'UTF-8');
+    /* Présentation MAJUSCULES : sans effet sur l'arabe, normalise les
+     * segments latins du code. */
+    $abaya_promo_code   = mb_strtoupper($abaya_promo_prenom . '-' . $abaya_promo_num, 'UTF-8');
 
     /* Upsell (maquette Canva : EXACTEMENT 3 produits au format vertical) :
      * toutes les offres du registre SAUF celles déjà présentes dans la
@@ -487,7 +571,7 @@ get_header();
   <?php /* ---- تفاصيل الطلب : tableau 4 colonnes épuré + image produit à côté ---- */ ?>
   <section class="merci-sec" aria-label="تفاصيل الطلب">
     <h2 class="merci-sec-title">تفاصيل الطلب</h2>
-    <div class="merci-order">
+    <div class="merci-order<?php echo $abaya_color_img ? '' : ' merci-order-noimg'; /* v3.19 : sans miniature (couleur hors catalogue), zéro espace réservé */ ?>">
       <div class="merci-table">
         <table>
           <thead>
