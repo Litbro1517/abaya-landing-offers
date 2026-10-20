@@ -2256,3 +2256,87 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   }
 }
 /* ================= fin v3.20 ================= */
+
+/* ================================================================
+   v3.21 — RYTHME VERTICAL : ESPACEMENTS INTER-SECTIONS HARMONISÉS
+   + SÉPARATEURS RÉGULIERS (mandat 4P LP « marges/paddings inter-sections
+   des 4 landing pages » — audit mesuré docs/AUDIT-ESPACEMENT-v3.21.md)
+   Portée : gabarit unique des 4 landings (body.product-landing, sans
+   is-upsell) — scopée .product-landing:not(.is-upsell) comme v3.5.
+   ÉTALON retenu (mesuré, dominant, validé v3.5) : 42px/42px entre
+   chapitres = 84px entre bords, 85px lorsque la jonction porte la ligne.
+   INTERDITS RESPECTÉS : la ligne de séparation validée est RÉUTILISÉE à
+   l'identique (1px solid var(--line) #e2d9cc — couleur/épaisseur/typologie
+   intactes, les 3 lignes existantes des .visual-section ne sont pas
+   touchées) ; zéro composant fonctionnel touché (formulaire/CTA v3.1,
+   sticky v3.5, logo v3.11-13, modales v3.14-16, avis v3.7, garanties
+   v3.8/v3.9/v3.17, footer v3.8/v3.9, devises v3.10, garde-fou v3.18,
+   pages réglementaires v3.20) ; zéro retouche HTML/PHP/JS.
+   ================================================================ */
+
+/* 1 — hero : padding-top 26px validé v3.5 CONSERVÉ ; padding-bottom
+      harmonisé à l'étalon 42px à TOUTES les largeurs (l'héritage 58px du
+      bloc « Landing page corrections » créait la jonction hero|offres la
+      plus asymétrique : 100px desktop / 82px mobile → 84px partout). */
+.product-landing:not(.is-upsell) .hero {
+  padding-block: 26px 42px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* 2 — Garanties : fin du padding VERTICAL interne du .trust-grid (20px)
+      qui s'additionnait aux 42px de section (105px effectifs autour du
+      contenu — le bloc le plus aéré de la page) ; le padding horizontal
+      10px et tous les verrous v3.8/v3.9 (grille égale, sommets, centrage)
+      + v3.17 (mobile 3×2) restent bit-exact. */
+.product-landing:not(.is-upsell) .trust-grid {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* 3 — Séparateurs réguliers entre chapitres : la règle EXACTE de la ligne
+      validée (1px solid var(--line)) appliquée aux jonctions restantes.
+      Les sections .wrap portent le trait à la largeur du .wrap (comme les
+      3 lignes existantes) : border-bottom sur .hero/.bundles-section/
+      .social-section ; pour la jonction garanties|mode de commande,
+      .trust-strip est full-bleed → le trait est porté par le border-TOP
+      du .order-guide (.wrap) qui occupe la même position à 1px près ;
+      border-block sur .order-guide = ligne bas (mode|avis) + ligne haut
+      (garanties|mode). Aucune ligne sous .contact-section (dernier
+      chapitre : frontière naturelle du pied de page sombre) ni au-dessus
+      du hero (haut de page, 26px validé). */
+.product-landing:not(.is-upsell) .bundles-section,
+.product-landing:not(.is-upsell) .social-section { border-bottom: 1px solid var(--line); }
+.product-landing:not(.is-upsell) .order-guide { border-block: 1px solid var(--line); }
+
+/* 4 — Jonction faq|contact : les deux sections sont full-bleed (sans
+      .wrap) → la ligne est dessinée en ::after absolu au bord inférieur
+      de .faq-section (aucun impact de mise en page), à la LARGEUR du
+      .wrap répliquée aux 3 paliers responsive — position, étendue,
+      couleur et épaisseur identiques aux autres lignes. */
+.product-landing:not(.is-upsell) .faq-section { position: relative; }
+.product-landing:not(.is-upsell) .faq-section::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: min(1160px, calc(100% - 64px));
+  height: 1px;
+  margin-inline: auto;
+  background: var(--line);
+}
+@media (max-width: 800px) {
+  .product-landing:not(.is-upsell) .faq-section::after { width: min(calc(100% - 38px), 560px); }
+}
+@media (max-width: 540px) {
+  .product-landing:not(.is-upsell) .faq-section::after { width: calc(100% - 30px); }
+}
+
+/* 5 — Avis vide : la marge haute 24px (!important socle) du conteneur
+      d'avis occupait un vide fantôme en l'absence de cartes (jonction
+      avis|faq à 108px au lieu de 84px sur les pages sans avis approuvés,
+      ex. landings secondaires) — garde :has() : la marge reste l'écart
+      bouton→cartes QUAND il y a des avis (rendu peuplé inchangé), elle ne
+      crée plus d'espace quand le conteneur est vide. */
+.product-landing:not(.is-upsell) .reviews-list-container:not(:has(*)) { margin-top: 0 !important; }
+/* ================= fin v3.21 ================= */
