@@ -2140,3 +2140,26 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   .trust-icon { margin-inline: 0; flex-basis: 40px; width: 40px; height: 40px; }
   .trust-icon svg { width: 20px; height: 20px; }
 }
+
+/* ================= v3.18 — MANDAT 4P LP : GARDE-FOU RESPONSIVE GLOBAL (≤540px) =================
+ * Contexte (audit docs/AUDIT-RESPONSIVE-v3.18.md) : la TYP /merci rendait à
+ * 454px constants sur viewports 360-390px (min-content du tableau de commande
+ * propagé par le corps flex column body.legal-page) — le correctif structurel
+ * v3.18 vit dans le style inline de page-merci.php (table-layout:fixed). Le
+ * présent garde-fou est la CEINTURE DE SÉCURITÉ transverse des petits écrans :
+ * 1) html { overflow-x: hidden } — clip au niveau VIEWPORT (propagation UA) :
+ *    aucun défilement horizontal parasite possible même si un futur contenu
+ *    déborde ; contrairement à body { overflow-x: hidden }, html ne crée PAS
+ *    de conteneur de défilement interne → position:sticky du .site-header
+ *    (styles.css:265) et de la galerie desktop restent INTACTS (re-mesuré
+ *    v3.18 : header collé à top 0 pendant toute la course verticale à 360px) ;
+ * 2) body { max-width: 100%; box-sizing: border-box } — le corps ne peut
+ *    jamais excéder la viewport, paddings/bordures compris.
+ * Scopé ≤540px : desktop >540px BIT-À-BIT INCHANGÉ ; la LP vedette (déjà
+ * propre à 360px, mesuré overflow 0) et les pages légales ne voient AUCUN
+ * changement de rendu — aucune contrainte nouvelle tant que rien ne déborde. */
+@media (max-width: 540px) {
+  html { overflow-x: hidden; }
+  body { max-width: 100%; box-sizing: border-box; }
+}
+/* ================= fin v3.18 ================= */
