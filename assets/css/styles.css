@@ -2163,3 +2163,96 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   body { max-width: 100%; box-sizing: border-box; }
 }
 /* ================= fin v3.18 ================= */
+
+/* ================================================================
+   v3.20 — PAGES RÉGLEMENTAIRES : DESIGN PREMIUM + ZÉRO ÉMOJI
+   (mandat 4P LP — audit docs/AUDIT-LEGAL-DESIGN-v3.20.md)
+   Portée EXCLUSIVE : page.php (<main class="legal-content policy-content">)
+   + contenu des 7 pages réglementaires. Palette marque : crème chaud,
+   bordeaux #6B1D2F (titres H1), chocolat #4A3222 (H2), or #C5A059
+   (ornement/eyebrow/puces) — inspiration mise en page des 3 PDF fournis
+   (cartes arrondies bordées, titre centré, listes soignées), SANS copie
+   de contenu. INTERDITS RESPECTÉS : textes/structure/liens/noms/nombre
+   de pages/agencement du footer = 100 % intacts (header + footer et
+   landings/TYP hors périmètre, aucune règle ne les cible ici).
+   Posé en FIN de feuille : cascade gagnante sur le socle (622-680).
+   ================================================================ */
+.legal-content.policy-content { width: min(880px, calc(100% - 36px)); }
+.legal-content .legal-eyebrow,
+.policy-content .legal-eyebrow {
+  text-align: center;
+  color: #C5A059;
+  font-weight: 700;
+}
+.legal-content h1,
+.policy-content h1 {
+  color: #6B1D2F;
+  text-align: center;
+  font-weight: 700;
+}
+.legal-content h1::after,
+.policy-content h1::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 2px;
+  margin: 14px auto 0;
+  border-radius: 2px;
+  background: #C5A059;
+}
+.legal-content section,
+.policy-content section {
+  background: #FAF7F2;
+  border: 1px solid #E2D9CC;
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin: 0 0 18px;
+  box-shadow: 0 1px 2px rgb(44 29 17 / 4%);
+}
+.legal-content section:last-child,
+.policy-content section:last-child { margin-bottom: 0; }
+.legal-content h2,
+.policy-content h2 {
+  color: #4A3222;
+  font-weight: 700;
+  border-inline-start: 3px solid #6B1D2F;
+  padding-inline-start: 10px;
+}
+.legal-content p,
+.legal-content li,
+.policy-content p,
+.policy-content li { color: #6B5B4E; }
+.legal-content strong,
+.policy-content strong { color: #4A3222; }
+.legal-content ul,
+.policy-content ul {
+  list-style: none;
+  padding-inline-start: 0;
+  margin-block: 10px 0;
+}
+.legal-content li,
+.policy-content li {
+  position: relative;
+  padding-inline-start: 18px;
+  padding-block: 3px;
+}
+.legal-content li::before,
+.policy-content li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: calc(1em - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #C5A059;
+}
+@media (max-width: 740px) {
+  .legal-content section,
+  .policy-content section {
+    padding: 16px 18px;
+    border-radius: 12px;
+    margin: 0 0 14px;
+  }
+}
+/* ================= fin v3.20 ================= */
