@@ -326,7 +326,11 @@ if (mockOrder && mockContainer) {
   const itemImg = mockOffer?.img || ((config.assetBase || "") + "/" + encodeURIComponent(mockOrder.offer_id) + "/beige.webp");
   const offerName = selection.offer || (quantity === 1 ? "قطعة واحدة" : quantity + " قطع");
   const address = [mockOrder.customer.address, mockOrder.customer.city].filter(Boolean).join("، ") || "—";
-  const promoCode = [fullName.split(/\s+/)[0] || "CLIENTE", mockOrder.customer.city || "MAROC", "#" + mockOrder.order_id].filter(Boolean).join("-");
+  /* v3.19 (mandat 4P LP) : composante VILLE supprimée — format strict
+   * [PRÉNOM]-[N°COMMANDE] (parité avec la closure PHP de page-merci.php ;
+   * le préfixe « # » du numéro est retiré : la maquette impose
+   * « ABDERRAZZAK-101 », pas « ABDERRAZZAK-#101 »). */
+  const promoCode = [fullName.split(/\s+/)[0] || "CLIENTE", String(mockOrder.order_id)].filter(Boolean).join("-");
 
   /* Tunnel post-achat (mandat ⑭) : bandeau de confirmation au retour d'un
    * ajout upsell réussi (?added=1) — miroir du rendu natif. */
