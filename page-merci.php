@@ -226,6 +226,49 @@ body > header.legal-header > div.logo-wrapper > span.footer-wordmark > img.heade
   margin: 0 auto !important;
 }
 /* ================= fin v3.11 ================= */
+
+/* ================= v3.18 — RESTAURATION RESPONSIVE MOBILE (Galaxy S8 / 360px) =================
+ * CAUSE RACINE (prouvée par mesure, diag_responsive_v318.py sur v3.17) :
+ * scrollWidth document = 454px CONSTANT à 360/375/390 → débordement +94px
+ * à 360px, tout le bloc principal (h1, adresse, sous-titre upsell) déborde
+ * au-delà du bord gauche RTL = rendu « type bureau » écrasé/panoramiqué.
+ * DÉCOMPOSITION 454 : tableau .merci-order table min-content 314px
+ * (en-têtes white-space:nowrap × 4 colonnes, un tableau ne descend JAMAIS
+ * sous son min-content même avec width:100%) + vignette 78px + gap 10px
+ * = 402px de min-content pour .merci-order, propagé par le corps flex
+ * column body.legal-page (styles.css:622) → main.merci-page 454px.
+ * Défaut PRÉEXISTANT (mesuré 454/375 dès l'audit docs/AUDIT-LOGO-v3.11.md,
+ * documenté « hors périmètre, mandat dédié recommandé ») — v3.17 innocent.
+ * CORRECTIF ≤520px uniquement (desktop >520px BIT-À-BIT INCHANGÉ) :
+ * 1) la vignette passe SOUS le tableau (flex-direction column) → le
+ *    tableau respire sur ~308px pleins au lieu de 220px ;
+ * 2) table-layout:fixed → la largeur du tableau = 100% du conteneur
+ *    STRICTEMENT (fin du min-content 314px, garantie à 320px aussi) ;
+ * 3) en-têtes wrappables (white-space:normal) + overflow-wrap:break-word
+ *    sur cellules → zéro débordement possible quel que soit le contenu ;
+ * 4) distribution fixe des colonnes 38/26/10/26% (produit / couleur-mqas /
+ *    quantité / prix). Le nowrap socle de .merci-price est NEUTRALISÉ ≤520px :
+ *    seul le token montant+درهم (bdi, soudé par espace insécable) reste
+ *    nowrap — la ligne <small> du prix unitaire se replie librement (sinon
+ *    « 249.50 درهم / القطعة » = 119px insécables) — et overflow-wrap:anywhere
+ *    sur la cellule prix = soupape (un token pathologique se brise au lieu de
+ *    déborder). Structure 4 colonnes, contenus et structure des prix
+ *    INCHANGÉS (convention v3.9 respectée). */
+@media (max-width: 520px) {
+  .merci-order { flex-direction: column; gap: 12px; }
+  .merci-product-img { flex: 0 0 auto; width: 120px; }
+  .merci-order table { table-layout: fixed; }
+  .merci-order thead th { white-space: normal; }
+  .merci-order thead th, .merci-order tbody td { overflow-wrap: break-word; }
+  .merci-order thead th:nth-child(1) { width: 38%; }
+  .merci-order thead th:nth-child(2) { width: 26%; }
+  .merci-order thead th:nth-child(3) { width: 10%; }
+  .merci-order thead th:nth-child(4) { width: 26%; }
+  .merci-order .merci-price, .merci-order .merci-price small { white-space: normal; }
+  .merci-order .merci-price bdi { white-space: nowrap; }
+  .merci-order .merci-price { overflow-wrap: anywhere; }
+}
+/* ================= fin v3.18 ================= */
 </style>
 <?php
 /* Mandat multi-landing + simulation dev (mock-api.js) : config exposée à
