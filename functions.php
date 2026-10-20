@@ -1231,6 +1231,43 @@ function abaya_ensure_pages() {
 add_action('after_switch_theme', 'abaya_ensure_pages');
 add_action('admin_init', 'abaya_ensure_pages'); // couvre le cas d'une mise à jour du thème déjà actif
 
+/* ---------- v3.20 (mandat 4P LP « design pages réglementaires ») : suppression
+ * DÉFINITIVE des émojis des pages réglementaires en base de données ----------
+ * Les pages sont semées UNE SEULE FOIS par abaya_ensure_pages() (« ne jamais
+ * écraser ») : nettoyer les fichiers pages/*.html + inc-pages.php ne suffit donc
+ * pas pour la production. Ce sync one-time retire UNIQUEMENT les codepoints
+ * émojis (audit docs/AUDIT-LEGAL-DESIGN-v3.20.md §2/§4) du post_title et du
+ * post_content des 7 pages réglementaires — aucun autre caractère n'est touché,
+ * la page transactionnelle « merci » et toute donnée non-émoji sont préservées. */
+function abaya_legal_emoji_pattern() {
+    return '/[\x{2300}-\x{23FF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1FAFF}\x{FE0F}\x{200D}]/u';
+}
+
+function abaya_strip_legal_page_emojis() {
+    if (get_option('abaya_legal_emoji_sync') === 'v1') return; // one-time
+
+    $abaya_pattern = abaya_legal_emoji_pattern();
+    foreach (abaya_pages() as $abaya_slug => $abaya_p) {
+        if ($abaya_slug === 'merci') continue; // page transactionnelle hors périmètre
+        $abaya_page = get_page_by_path($abaya_slug);
+        if (!$abaya_page) continue;
+
+        $abaya_update = ['ID' => $abaya_page->ID];
+        $abaya_title  = preg_replace($abaya_pattern, '', (string) $abaya_page->post_title);
+        if ($abaya_title !== null && $abaya_title !== (string) $abaya_page->post_title) {
+            $abaya_update['post_title'] = trim($abaya_title);
+        }
+        $abaya_content = preg_replace($abaya_pattern, '', (string) $abaya_page->post_content);
+        if ($abaya_content !== null && $abaya_content !== (string) $abaya_page->post_content) {
+            $abaya_update['post_content'] = $abaya_content;
+        }
+        if (count($abaya_update) > 1) wp_update_post($abaya_update); // jamais d'écriture sur échec regex (null)
+    }
+    update_option('abaya_legal_emoji_sync', 'v1');
+}
+add_action('init', 'abaya_strip_legal_page_emojis');        // front : effectif dès le déploiement
+add_action('admin_init', 'abaya_strip_legal_page_emojis');  // admin : WP Pusher / wp-admin
+
 /* ---------- Routage multi-landing (mandat : gabarit unique alimenté par le registre) ---------- */
 
 /* Enregistre « Landing Offre » dans la liste des gabarits de page (admin). */
