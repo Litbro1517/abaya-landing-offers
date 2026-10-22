@@ -224,7 +224,7 @@
   --gold: #d4af37;
   --white: #fff;
   --check-bg: #3a7d84;
-  --check-mark: #d4af37;
+  --check-mark: #e8dcb8; /* v3.22 a11y (WCAG 1.4.11) : coche 3.45:1 sur fond émeraude #3a7d84 — était #d4af37 (2.25:1) */
   /* v3.1 — aliases de la charte de référence « VF charte LP offres.html »
      (config Tailwind de la maquette) : brandGreenVibrant / accentGold /
      creamBg. Valeurs identiques aux tokens ci-dessus ; l'or VF (#C5A059)
@@ -366,7 +366,7 @@ img { display: block; max-width: 100%; }
   align-items: center;
   gap: 9px;
   margin: 0;
-  color: var(--gold);
+  color: #7d6117; /* v3.22 a11y (WCAG 1.4.3) : surtitre or 5.64:1 sur fond #fbfbf8 — était var(--gold) #d4af37 (2.03:1) */
   font: 600 10px/1.6 "Cairo", sans-serif;
   letter-spacing: .15em;
 }
@@ -2340,3 +2340,28 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
       crée plus d'espace quand le conteneur est vide. */
 .product-landing:not(.is-upsell) .reviews-list-container:not(:has(*)) { margin-top: 0 !important; }
 /* ================= fin v3.21 ================= */
+
+/* ==========================================================================
+   v3.22 — ACCESSIBILITÉ WCAG 2.1 (mandat 4P LP : fix/accessibility-quickfixes)
+   Correctif 3 — focus clavier visible : anneau émeraude « 2px solid
+   var(--olive) » sur les champs de saisie du formulaire de commande
+   (:focus-visible). Les :focus historiques (halo émeraude 10-12 % quasi
+   invisible) restent intacts pour le pointeur ; l'anneau ajoute uniquement
+   l'indicateur manquant — zéro markup, zéro propriété géométrique. Le
+   compagnon [readonly] rend l'anneau visible au clavier sur les champs
+   pré-remplis verrouillés (valeurs et apparence grise intacts, seul
+   l'indicateur de tabulation est restauré — WCAG 2.4.7). Correctifs 1-2
+   portés en place plus haut : .eyebrow #d4af37 → #7d6117 (5.64:1 sur
+   #fbfbf8) et token --check-mark #d4af37 → #e8dcb8 (coche 3.45:1 sur
+   émeraude) — critical.css synchronisé (anti-flash).
+   ========================================================================== */
+.form-field input:focus-visible,
+.form-field select:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 0;
+}
+.product-landing .order-form-grid input[readonly]:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 0;
+}
+/* ================= fin v3.22 ================= */
