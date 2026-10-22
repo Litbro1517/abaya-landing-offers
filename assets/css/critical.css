@@ -15,7 +15,7 @@
   --gold: #d4af37;
   --white: #fff;
   --check-bg: #3a7d84;
-  --check-mark: #d4af37;
+  --check-mark: #e8dcb8;
   font-family: "Cairo", Tahoma, Arial, sans-serif;
   font-size: 16px;
   font-synthesis: none;
@@ -124,7 +124,7 @@ img{display: block; max-width: 100%;}
   align-items: center;
   gap: 9px;
   margin: 0;
-  color: var(--gold);
+  color: #7d6117;
   font: 600 10px/1.6 "Cairo", sans-serif;
   letter-spacing: .15em;}
 .eyebrow-line{display: inline-block; width: 27px; height: 1px; background: var(--gold);}
@@ -230,6 +230,8 @@ h1{max-width: 480px;
   transition: border-color .18s ease, box-shadow .18s ease;}
 .form-field input::placeholder{color: #aaa89f;}
 .form-field input:focus, .form-field select:focus{border-color: var(--olive); box-shadow: 0 0 0 3px rgb(81 124 121 / 10%);}
+.form-field input:focus-visible, .form-field select:focus-visible{outline: 2px solid var(--olive); outline-offset: 0;}
+.product-landing .order-form-grid input[readonly]:focus-visible{outline: 2px solid var(--olive); outline-offset: 0;}
 .form-submit{width: 100%; min-height: 60px; grid-column: 1 / -1; margin-top: 4px; background: var(--olive); font-size: 17px;}
 .form-submit:hover{background: var(--olive-hover);}
 .form-result{margin-top: 16px; padding: 13px 15px; border: 1px solid #d8dfd0; background: #f0f4ec; color: #46543d; text-align: center; font-size: 12px; line-height: 1.9;}
