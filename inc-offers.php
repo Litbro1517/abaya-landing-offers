@@ -9,16 +9,6 @@ if (!defined('ABSPATH')) exit;
  * unique page-offer.php alimenté par ce registre (aucune duplication de
  * front-page.php).
  *
- * v3.23 (mandat 4P LP « protocole mandat 4P LP » — single-upsell cleanup) :
- *   - le stock ne dispose que d'UN SEUL produit prêt pour l'e-commerce :
- *     la grille commerciale est réduite à l'offre PIÈCE UNIQUE (bundles
- *     [1 => 299]) — les cartes 2/3 pièces disparaissent du front ET le
- *     serveur rejette en 422 toute quantité hors grille (autorité inchangée) ;
- *   - le site fonctionne avec DEUX landings actives : la vedette (racine)
- *     + UNE secondaire (produit-1) — les anciennes variantes produit-2 et
- *     produit-3 sont RETIRÉES du registre (liste abaya_retired_offers(),
- *     redirection 301 vers la racine par abaya_gate_secondary_landing()).
- *
  * Clés de chaque entrée :
  *   id            slug servie sur /{slug}/ (l'offre vedette est servie à la racine)
  *   name          nom éditorial (titre d'onglet secondaire, méta commande, cross-sell)
@@ -42,13 +32,12 @@ function abaya_base_commerce() {
     return [
         'sizes'   => ['S', 'M', 'L', 'XL', 'XXL'],
         /* Grille tarifaire AUTORITAIRE des offres (MAD) — le serveur est la seule
-         * autorité sur le prix d'une commande, le front n'est qu'un affichage.
-         * v3.23 : stock = UN SEUL produit — la grille est réduite à la pièce
-         * unique (299 MAD) ; toute quantité 2/3 est rejetée en 422 par les
-         * routes REST (isset($cat['bundles'][$quantity]) inchangé). */
-        'bundles' => [1 => 299],
+         * autorité sur le prix d'une commande, le front n'est qu'un affichage. */
+        'bundles' => [1 => 299, 2 => 499, 3 => 699],
         'bundle_labels' => [
             1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم'],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم'],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 198 درهم'],
         ],
     ];
 }
@@ -225,21 +214,143 @@ function abaya_offers() {
         'upsell'     => null,
     ],
 
-    /* v3.23 : les entrées 'produit-2' et 'produit-3' (variantes superflues) sont
-     * RETIRÉES du registre — voir abaya_retired_offers() + le gate 301 de
-     * abaya_gate_secondary_landing() (redirection permanente vers la racine). */
+    /* ---------- Offre n°3 — landing secondaire /produit-2/ (angle confort) ---------- */
+    'produit-2' => [
+        'id'          => 'produit-2',
+        'name'        => 'Produit 2',
+        'product_id'  => (int) (defined('LANDING_PRODUCT_ID_2') ? LANDING_PRODUCT_ID_2 : $default_product),
+        'sku'         => '',
+        'layout'      => 'default',
+        'assets_dir'  => 'uploads/offers/produit-2/',
+        'colors'      => abaya_base_colors('uploads/offers/produit-2/'),
+        'sizes'         => $commerce['sizes'],
+        'bundles'       => $commerce['bundles'],
+        'bundle_labels' => $commerce['bundle_labels'],
+        'images' => [
+            'lcp'        => 'uploads/offers/produit-2/hero.webp',
+            'lcp_color'  => 'بيج',
+            'lcp_alt'    => 'العباية باللون البيج بجودة عالية مناسبة لجميع الخرجات والعمل',
+            'colors'     => ['src' => 'uploads/offers/produit-2/sec-colors.webp', 'alt' => 'العباية باللون الأبيض بخياطة متقنة وقصة مريحة'],
+            'specs'      => ['src' => 'uploads/offers/produit-2/sec-specs.jpg', 'alt' => 'قصة العباية الواسعة وانسياب قماش الكريب باللون الأحمر الداكن'],
+            'inspection' => ['src' => 'uploads/offers/produit-2/sec-inspection.jpg', 'alt' => 'إظهار ملمس قماش العباية بلون أزرق سماوي وجودة خياطتها'],
+        ],
+        'texts' => [
+            'document_title'   => 'عباية لولان تجمع بين الراحة والأناقة',
+            'meta_description' => 'عباية لولان ناعمة وانسيابية بخياطة متقنة لراحة يومية. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
+            'headline'         => 'عباية لولان تجمع بين الراحة والأناقة',
+            'slogan'           => 'أناقة ترافق إطلالتك كل يوم',
+            'intro'            => 'اختاري عباية لولان بإطلالة انسيابية وتفاصيل مدروسة تمنحك راحة كاملة من الصباح إلى المساء.',
+            'old_price'        => '349 درهم',
+            'colors_bullets'   => [
+                'توب لولان ناعم يمنحك إحساساً مريحاً طوال اليوم',
+                'متوفرة في 7 ألوان كي تختاري لونك المفضل بكل حرية.',
+                'خياطة مزدوجة متينة|تصمد أمام الاستعمال اليومي والغسيل المتكرر دون أن تفقد أناقتها.',
+                'تخصيص القياسات|نخيط الموديل خصيصاً لك، يمكننا تعديل الطول والعرض حسب طولك ووزنك مع الحفاظ على القصة الأصلية.',
+            ],
+            'specs_title'      => 'معلومات إضافية وتفاصيل عن المنتج:',
+            'specs_items'      => [
+                'نوع التوب: لولان ناعم مريح للاستعمال اليومي.',
+                'قصة انسيابية فضفاضة تمنح حرية الحركة الكاملة.',
+                'تفاصيل بسيطة وأنيقة تسهّل التنسيق مع مختلف الإطلالات.',
+                'متوفرة بمقاسات مختلفة باش تختاري المقاس المناسب ليك.',
+                'كول أوفيسيي مع جيوب جانبية مدفونة غير بارزة للحفاظ على جمالية الجوانب.',
+            ],
+            'inspection_title' => 'معاينة الطلبية والحق في الفحص',
+            'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',
+            'inspection_note'  => 'يحق لك فتح الطرد وفحص القماش وجودة الخياطة أمام الموصل قبل إتمام الدفع.',
+            'guide_title'      => 'كيف يمكنني تقديم الطلب؟',
+            'guide_steps'      => [
+                ['الخطوة الأولى: ملء استمارة الطلب', 'اختاري اللون والمقاس المناسبين، ثم قومي بملء معلوماتك الشخصية واضغطي على زر «اضغطي هنا للطلب».'],
+                ['الخطوة الثانية: التأكيد الهاتفي', 'ستتلقين مكالمة من فريقنا لتأكيد المقاس، اللون، الكمية المطلوبة، وتأكيد عنوان التسليم.'],
+                ['الخطوة الثالثة: الشحن والدفع عند الاستلام', 'سيتم شحن طلبيتك إلى باب منزلك، ويحق لك فحص العباية قبل تسليم المبلغ للموصل.'],
+            ],
+            'trust'            => [
+                ['الدفع عند الاستلام', 'تأكدي من الطلب قبل الدفع'],
+                ['توصيل سريع', 'التوصيل خلال 24 إلى 72 ساعة هي المدة المعتمدة عموماً. طلب خياطة المنتج يستغرق من 5 إلى 6 أيام.'],
+                ['استبدال المقاس', 'يمكن استبدال المقاس حسب رغبتك، بشرط تحمل مصاريف التوصيل فقط.'],
+            ],
+            'faq'              => [
+                ['شحال المدة باش توصل الطلبية؟', 'التوصيل خلال 24 إلى 72 ساعة هي المدة المعتمدة عموماً، أما طلب خياطة المنتج يستغرق من 5 إلى 6 أيام.'],
+                ['شحال ثمن التوصيل ؟', 'التوصيل فابور على جميع المنتجات ديالنا.'],
+                ['واش إيلا لقيت فالطلبية شي مشكل نقدر نرجع فلوسي ؟', 'يحق لك تقديم طلب الاستبدال أو الإرجاع خلال 72 ساعة من استلام الطرد وفق الشروط الموضحة في سياسة الاستبدال والاسترجاع.'],
+                ['واش نقدر نبدل القياس؟', 'نعم، كنديرو خدمة تغيير القياس، يمكن لك تبدل القياس حسب رغبتك بشرط تخلص مصاريف التوصيل فقط.'],
+            ],
+            'contact_heading'  => 'من أجل أي استفسار، تواصلوا معنا عبر الواتساب:',
+        ],
+        'cross_sell' => [],
+        'upsell'     => null,
+    ],
+
+    /* ---------- Offre n°4 — landing secondaire /produit-3/ (angle élégance) ---------- */
+    'produit-3' => [
+        'id'          => 'produit-3',
+        'name'        => 'Produit 3',
+        'product_id'  => (int) (defined('LANDING_PRODUCT_ID_3') ? LANDING_PRODUCT_ID_3 : $default_product),
+        'sku'         => '',
+        'layout'      => 'default',
+        'assets_dir'  => 'uploads/offers/produit-3/',
+        'colors'      => abaya_base_colors('uploads/offers/produit-3/'),
+        'sizes'         => $commerce['sizes'],
+        'bundles'       => $commerce['bundles'],
+        'bundle_labels' => $commerce['bundle_labels'],
+        'images' => [
+            'lcp'        => 'uploads/offers/produit-3/hero.jpg',
+            'lcp_color'  => 'أحمر داكن',
+            'lcp_alt'    => 'العباية باللون الأحمر الداكن بقصة واسعة مناسبة للخروج والعمل',
+            'colors'     => ['src' => 'uploads/offers/produit-3/sec-colors.webp', 'alt' => 'العباية باللون الأسود بإطلالة راقية تناسب المناسبات'],
+            'specs'      => ['src' => 'uploads/offers/produit-3/sec-specs.webp', 'alt' => 'العباية باللون الأبيض بتفاصيل بسيطة وأنيقة'],
+            'inspection' => ['src' => 'uploads/offers/produit-3/sec-inspection.webp', 'alt' => 'العباية باللون البيج بجودة عالية مناسبة لجميع الخرجات والعمل'],
+        ],
+        'texts' => [
+            'document_title'   => 'عباية لولان بلمسة راقية تناسبك',
+            'meta_description' => 'عباية عملية بإطلالة راقية وألوان متعددة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
+            'headline'         => 'عباية لولان بلمسة راقية تناسبك',
+            'slogan'           => 'إطلالة مميزة بأسلوبك الخاص',
+            'intro'            => 'عباية عملية بإطلالة راقية، اختاري اللون والمقاس المناسبين لكِ واستمتعي بأناقة بلا مجهود.',
+            'old_price'        => '349 درهم',
+            'colors_bullets'   => [
+                'إطلالة راقية تناسب الخرجات والمناسبات والعمل',
+                'متوفرة في 7 ألوان كي تختاري لونك المفضل بكل حرية.',
+                'خياطة مزدوجة متينة|جودة تدوم مع الاستعمال المتكرر وتحافظ على تألق العباية.',
+                'تخصيص القياسات|تعديل الطول والعرض حسب طولك ووزنك الخاص مع الحفاظ التام على القصة والتصميم.',
+            ],
+            'specs_title'      => 'معلومات إضافية وتفاصيل عن المنتج:',
+            'specs_items'      => [
+                'نوع التوب: لولان راقٍ بلمسة عملية.',
+                'قصة واسعة وانسيابية تمنحك حضوراً أنيقاً في كل المناسبات.',
+                'تصميم بلمسة راقية يسهّل التنسيق مع إطلالاتك المفضلة.',
+                'متوفرة بمقاسات مختلفة باش تختاري المقاس المناسب ليك.',
+                'كول أوفيسيي مع جيوب جانبية مدفونة مع الخياطة للحفاظ على جمالية الجوانب.',
+            ],
+            'inspection_title' => 'معاينة الطلبية والحق في الفحص',
+            'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',
+            'inspection_note'  => 'يحق لك فتح الطرد وفحص القماش وجودة الخياطة أمام الموصل قبل إتمام الدفع.',
+            'guide_title'      => 'كيف يمكنني تقديم الطلب؟',
+            'guide_steps'      => [
+                ['الخطوة الأولى: ملء استمارة الطلب', 'اختاري اللون والمقاس المناسبين، ثم قومي بملء معلوماتك الشخصية واضغطي على زر «اضغطي هنا للطلب».'],
+                ['الخطوة الثانية: التأكيد الهاتفي', 'ستتلقين مكالمة من فريقنا لتأكيد المقاس، اللون، الكمية المطلوبة، وتأكيد عنوان التسليم.'],
+                ['الخطوة الثالثة: الشحن والدفع عند الاستلام', 'سيتم شحن طلبيتك إلى باب منزلك، ويحق لك فحص العباية قبل تسليم المبلغ للموصل.'],
+            ],
+            'trust'            => [
+                ['الدفع عند الاستلام', 'تأكدي من الطلب قبل الدفع'],
+                ['توصيل سريع', 'التوصيل خلال 24 إلى 72 ساعة هي المدة المعتمدة عموماً. طلب خياطة المنتج يستغرق من 5 إلى 6 أيام.'],
+                ['استبدال المقاس', 'يمكن استبدال المقاس حسب رغبتك، بشرط تحمل مصاريف التوصيل فقط.'],
+            ],
+            'faq'              => [
+                ['شحال المدة باش توصل الطلبية؟', 'التوصيل خلال 24 إلى 72 ساعة هي المدة المعتمدة عموماً، أما طلب خياطة المنتج يستغرق من 5 إلى 6 أيام.'],
+                ['شحال ثمن التوصيل ؟', 'التوصيل فابور على جميع المنتجات ديالنا.'],
+                ['واش إيلا لقيت فالطلبية شي مشكل نقدر نرجع فلوسي ؟', 'يحق لك تقديم طلب الاستبدال أو الإرجاع خلال 72 ساعة من استلام الطرد وفق الشروط الموضحة في سياسة الاستبدال والاسترجاع.'],
+                ['واش نقدر نبدل القياس؟', 'نعم، كنديرو خدمة تغيير القياس، يمكن لك تبدل القياس حسب رغبتك بشرط تخلص مصاريف التوصيل فقط.'],
+            ],
+            'contact_heading'  => 'من أجل أي استفسار، تواصلوا معنا عبر الواتساب:',
+        ],
+        'cross_sell' => [],
+        'upsell'     => null,
+    ],
+
     ];
 
     return $offers;
-}
-
-/* v3.23 : slugs RETIRÉS du registre (variantes superflues — un seul produit
- * au catalogue). Les pages WordPress correspondantes peuvent subsister en base
- * (semis historique « ne jamais écraser ») : abaya_gate_secondary_landing()
- * les redirige en 301 vers la racine — aucun rendu de page vide, les anciens
- * liens publicitaires restent servis par une redirection permanente. */
-function abaya_retired_offers() {
-    return ['produit-2', 'produit-3'];
 }
 
 /** Identifiant de l'offre courante : global (gabarits) → page courante (slug) → offre vedette. */
