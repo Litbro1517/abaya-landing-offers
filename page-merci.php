@@ -18,9 +18,11 @@
  *     personnalisé dans une pilule pointillée ;
  *   - bouton de suivi officiel WhatsApp (vert #25D366) à côté des coordonnées
  *     client (معلومات المراسلة) ;
- *   - section upsell « تشكيلة أخرى قد تعجبك أيضاً » : EXACTEMENT 3 produits au
- *     format vertical 3:5 (style Reels/Stories), badge « تخفيض خاص » et ancien
- *     prix barrés OPTIONNELS (clés de registre cross_badge / cross_old_price),
+ *   - section upsell « تشكيلة أخرى قد تعجبك أيضاً » : v3.23 — UN SEUL produit
+ *     d'upsell minimaliste (format vertical 3:5 conservé, carte centrée ;
+ *     le registre ne compte plus que 2 offres — la carte restante est celle
+ *     qui n'a pas été commandée), badge « تخفيض خاص » et ancien prix barrés
+ *     OPTIONNELS (clés de registre cross_badge / cross_old_price),
  *     boutons turquoise « إضافة للطلب » ;
  *   - charte graphique exclusive : police Cairo, Bordeaux #6B1D2F,
  *     Vert Turquoise #4D9AA4, Crème #FAF7F2.
@@ -351,6 +353,30 @@ body > header.legal-header > div.logo-wrapper > span.footer-wordmark > img.heade
   .merci-upsell-item { flex: 0 0 auto; width: 100%; scroll-snap-align: none; }
 }
 /* ================= fin v3.19 ================= */
+
+/* ================= v3.23 — UPSELL UNIQUE MINIMALISTE (mandat 4P LP « protocole
+   mandat 4P LP ») : le registre ne compte plus que DEUX offres (vedette +
+   produit-1) — la section upsell de la TYP ne rend donc plus qu'UNE SEULE
+   carte ($abaya_cross_offers = offres restantes après exclusion des achats).
+   PRÉSENTATION MINIMALISTE (scopée ≥ 521px — l'empilement v3.19 100 % ≤ 520px
+   est un verrou INTACT) : la carte unique est centrée sur la ligne (fin du
+   dockerement en 1ʳᵉ colonne de la grille 3 colonnes) à une largeur de carte
+   Stories maîtrisée (340px) ; format vertical 3:5 conservé ; scroll-snap
+   neutralisé (aucun carrousel pour une carte unique). :only-child = ne
+   s'applique QUE s'il n'y a qu'une carte : si le registre revient à plusieurs
+   offres, le rendu historique (grille 3 col / carrousel) est restauré
+   automatiquement bit-exact. */
+@media (min-width: 521px) {
+  .merci-upsell-item:only-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    flex: 0 0 auto;
+    width: min(340px, 100%);
+    margin-inline: auto;
+    scroll-snap-align: none;
+  }
+}
+/* ================= fin v3.23 ================= */
 </style>
 <?php
 /* Mandat multi-landing + simulation dev (mock-api.js) : config exposée à

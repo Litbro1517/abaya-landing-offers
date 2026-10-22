@@ -524,7 +524,14 @@ function abaya_upsell_context() {
  * La racine reste PUBLIQUE (offre vedette, publicités) : pas de redirection —
  * mais un duo valide dans son URL active le mode upsell ET impose no-cache
  * (les clés personnalitées ne doivent jamais être servies depuis un cache
- * partagé ; le rendu par défaut sans duo reste inchangé et cacheable). */
+ * partagé ; le rendu par défaut sans duo reste inchangé et cacheable).
+ * v3.23 (mandat « protocole mandat 4P LP » — single-upsell cleanup) : les
+ * slugs RETIRÉS du registre (abaya_retired_offers() — variantes superflues
+ * produit-2/produit-3) sont redirigés en 301 PERMANENT vers la racine AVANT
+ * tout autre traitement : les pages WordPress historiques peuvent subsister
+ * en base (semis « ne jamais écraser »), mais aucun rendu n'est plus servi —
+ * les anciens liens publicitaires restent fonctionnels (redirection
+ * permanente, cacheable CDN). */
 function abaya_gate_secondary_landing() {
     if (!is_page()) {
         if (is_front_page() && abaya_upsell_context()) {
@@ -534,6 +541,11 @@ function abaya_gate_secondary_landing() {
         return;
     }
     $abaya_slug = (string) get_post_field('post_name', get_queried_object_id());
+    /* v3.23 : variante retirée du registre → redirection 301 permanente. */
+    if (in_array($abaya_slug, abaya_retired_offers(), true)) {
+        wp_safe_redirect(home_url('/'), 301);
+        exit;
+    }
     if (!isset(abaya_offers()[$abaya_slug]) || abaya_is_front_offer($abaya_slug)) return;
     if (abaya_upsell_context()) {
         nocache_headers();
