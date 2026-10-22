@@ -631,8 +631,32 @@ h1 {
 }
 .legal-header .footer-wordmark { margin: 0; color: var(--ink); }
 .legal-header .logo-wrapper { flex: 0 0 auto; }
-.legal-home-link { color: var(--olive-dark); font-size: 12px; text-decoration: none; }
-.legal-home-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* v3.24 (mandat « fix/unified-back-link ») : bouton de retour unifié des pages
+ * réglementaires — même formule courte « ‹ رجوع » (flèche indicative ajoutée,
+ * elle manquait) et même pilule que le bouton upsell (.upsell-back-btn,
+ * offers.css) : inline-flex + gap 4px + nowrap + flex:0 0 auto — aucun
+ * empilement multiligne, aucune déformation, aligné au logo (flex
+ * align-items:center du .legal-header). Destinations inchangées. */
+.legal-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: #3A7D84;
+  background: #fff;
+  border: 1px solid #e5ded6;
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+.legal-home-link:hover { border-color: #3A7D84; background: #FAF7F2; text-decoration: none; }
+.legal-home-link .back-arrow { font-size: 15px; line-height: 1; font-weight: 400; }
+.legal-home-link .back-text { line-height: 1; }
 .legal-content {
   width: min(760px, calc(100% - 40px));
   margin: 0 auto;
@@ -747,7 +771,9 @@ h1 {
   .footer-columns a { font-size: 9px; }
   .legal-header { min-height: 64px; padding-inline: 15px; }
   .legal-header .footer-wordmark { font-size: 15px; }
-  .legal-home-link { font-size: 10px; }
+  /* v3.24 : .legal-home-link plus redimensionné mobile — pilule universelle
+   * « ‹ رجوع » identique desktop/mobile (l'ancien font-size:10px déséquilibrait
+   * le lien selon les écrans). */
   .legal-content { width: calc(100% - 30px); padding-block: 42px; }
   .legal-content h2 { font-size: 15px; }
   .legal-content p, .legal-content li { font-size: 12px; }

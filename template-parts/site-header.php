@@ -12,7 +12,10 @@ $u = esc_url(get_template_directory_uri());
        Thank You Page en haut de page. Rendu par défaut (sans duo) : inchangé. */ ?>
 <?php $abaya_upsell_ctx = function_exists('abaya_upsell_context') ? abaya_upsell_context() : false; ?>
 <?php if ($abaya_upsell_ctx) : ?>
-      <div class="upsell-back-bar"><a class="upsell-back-btn" href="<?php echo esc_url($abaya_upsell_ctx['merci_url']); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>العودة إلى صفحة التأكيد</span></a></div>
+<?php /* v3.24 (mandat « fix/unified-back-link ») : libellé unifié court
+       « ‹ رجوع » (identique au legal-header) — destination Thank You Page
+       personnalisée INCHANGÉE (merci_url du duo order+key). */ ?>
+      <div class="upsell-back-bar"><a class="upsell-back-btn" href="<?php echo esc_url($abaya_upsell_ctx['merci_url']); ?>"><span class="back-arrow" aria-hidden="true">‹</span> <span class="back-text">رجوع</span></a></div>
 <?php endif; ?>
       <div class="logo-wrapper">
 <?php /* Tunnel post-achat (mandat « fix/post-purchase-navigation-flow ») :

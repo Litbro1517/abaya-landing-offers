@@ -19,14 +19,20 @@ $abaya_upsell_ctx  = function_exists('abaya_upsell_context') ? abaya_upsell_cont
 <?php endif; ?>
   </div>
 <?php if ($abaya_upsell_ctx) : ?>
-<?php /* Mandat C : flèche de retour explicite en haut de page — cible la
+<?php /* Tunnel post-achat : flèche de retour explicite en haut de page — cible la
        Thank You Page PERSONNALISÉE de la commande (duo order+key porté par
-       le lien), jamais la landing principale. Sens de la flèche adapté au RTL. */ ?>
+       le lien), jamais la landing principale. DESTINATION INCHANGÉE (merci_url).
+       v3.24 (mandat « fix/unified-back-link ») : libellé unifié court « ‹ رجوع »
+       (formule universelle desktop+mobile, identique aux pages réglementaires) —
+       le long libellé historique (4 mots) empilait la pilule en cercle
+       déformé sur mobile. Sens de la flèche : le glyphe ‹ (bidi miroir) rend
+       orienté vers la droite en RTL, comme la flèche SVG historique. */ ?>
   <a class="upsell-back-btn" href="<?php echo esc_url($abaya_upsell_ctx['merci_url']); ?>">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span>العودة إلى صفحة التأكيد</span>
+    <span class="back-arrow" aria-hidden="true">‹</span> <span class="back-text">رجوع</span>
   </a>
 <?php elseif (!$abaya_tunnel_page) : ?>
-  <a class="legal-home-link" href="/">العودة إلى صفحة الطلب</a>
+<?php /* v3.24 : pages réglementaires — même formule unifiée « ‹ رجوع » avec
+       flèche indicative (absente avant) ; destination ACCUEIL inchangée. */ ?>
+  <a class="legal-home-link" href="/"><span class="back-arrow" aria-hidden="true">‹</span> <span class="back-text">رجوع</span></a>
 <?php endif; ?>
 </header>
