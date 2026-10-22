@@ -20,9 +20,11 @@ const state = { color: null, size: null, quantity: 1 };
 // P0-1 : la grille tarifaire des offres vient du serveur
 // (window.LANDING.catalog, injectée depuis abaya_catalog()) — le front n'est
 // qu'un affichage ; repli local identique si l'injection manquerait.
+// v3.23 (mandat « protocole mandat 4P LP ») : stock = UN SEUL produit — le
+// repli est aligné sur la grille autoritaire réduite (pièce unique 299 MAD).
 const LANDING = window.LANDING || {};
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 299, 2: 499, 3: 699 };
-const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 299 };
+const quantityLabels = { 1: "قطعة واحدة" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message
 // global près du bouton : le groupe manquant est encadré en rouge avec une

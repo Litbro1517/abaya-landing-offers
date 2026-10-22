@@ -2365,3 +2365,24 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   outline-offset: 0;
 }
 /* ================= fin v3.22 ================= */
+
+/* ==========================================================================
+   v3.23 — UPSELL UNIQUE (mandat 4P LP « protocole mandat 4P LP » — single-upsell
+   cleanup) : le stock ne dispose que d'UN SEUL produit — la grille commerciale
+   du registre est réduite à la pièce unique (bundles [1 => 299], inc-offers.php)
+   et la boucle du gabarit ne rend donc plus qu'UNE SEULE carte d'offre.
+   CORRECTIF DE PRÉSENTATION (aucune retouche HTML/PHP/JS) : une carte unique
+   dans la grille 3 colonnes se dockerait au bord de départ RTL (1ʳᵉ colonne,
+   largeur ~1/3) — elle est centrée sur la ligne, à la largeur maîtrisée
+   d'une carte historique (~420px ≈ la largeur d'une carte de la grille 3 col
+   1160px). :only-child = ne s'applique QUE si le registre ne rend qu'une
+   carte : le retour éventuel d'une grille multi-produits (bundles 2/3 dans le
+   registre) restaure automatiquement le comportement historique bit-exact.
+   Le badge ✓ de sélection (is-selected serveur) et le survol restent inchangés.
+   ========================================================================== */
+.product-landing .bundle-grid .bundle-card:only-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(420px, 100%);
+}
+/* ================= fin v3.23 ================= */
