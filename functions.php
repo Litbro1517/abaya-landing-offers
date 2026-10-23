@@ -148,11 +148,12 @@ function abaya_catalog($offer_id = null) {
 }
 
 /* Image LCP (#main-photo) : visuel défini par offre dans le registre
- * (l'offre vedette conserve le Hero Moka/Chocolat d'origine).
+ * (v3.28 : le repli hors-landing pointe sur le visuel Chenille 1.webp —
+ * l'ancien Hero Moka est retiré du dépôt).
  * URL unique partagée entre le preload (wp_head) et la balise <img>, cache-busting filemtime. */
 function abaya_lcp_image_src() {
     $offer = abaya_offer_config();
-    $rel   = $offer ? (string) $offer['images']['lcp'] : 'uploads/hero-moka.jpg';
+    $rel   = $offer ? (string) $offer['images']['lcp'] : 'uploads/1.webp';
     $f   = get_template_directory() . '/' . $rel;
     $ver = file_exists($f) ? filemtime($f) : '1';
     return get_template_directory_uri() . '/' . $rel . '?v=' . $ver;

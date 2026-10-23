@@ -123,7 +123,11 @@ foreach ($cat['sizes'] as $size_name) : ?>
               <div class="order-summary" aria-live="polite">
                 <div class="summary-copy">
                   <span>اختيارك:</span>
-                  <strong id="summary-choice">اختاري اللون والمقاس - قطعة واحدة</strong>
+<?php /* v3.28 (mandat « fix/main-lp-text-and-webp-injection ») : résumé initial
+       MOT-À-MOT sur la VEDETTE (« اختيارك : اختاري اللون والمقاس ») ; les
+       landings secondaires (HORS périmètre du mandat) conservent leur libellé
+       validé « … - قطعة واحدة » bit-exact. */ ?>
+                  <strong id="summary-choice"><?= abaya_is_front_offer() ? 'اختاري اللون والمقاس' : 'اختاري اللون والمقاس - قطعة واحدة' ?></strong>
                 </div>
                 <strong id="summary-price" class="summary-price"><?= (int) $cat['bundles'][1] ?> درهم</strong>
               </div>
@@ -214,6 +218,13 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
             <span class="bundle-badge"><?= esc_html($cat['bundle_labels'][$bundle_qty]['label']) ?></span>
             <strong class="bundle-price"><?= (int) $bundle_price ?> <small>درهم</small></strong>
             <span class="bundle-saving"><?= esc_html($cat['bundle_labels'][$bundle_qty]['saving']) ?></span>
+<?php /* v3.28 (mandat « fix/main-lp-text-and-webp-injection ») : prix de
+       référence du mandat affiché sous l'économie (« الثمن المرجعي ») —
+       matrice mot-à-mot : 379/658/987 درهم. Rendu CONDITIONNEL vedette :
+       les landings secondaires (hors périmètre) restent bit-exactes. */ ?>
+<?php if (abaya_is_front_offer()) : ?>
+            <span class="bundle-ref">الثمن المرجعي: <?= (int) $cat['bundle_labels'][$bundle_qty]['ref'] ?> درهم</span>
+<?php endif; ?>
           </button>
 <?php endforeach; ?>
         </div>
@@ -298,11 +309,13 @@ if (!empty($T['manufacturing'])) : ?>
           <h2 id="manufacturing-title"><?php echo esc_html($T['manufacturing']['title']); ?></h2>
         </div>
         <ol class="order-steps">
-<?php foreach ($T['manufacturing']['steps'] as $manufacturing_index => $manufacturing_step) : ?>
+<?php foreach ($T['manufacturing']['steps'] as $manufacturing_index => $manufacturing_text) : ?>
           <li>
             <span class="order-step-number">0<?= (int) $manufacturing_index + 1 ?></span>
-            <h3><?php echo esc_html($manufacturing_step[0]); ?></h3>
-            <p><?php echo esc_html($manufacturing_step[1]); ?></p>
+<?php /* v3.28 : injection BRUTE du mandat — les 5 paragraphes exacts, sans
+       aucun préfixe ni titre d'étape ; la numérotation 01-05 reste l'habillage
+       charte (.order-step-number inchangé). */ ?>
+            <p><?php echo esc_html($manufacturing_text); ?></p>
           </li>
 <?php endforeach; ?>
         </ol>
