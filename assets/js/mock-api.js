@@ -2,7 +2,7 @@ const ORDER_KEY = "mock_orders";
 const REVIEW_KEY = "mock_reviews";
 const ORDER_MODE_KEY = "mock_order_mode";
 const REVIEW_MODE_KEY = "mock_review_mode";
-const PRICES = { 1: 299, 2: 499, 3: 699 };
+const PRICES = { 1: 329, 2: 559, 3: 789 }; // v3.27 : grille Chenille (329/559/789)
 
 function readRows(key) {
   try {

@@ -21,7 +21,9 @@ const state = { color: null, size: null, quantity: 1 };
 // (window.LANDING.catalog, injectée depuis abaya_catalog()) — le front n'est
 // qu'un affichage ; repli local identique si l'injection manquerait.
 const LANDING = window.LANDING || {};
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 299, 2: 499, 3: 699 };
+// v3.27 : repli aligné sur la grille Chenille (329/559/789 — source autoritaire
+// abaya_catalog() injectée côté serveur ; le repli ne sert que si l'injection manque).
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 329, 2: 559, 3: 789 };
 const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message
