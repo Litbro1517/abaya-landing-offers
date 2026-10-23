@@ -21,9 +21,9 @@ const state = { color: null, size: null, quantity: 1 };
 // (window.LANDING.catalog, injectée depuis abaya_catalog()) — le front n'est
 // qu'un affichage ; repli local identique si l'injection manquerait.
 const LANDING = window.LANDING || {};
-// v3.27 : repli aligné sur la grille Chenille (329/559/789 — source autoritaire
+// v3.28 : repli aligné sur la grille Chenille (329/559/799 — source autoritaire
 // abaya_catalog() injectée côté serveur ; le repli ne sert que si l'injection manque).
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 329, 2: 559, 3: 789 };
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 329, 2: 559, 3: 799 };
 const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message
@@ -120,9 +120,15 @@ function updateSummary() {
   const price = bundlePrices[state.quantity];
   const quantityLabel = quantityLabels[state.quantity];
   // P0-3 : gère l'état « non choisi » (color/size à null).
+  // v3.28 : résumé initial — vedette = mot-à-mot du mandat (« اختاري اللون
+  // والمقاس ») ; landing secondaire (LANDING.offer_id présent) = libellé
+  // validé inchangé (hors périmètre du mandat).
+  const summaryDefault = LANDING.offer_id
+    ? `اختاري اللون والمقاس - ${quantityLabel}`
+    : `اختاري اللون والمقاس`;
   const choiceText = state.color && state.size
     ? `عباية ${state.color} - مقاس ${state.size} - ${quantityLabel}`
-    : `اختاري اللون والمقاس - ${quantityLabel}`;
+    : summaryDefault;
   document.querySelector("#summary-choice").textContent = choiceText;
   document.querySelector("#summary-price").textContent = `${price} درهم`;
   bundleOptions.forEach((option) => {

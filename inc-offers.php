@@ -27,6 +27,16 @@ if (!defined('ABSPATH')) exit;
  * conditionnel). Grille commune ré-tariffée (329/559/789 — économies affichées
  * 50/99/198 conservées et vraies) ; structure 3 cartes, libellés, back-link,
  * logo, formulaire et architecture 2 landings STRICTEMENT INTACTS. *
+ * v3.28 (mandat 4P LP « fix/main-lp-text-and-webp-injection ») : alignement
+ * MOT-À-MOT de la vedette sur la matrice textuelle du mandat — titre
+ * (« أنيقة وانسيابية »), grille 329/559/799 (économies 50/99/188 + prix de
+ * référence 379/658/987 affichés par carte), les 8 détails produit exacts,
+ * les 5 paragraphes « مراحل التصنيع » exacts (injection brute sans préfixe),
+ * couleur « البلون كاسي » (terme du mandat) dans l'ordre d'énumération du
+ * mandat, visuels secondaires alignés sur 1.webp…6.webp (5/2/4) + retrait
+ * des anciennes images du socle. وصف المنتج (intro) CONSERVÉ tel quel.
+ * Grille 3 cartes (structure), back-link ‹ رجوع, logo, formulaire,
+ * produit-1 et architecture 2 landings STRICTEMENT INTACTS.
  * Clés de chaque entrée :
  *   id            slug servie sur /{slug}/ (l'offre vedette est servie à la racine)
  *   name          nom éditorial (titre d'onglet secondaire, méta commande, cross-sell)
@@ -51,18 +61,17 @@ function abaya_base_commerce() {
         'sizes'   => ['S', 'M', 'L', 'XL', 'XXL'],
         /* Grille tarifaire AUTORITAIRE des offres (MAD) — le serveur est la seule
          * autorité sur le prix d'une commande, le front n'est qu'un affichage. */
-        /* v3.27 (mandat 4P LP « feat/chenille-webp-and-content ») : grille
-         * ré-tariffée pour la collection hiver Chenille — prix unitaire 329 MAD
-         * (tableau comparatif). Les 2/3 pièces prolongent les ÉCONOMIES DÉJÀ
-         * AFFICHÉES (99/198 MAD) pour que chaque promesse « توفير » reste
-         * arithmétiquement vraie sans inventer de nouveaux chiffres :
-         *   2 pièces = 2×329 − 99 = 559 ; 3 pièces = 3×329 − 198 = 789.
-         * Libellés et structure de la grille (3 cartes) STRICTEMENT INTACTS. */
-        'bundles' => [1 => 329, 2 => 559, 3 => 789],
+        /* v3.28 (mandat 4P LP « fix/main-lp-text-and-webp-injection ») : grille
+         * du mandat MOT-À-MOT — 329/559/799 MAD, économies 50/99/188 درهم,
+         * prix de référence affiché par carte (« الثمن المرجعي ») 379/658/987 :
+         * chaque « توفير » reste arithmétiquement VRAI (379−329=50 ;
+         * 658−559=99 ; 987−799=188). Structure 3 cartes et libellés
+         * (قطعة واحدة/قطعتان/3 قطع) STRICTEMENT INTACTS. */
+        'bundles' => [1 => 329, 2 => 559, 3 => 799],
         'bundle_labels' => [
-            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم'],
-            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم'],
-            3 => ['label' => '3 قطع', 'saving' => 'توفير 198 درهم'],
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 379],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم', 'ref' => 658],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 188 درهم', 'ref' => 987],
         ],
     ];
 }
@@ -75,17 +84,21 @@ function abaya_base_commerce() {
  */
 function abaya_base_colors($assets_dir) {
     if ($assets_dir === '') {
-        /* v3.27 : palette hiver Chenille (توب شونيل الراقي) — 6 couleurs du
-         * mandat, images 1.webp…6.webp (teintes de pastilles échantillonnées
-         * sur les visuels fournis). Ordre = ordre du mandat. */
+        /* v3.28 : palette hiver Chenille (توب شونيل الراقي) — les 6 couleurs du
+         * mandat dans l'ordre EXACT de son énumération (« اختيار اللون ») :
+         * البلون كاسي، البني، الأخضر الغامق، الرمادي الغامق، الأسود، البوردو.
+         * Cartographie des visuels INCHANGÉE : الأسود 1.webp, البوردو 2.webp,
+         * البني 3.webp, الرمادي الغامق 4.webp, البلون كاسي 5.webp,
+         * الأخضر الغامق 6.webp ; teintes de pastilles échantillonnées sur les
+         * visuels fournis. */
         return [
             /* « label » = forme définie arabe (ال…) utilisée dans les textes d'alt/aria. */
+            'بلون كاسي'  => ['hex' => '#a79994', 'label' => 'البلون كاسي', 'image' => 'uploads/5.webp', 'thumb' => 'uploads/thumbs/5.webp'],
+            'بني'        => ['hex' => '#463739', 'label' => 'البني', 'image' => 'uploads/3.webp', 'thumb' => 'uploads/thumbs/3.webp'],
+            'أخضر غامق'  => ['hex' => '#2e3b3a', 'label' => 'الأخضر الغامق', 'image' => 'uploads/6.webp', 'thumb' => 'uploads/thumbs/6.webp'],
+            'رمادي غامق' => ['hex' => '#53565f', 'label' => 'الرمادي الغامق', 'image' => 'uploads/4.webp', 'thumb' => 'uploads/thumbs/4.webp'],
             'أسود'       => ['hex' => '#1c1c20', 'label' => 'الأسود', 'image' => 'uploads/1.webp', 'thumb' => 'uploads/thumbs/1.webp'],
             'بوردو'      => ['hex' => '#431321', 'label' => 'البوردو', 'image' => 'uploads/2.webp', 'thumb' => 'uploads/thumbs/2.webp'],
-            'بني'        => ['hex' => '#463739', 'label' => 'البني', 'image' => 'uploads/3.webp', 'thumb' => 'uploads/thumbs/3.webp'],
-            'رمادي غامق' => ['hex' => '#53565f', 'label' => 'الرمادي الغامق', 'image' => 'uploads/4.webp', 'thumb' => 'uploads/thumbs/4.webp'],
-            'بيج كاسيه'  => ['hex' => '#a79994', 'label' => 'البيج الكاسيه', 'image' => 'uploads/5.webp', 'thumb' => 'uploads/thumbs/5.webp'],
-            'أخضر غامق'  => ['hex' => '#2e3b3a', 'label' => 'الأخضر الغامق', 'image' => 'uploads/6.webp', 'thumb' => 'uploads/thumbs/6.webp'],
         ];
     }
     return [
@@ -120,21 +133,26 @@ function abaya_offers() {
         'bundles'       => $commerce['bundles'],
         'bundle_labels' => $commerce['bundle_labels'],
         'images' => [
-            /* v3.27 : LCP = visuel noir de la collection Chenille (1.webp). */
+            /* v3.27 : LCP = visuel noir de la collection Chenille (1.webp).
+             * v3.28 : visuels secondaires ALIGNÉS sur la collection Chenille
+             * (1.webp…6.webp) — la section « لماذا هذه العباية » affiche
+             * 5.webp (البلون كاسي), la section détails 2.webp (البوردو) et la
+             * section inspection 4.webp (الرمادي الغامق) ; les anciens
+             * visuels du socle (Robe_comfy_*, visual-*) sont RETIRÉS. */
             'lcp'        => 'uploads/1.webp',
             'lcp_color'  => 'أسود',
             'lcp_alt'    => 'العباية الشتوية باللون الأسود من توب شونيل الراقي',
-            'colors'     => ['src' => 'uploads/Robe_comfy_Robe_chemise_avec_un_col_officier_et_deux_poche_tr_s_pratique_et_confortable_pour_tt___12_.webp', 'alt' => 'العباية باللون البيج بجودة عالية مناسبة لجميع الخرجات والعمل'],
-            'specs'      => ['src' => 'uploads/visual-bordeaux.jpg', 'alt' => 'قصة العباية الواسعة وانسياب قماش الكريب باللون الأحمر الداكن'],
-            'inspection' => ['src' => 'uploads/visual-blue-sky.jpg', 'alt' => 'إظهار ملمس قماش العباية بلون أزرق سماوي وجودة خياطتها'],
+            'colors'     => ['src' => 'uploads/5.webp', 'alt' => 'العباية الشتوية من توب شونيل الراقي باللون البلون كاسي'],
+            'specs'      => ['src' => 'uploads/2.webp', 'alt' => 'قصة العباية الواسعة وانسياب توب شونيل الراقي باللون البوردو'],
+            'inspection' => ['src' => 'uploads/4.webp', 'alt' => 'معاينة العباية والتأكد من ملمس توب شونيل الراقي باللون الرمادي الغامق'],
         ],
         'texts' => [
             'document_title'   => 'Abaya Collection',
             /* v3.27 : textes collection hiver Chenille (توب شونيل الراقي) —
-             * modèle, tarifs (329 MAD) et caractéristiques col/manches/ceinture
-             * selon le tableau comparatif du mandat. */
+             * v3.28 : titre MOT-À-MOT du mandat ; وصف المنتج (intro)
+             * CONSERVÉ tel quel (consigne explicite du mandat). */
             'meta_description' => 'عباية شتوية من توب شونيل الراقي، دافئة وأنيقة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
-            'headline'         => 'عباية شتوية من توب شونيل الراقي – دافئة وأنيقة',
+            'headline'         => 'عباية شتوية من توب شونيل الراقي – أنيقة وانسيابية',
             'slogan'           => 'اختيار يومي أنيق',
             'intro'            => 'عباية شتوية أنيقة ودافئة، بتوب شونيل راقٍ ملمسه ناعم وخياطة مضوبلة من الداخل والخارج، بجودة عالية لراحتك في الاستخدام اليومي.',
             'old_price'        => '379 درهم',
@@ -145,31 +163,36 @@ function abaya_offers() {
                 'تخصيص القياسات|نظرًا لأننا نقوم بالخياطة المباشرة للموديل، يمكننا تعديل وتخصيص العباية من حيث (الطول والعرض/المقاس) حسب طولك ووزنك الخاص، مع الحفاظ التام على القصة والتصميم الأصلي.',
             ],
             'specs_title'      => 'معلومات إضافية وتفاصيل عن المنتج:',
-            /* v3.27 : caractéristiques Chenille — tissu, col, manches,
-             * ceinture (conformes aux visuels 1.webp…6.webp fournis). */
+            /* v3.28 : les 8 détails produit du mandat injectés MOT-À-MOT
+             * (injection brute — aucun préfixe, étiquette ni deux-points
+             * ajoutés ; la ponctuation du mandat est reproduite telle quelle). */
             'specs_items'      => [
-                'نوع التوب: توب شونيل الراقي، ملمس ناعم ودافئ مناسب للموسم الشتوي.',
-                'كول راقٍ مستدير مع بتنون أمامية بأزرار صدفية أنيقة.',
-                'أكمام واسعة منفوخة بأساور مطاطية مريحة.',
-                'حزام كوردون من نفس التوب يُربط عند الخصر لإبراز القامة.',
-                'قصة انسيابية وفضفاضة متوفرة بمقاسات مختلفة باش تختاري المقاس المناسب ليك.',
+                'التوب شونيل دافئ ومريح، مناسب للموسم الشتوي.',
+                'العباية طويلة بقصة واسعة وفضفاضة وانسيابية، ما كتبينش تفاصيل الجسم، ومناسبة للستايل المحتشم.',
+                'العباية بتصميم القميص صممت بأزرار أمامية على طول العباية، لإضفاء لمسة أنيقة وجعلها سهلة التنسيق.',
+                'جميع المقاسات متوفرة، باش تختاري المقاس المناسب ليك.',
+                'العباية مصممة بكول أوفيسيي كتفصيل بسيط ومميز لمزيد من الأناقة.',
+                'الأكمام بتصميم البوفون مع الفرونس عند المعصم لمظهر راقي وأنيق.',
+                'الحزام من القماش معد بقصة دقيقة ، استعمليه لإضفاء بعض الجمالية الإضافية على العباية أو لتعديل القصة حسب الإطلالة وشكل الجسم.',
+                'الخياطة والفينيسيون : فينيسيون نقية وخياطة مضوبلة من لداخل ومن برا.',
             ],
             'inspection_title' => 'معاينة الطلبية والحق في الفحص',
             'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',
             'inspection_note'  => 'يحق لك فتح الطرد وفحص القماش وجودة الخياطة أمام الموصل قبل إتمام الدفع.',
-            /* v3.27 : nouvelle section « مراحل التصنيع » (5 étapes) — rendue
-             * par le gabarit JUSTE APRÈS la section d'inspection et AVANT les 3
-             * blocs de garanties. Les 5 étapes reprennent exclusivement des
-             * affirmations déjà validées sur la page (خياطة مزدوجة، تخصيص
-             * القياسات، خياطة من 5 إلى 6 أيام) — aucun gain nouveau inventé. */
+            /* v3.28 : les 5 paragraphes « مراحل التصنيع » du mandat injectés
+             * MOT-À-MOT (injection brute — aucun préfixe ni titre d'étape ;
+             * la numérotation 01-05 reste l'habillage charte). La section est
+             * rendue par le gabarit JUSTE APRÈS la section d'inspection
+             * (« معاينة الطلبية والحق في الفحص ») et AVANT les 3 blocs de
+             * garanties (.trust-strip). */
             'manufacturing'    => [
                 'title' => 'مراحل التصنيع',
                 'steps' => [
-                    ['اختيار التوب', 'نختار بعناية توب شونيل الراقي بجودة عالية، ملمس ناعم ودافئ مناسب لموسم الشتاء.'],
-                    ['القص والتفصيل', 'يتم قص العباية حسب المقاسات المطلوبة مع الحفاظ التام على القصة والتصميم الأصلي.'],
-                    ['الخياطة المزدوجة', 'خياطة مزدوجة متينة من الداخل والخارج تضمن استدامة العباية وتألقها حتى مع الغسيل المتكرر.'],
-                    ['التفاصيل النهائية', 'تركيب الكول والأزرار، تجميع الأكمام المنفوخة بأساور مطاطية، وخياطة حزام الكوردون.'],
-                    ['مراقبة الجودة والتغليف', 'فحص نهائي لجودة الثوب والخياطة قبل التغليف، وطلب خياطة المنتج يستغرق من 5 إلى 6 أيام.'],
+                    'كنختارو موديل مميز، وكنحرصو على اختيار توب بجودة عالية، حيت جودة الثوب هي أولوية عندنا.',
+                    'كنخضعو التوب لاختبار عملي باش نتأكدو من الجودة ديالو، وأنه ما كيشربش وما كيتبدلش الشكل ديالو ولا المقاسات ديالو من بعد الغسيل.',
+                    'كنهتمو بالفصالة والخياطة، باش كل تفصيلة فالعباية ديالك تكون مضبوطة ومخدومة مزيان.',
+                    'من بعد الخياطة، كنخضعو العباية لاختبار الجودة والمتانة، وكنراجعو الخياطة والتفاصيل من الداخل ومن برا، باش نتأكدو من جودة الخدمة قبل ما نرسلوها للزبونة.',
+                    'هاد الشي كلو باش توصلك عباية مخدومة بعناية، بخياطة متقونة وجودة عالية.',
                 ],
             ],
             'guide_title'      => 'كيف يمكنني تقديم الطلب؟',

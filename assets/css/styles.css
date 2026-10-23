@@ -2391,3 +2391,17 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   outline-offset: 0;
 }
 /* ================= fin v3.22 ================= */
+
+/* =====================================================================
+ * v3.28 (mandat 4P LP « fix/main-lp-text-and-webp-injection ») — prix de
+ * référence affiché sous l'économie de chaque carte d'offre (matrice
+ * mot-à-mot : « الثمن المرجعي: 379/658/987 درهم »). Règle NOUVELLE ajoutée
+ * en fin de feuille — AUCUNE règle existante modifiée ou supprimée.
+ * Teinte = celle de .bundle-saving (#6a675d, contraste validé v3.22 sur les
+ * fonds #f6f2e9/#fffdf8) à 12px pour la hiérarchie visuelle : prix (27px,
+ * olive) > économie (13px) > référence (12px). La carte reste en flex
+ * column gap 10px — le 4e enfant grandit la carte si besoin (min-height =
+ * plancher, aucun débordement horizontal possible).
+ * ===================================================================== */
+.bundle-ref { color: #6a675d; font-size: 12px; }
+/* ================= fin v3.28 ================= */
