@@ -285,6 +285,30 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
         </div>
       </section>
 
+<?php /* v3.27 (mandat 4P LP « feat/chenille-webp-and-content ») : section
+       « مراحل التصنيع » (5 étapes de fabrication) — insérée à son emplacement
+       EXACT du mandat : juste APRÈS la section d'inspection (« معاينة الطلبية
+       والحق في الفحص ») et AVANT les 3 blocs de garanties (.trust-strip).
+       Charte 100 % réutilisée (.order-guide/.order-steps/.order-step-number —
+       zéro CSS nouveau) ; rendu CONDITIONNEL sur la clé texts['manufacturing']
+       du registre : les landings sans cette clé (produit-1) restent bit-exactes. */
+if (!empty($T['manufacturing'])) : ?>
+      <section class="order-guide wrap" id="fabrication" aria-labelledby="manufacturing-title">
+        <div class="section-heading">
+          <h2 id="manufacturing-title"><?php echo esc_html($T['manufacturing']['title']); ?></h2>
+        </div>
+        <ol class="order-steps">
+<?php foreach ($T['manufacturing']['steps'] as $manufacturing_index => $manufacturing_step) : ?>
+          <li>
+            <span class="order-step-number">0<?= (int) $manufacturing_index + 1 ?></span>
+            <h3><?php echo esc_html($manufacturing_step[0]); ?></h3>
+            <p><?php echo esc_html($manufacturing_step[1]); ?></p>
+          </li>
+<?php endforeach; ?>
+        </ol>
+      </section>
+<?php endif; ?>
+
       <section class="trust-strip" id="delivery" aria-label="مميزات التوصيل والاستبدال">
         <div class="trust-grid wrap">
 <?php /* Icônes SVG = partie structurelle du gabarit ; textes = registre. */
