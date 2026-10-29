@@ -1463,15 +1463,32 @@ body.product-landing { background: var(--paper); color: var(--ink); }
   border-radius: 16px;
   background: rgb(250 247 242 / 60%);
 }
+/* v3.29 (mandat « fix/main-lp-manufacturing-and-contrast ») : le filigrane
+   (position:absolute + opacity:.3 = contraste mesuré 1,46:1) est REMPLACÉ
+   par une pastille pleine conforme AA : #2d6a70 (var(--olive-dark)) sur
+   pastille émeraude 10 % (composée ≈ #e8eeec) = ≈ 5,2:1 — seuil 4,5:1
+   dépassé en TEXTE COURANT (le grand-texte 3:1 était déjà acquis à 24px).
+   Position statique : la pastille précède le titre dans le flux RTL (fini
+   le left:12px qui rejetait le numéro côté gauche de lecture arabe). Le
+   correctif s'applique d'un seul coup aux sections « مراحل التصنيع » et
+   « كيف يمكنني تقديم الطلب؟ » (composant .order-step-number partagé —
+   audit designer §2.1). Teinte/famille = pastilles .inspection-banner-icon
+   (émeraude 10 %) — même famille visuelle. */
 .product-landing .order-step-number {
-  position: absolute;
-  top: 8px;
-  left: 12px;
-  margin: 0;
-  color: var(--olive);
-  font-size: 24px;
+  position: static;
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  margin: 0 0 10px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: rgb(58 125 132 / 10%);
+  color: var(--olive-dark);
+  font-size: 15px;
   font-weight: 900;
-  opacity: .3;
+  letter-spacing: .06em;
+  opacity: 1;
 }
 .product-landing .order-steps h3 { color: var(--ink); font-weight: 800; }
 .product-landing .order-steps p { color: var(--muted); }
@@ -2405,3 +2422,18 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
  * ===================================================================== */
 .bundle-ref { color: #6a675d; font-size: 12px; }
 /* ================= fin v3.28 ================= */
+
+/* =====================================================================
+ * v3.29 (mandat 4P LP « fix/main-lp-manufacturing-and-contrast ») — grille
+ * « مراحل التصنيع » en 2×2 sur desktop (≥701px) : 4 blocs → aucune carte
+ * orpheline (le 3-colonnes hérité donnait 3+1 — même défaut corrigé en
+ * v3.26 sur la TYP). ≤700px : 1 colonne (règle historique inchangée).
+ * La section commande conserve sa grille 3-colonnes (processus séquentiel
+ * horizontal — différenciation visuelle des deux sections numérotées,
+ * audit designer §2.2). Règle NOUVELLE scopée par #fabrication — AUCUNE
+ * règle existante modifiée.
+ * ===================================================================== */
+@media (min-width: 701px) {
+  #fabrication .order-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ================= fin v3.29 ================= */

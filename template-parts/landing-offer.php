@@ -297,28 +297,37 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
       </section>
 
 <?php /* v3.27 (mandat 4P LP « feat/chenille-webp-and-content ») : section
-       « مراحل التصنيع » (5 étapes de fabrication) — insérée à son emplacement
-       EXACT du mandat : juste APRÈS la section d'inspection (« معاينة الطلبية
-       والحق في الفحص ») et AVANT les 3 blocs de garanties (.trust-strip).
-       Charte 100 % réutilisée (.order-guide/.order-steps/.order-step-number —
-       zéro CSS nouveau) ; rendu CONDITIONNEL sur la clé texts['manufacturing']
-       du registre : les landings sans cette clé (produit-1) restent bit-exactes. */
+       « مراحل التصنيع » — insérée à son emplacement EXACT du mandat : juste
+       APRÈS la section d'inspection (« معاينة الطلبية والحق في الفحص ») et
+       AVANT les 3 blocs de garanties (.trust-strip) ; rendu CONDITIONNEL sur
+       la clé texts['manufacturing'] du registre : les landings sans cette clé
+       (produit-1) restent bit-exactes.
+       v3.29 (mandat « fix/main-lp-manufacturing-and-contrast ») :
+       restructuration — 4 blocs d'étapes avec <h3> en gras (même charte que
+       la section commande, .order-steps h3 existe déjà : zéro CSS nouveau) ;
+       le 5e paragraphe devient un bandeau d'accroche réutilisant le composant
+       .inspection-banner existant (zéro CSS nouveau, famille visuelle
+       identique au bandeau d'inspection). */
 if (!empty($T['manufacturing'])) : ?>
       <section class="order-guide wrap" id="fabrication" aria-labelledby="manufacturing-title">
         <div class="section-heading">
           <h2 id="manufacturing-title"><?php echo esc_html($T['manufacturing']['title']); ?></h2>
         </div>
         <ol class="order-steps">
-<?php foreach ($T['manufacturing']['steps'] as $manufacturing_index => $manufacturing_text) : ?>
+<?php foreach ($T['manufacturing']['steps'] as $manufacturing_index => $manufacturing_step) : ?>
           <li>
             <span class="order-step-number">0<?= (int) $manufacturing_index + 1 ?></span>
-<?php /* v3.28 : injection BRUTE du mandat — les 5 paragraphes exacts, sans
-       aucun préfixe ni titre d'étape ; la numérotation 01-05 reste l'habillage
-       charte (.order-step-number inchangé). */ ?>
-            <p><?php echo esc_html($manufacturing_text); ?></p>
+            <h3><?php echo esc_html($manufacturing_step[0]); ?></h3>
+            <p><?php echo esc_html($manufacturing_step[1]); ?></p>
           </li>
 <?php endforeach; ?>
         </ol>
+<?php if (!empty($T['manufacturing']['note'])) : ?>
+        <div class="inspection-banner">
+          <span class="inspection-banner-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+          <p class="inspection-note"><?php echo esc_html($T['manufacturing']['note']); ?></p>
+        </div>
+<?php endif; ?>
       </section>
 <?php endif; ?>
 
