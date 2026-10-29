@@ -179,21 +179,22 @@ function abaya_offers() {
             'inspection_title' => 'معاينة الطلبية والحق في الفحص',
             'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',
             'inspection_note'  => 'يحق لك فتح الطرد وفحص القماش وجودة الخياطة أمام الموصل قبل إتمام الدفع.',
-            /* v3.28 : les 5 paragraphes « مراحل التصنيع » du mandat injectés
-             * MOT-À-MOT (injection brute — aucun préfixe ni titre d'étape ;
-             * la numérotation 01-05 reste l'habillage charte). La section est
-             * rendue par le gabarit JUSTE APRÈS la section d'inspection
-             * (« معاينة الطلبية والحق في الفحص ») et AVANT les 3 blocs de
-             * garanties (.trust-strip). */
+            /* v3.29 (mandat « fix/main-lp-manufacturing-and-contrast ») : la
+             * section passe à EXACTEMENT 4 blocs d'étapes dotés de leurs titres
+             * respectifs (couples [titre, texte] — audit designer v3.29 §1.2 :
+             * correspondance titre/paragraphe un pour un, aucun remaniement de
+             * contenu). Les textes restent INCHANGÉS mot-à-mot (v3.28). Le 5e
+             * paragraphe — déjà une clôture, pas une étape — est extrait en clé
+             * « note » et rendu par le gabarit en bandeau .inspection-banner. */
             'manufacturing'    => [
                 'title' => 'مراحل التصنيع',
                 'steps' => [
-                    'كنختارو موديل مميز، وكنحرصو على اختيار توب بجودة عالية، حيت جودة الثوب هي أولوية عندنا.',
-                    'كنخضعو التوب لاختبار عملي باش نتأكدو من الجودة ديالو، وأنه ما كيشربش وما كيتبدلش الشكل ديالو ولا المقاسات ديالو من بعد الغسيل.',
-                    'كنهتمو بالفصالة والخياطة، باش كل تفصيلة فالعباية ديالك تكون مضبوطة ومخدومة مزيان.',
-                    'من بعد الخياطة، كنخضعو العباية لاختبار الجودة والمتانة، وكنراجعو الخياطة والتفاصيل من الداخل ومن برا، باش نتأكدو من جودة الخدمة قبل ما نرسلوها للزبونة.',
-                    'هاد الشي كلو باش توصلك عباية مخدومة بعناية، بخياطة متقونة وجودة عالية.',
+                    ['اختيار الموديل والتوب', 'كنختارو موديل مميز، وكنحرصو على اختيار توب بجودة عالية، حيت جودة الثوب هي أولوية عندنا.'],
+                    ['اختبار التوب والجودة', 'كنخضعو التوب لاختبار عملي باش نتأكدو من الجودة ديالو، وأنه ما كيشربش وما كيتبدلش الشكل ديالو ولا المقاسات ديالو من بعد الغسيل.'],
+                    ['الفصالة والخياطة', 'كنهتمو بالفصالة والخياطة، باش كل تفصيلة فالعباية ديالك تكون مضبوطة ومخدومة مزيان.'],
+                    ['مراقبة الجودة والمتانة', 'من بعد الخياطة، كنخضعو العباية لاختبار الجودة والمتانة، وكنراجعو الخياطة والتفاصيل من الداخل ومن برا، باش نتأكدو من جودة الخدمة قبل ما نرسلوها للزبونة.'],
                 ],
+                'note' => 'هاد الشي كلو باش توصلك عباية مخدومة بعناية، بخياطة متقونة وجودة عالية.',
             ],
             'guide_title'      => 'كيف يمكنني تقديم الطلب؟',
             'guide_steps'      => [
