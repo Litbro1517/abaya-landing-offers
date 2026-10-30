@@ -2512,3 +2512,20 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
 .picker-size-guide { margin-top: 10px; }
 .picker-hint { min-height: 15px; margin: 8px 0 0; color: #a14f43; font-size: 12px; text-align: center; }
 /* ================= fin v3.30 ================= */
+
+/* =====================================================================
+ * v3.31 (mandat 4P LP « feat/wool-abaya-product-adaptation » — correctif
+ * boutons de taille du picker) — ÉTAT ACTIF VISIBLE SANS HOVER.
+ * Cause racine (audit docs/AUDIT-SIZE-BUG-v3.31.md) : les puces de taille
+ * rendues dynamiquement exposent leur état via aria-pressed="true" (contrat
+ * handoff) mais AUCUNE règle CSS ne ciblait cet attribut — l'état actif
+ * n'était visible qu'au survol (:hover), absent en tactile (appareil réel
+ * des clientes) : les boutons paraissaient morts. Correctif principal =
+ * classe .is-selected posée au rendu (app.js v3.31) — sélecteurs charte
+ * existants réutilisés (critical.css:175, styles.css:417/1320). La règle
+ * ci-dessous est un filet de sécurité scoped au seul conteneur .multi-picker
+ * (rend le MÊME état olive si un chemin futur ne pose que l'attribut).
+ * Règle NOUVELLE en fin de feuille — AUCUNE règle existante modifiée.
+ * ===================================================================== */
+.multi-picker .size-option[aria-pressed="true"] { border-color: var(--olive); background: var(--olive); color: #fff; }
+/* ================= fin v3.31 ================= */

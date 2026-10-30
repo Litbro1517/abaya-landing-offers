@@ -163,7 +163,14 @@ function renderMultiPicker() {
       const item = multi.items[index] || { size: null };
       const option = colorOptions.find((candidate) => candidate.name === color);
       const chips = sizeValues.map((size) =>
-        `<button type="button" class="size-option" data-act="size" data-i="${index}" data-size="${size}" aria-pressed="${item.size === size}">${size}</button>`
+        /* v3.31 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : l'état
+         * actif des puces dynamiques doit être VISIBLE sur mobile (aucun
+         * :hover en tactile) — classe .is-selected de la charte appliquée au
+         * rendu, exactement comme les puces statiques historiques (app.js
+         * handler .size-option) ; sélecteurs charte existants réutilisés
+         * (critical.css:175, styles.css:417/1320). aria-pressed conservé
+         * (contrat handoff) ; règle filet de sécurité styles.css v3.31. */
+        `<button type="button" class="size-option${item.size === size ? " is-selected" : ""}" data-act="size" data-i="${index}" data-size="${size}" aria-pressed="${item.size === size}">${size}</button>`
       ).join("");
       return (
         `<section class="picker-piece">` +
