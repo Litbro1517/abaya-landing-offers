@@ -192,13 +192,17 @@ function abaya_offers() {
             'meta_description' => 'عباية شتوية من توب الصوف، دافئة وأنيقة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
             'headline'         => 'عباية شتوية من توب الصوف – انسيابية ودوبل كلوش',
             'slogan'           => 'اختيار يومي أنيق',
-            /* v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation ») :
-             * sous-titre H1 mis à jour — le premier paragraphe passe en arabe
-             * littéraire (Fusha) ; la phrase de finition du mandat (Darija) est
-             * ISOLÉE sur sa propre ligne via la clé « intro_finish » (rendue
-             * centrée, police fine, italique — bloc v3.32 de styles.css).
-             * Faits exclusivement issus de la liste des caractéristiques. */
-            'intro'            => 'عباية شتوية فاخرة من توب الصوف الدافئ الكثيف، بقصة واسعة وفضفاضة على شكل دوبل كلوش، تجمع بين الاحتشام والأناقة وحرية الحركة. ثوب انسيابي لا يلتصق بالجسم ولا يظهر تفاصيله، ويمنحك إطلالة أنيقة ومميزة بمظهر وألوان هادئة وجذابة.',
+            /* v3.33 (mandat 4P LP) : SOUS-TITRE H1 — CORRECTION DE MISE EN
+             * FORME EXCLUSIVE (prix/offres/sélecteur déjà validés, ZÉRO autre
+             * changement) : bloc HOMOGÈNE — la phrase en arabe littéraire
+             * (texte EXACT de la PARTIE 3 du mandat) est suivie
+             * IMMÉDIATEMENT, dans le MÊME flux et à la MÊME police/taille que
+             * le corps, par la phrase Darija ENCADRÉE DE DEUX TIRETS et
+             * mise en ITALIQUE (seule partie italique — rendue par
+             * <em class="product-intro-darija"> dans landing-offer.php ;
+             * les tirets encadrent la phrase, la clé « intro_finish » est
+             * conservée telle quelle : produit-1 reste bit-exact). */
+            'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق.',
             'intro_finish'     => 'بالنسبة للفينيسيون نقية وخياطة متقونة من الداخل ومن برا',
             'old_price'        => '499 درهم',
             'colors_bullets'   => [

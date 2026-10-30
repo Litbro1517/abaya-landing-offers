@@ -2544,7 +2544,14 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
  *      avez choisi » ; bordeaux : « le plus demandé » — deux couleurs,
  *      deux métiers, zéro collision.
  *   2. PHRASE DE FINITION du sous-titre H1 : ligne indépendante,
- *      centrée, graisse 300 (fine), italique.
+ *      centrée, graisse 300 (fine), italique. — v3.33 (mandat 4P LP,
+ *      correction EXCLUSIVE de la description) : REMPLACÉE — la phrase
+ *      Darija est INTÉGRÉE AU FLUX du paragraphe .product-intro (bloc
+ *      homogène : même police/taille/graisse que le corps), encadrée
+ *      de deux tirets, SEULE ELLE en italique (règle ci-dessous) ;
+ *      .product-intro-finish disparaît, .product-intro-darija la
+ *      remplace. La déclaration 200-399 ci-dessus est CONSERVÉE :
+ *      .modal-close (ligne 613) utilise la graisse 300.
  *   3. Prix d'origine barré : rendu par le gabarit en style INLINE du
  *      mandat (color #888, font-size 0.85em) — aucune règle CSS
  *      nécessaire — rien n'est déclaré ici (documenté pour traçabilité).
@@ -2567,15 +2574,12 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
-/* 1 — phrase de finition : ligne indépendante, centrée, fine, italique */
-.product-intro-finish {
-  display: block;
-  margin: 4px 0 0;
-  color: #55564f;
-  text-align: center;
-  font-weight: 300;
-  font-style: italic;
-}
+/* 1 — v3.33 : phrase Darija du sous-titre H1 — INTÉGRÉE AU FLUX du
+   paragraphe .product-intro (fin de la ligne isolée/centrée/fine de
+   v3.32) : bloc HOMOGÈNE — même police, même taille, même graisse que
+   le corps (héritage intégral du paragraphe) ; la phrase est encadrée
+   de deux tirets (gabarit) et SEULE ELLE est en italique : */
+.product-intro .product-intro-darija { font-style: italic; }
 
 /* 2 — OPTION A : ruban bordeaux de section (taille et densité remontées) */
 .product-landing:not(.is-upsell) .bundle-card:nth-child(2)::after {
@@ -2625,6 +2629,5 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
     right: -7px;
     font: 800 11px/1 "Cairo", Tahoma, sans-serif;
   }
-  .product-intro-finish { margin-top: 2px; }
 }
 /* ================= fin v3.32 ================= */
