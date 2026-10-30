@@ -77,15 +77,17 @@ foreach ($cat['colors'] as $color_name => $color_data) :
        de la section avis n'est dupliqué. */
 abaya_render_rating_summary();
 ?>
-          <p class="product-intro"><?php echo esc_html($T['intro']); ?></p>
-<?php /* v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : phrase de
- * finition du mandat ISOLÉE sur une ligne indépendante — centrée, police fine
- * (Cairo variable graisse 300, déclaration 200-399 ajoutée en bloc v3.32 de
- * styles.css) et italique. Rendu CONDITIONNEL sur la présence de la clé :
- * produit-1 (sans la clé) reste bit-exact. */ ?>
-<?php if (!empty($T['intro_finish'])) : ?>
-          <p class="product-intro-finish"><?php echo esc_html($T['intro_finish']); ?></p>
-<?php endif; ?>
+<?php /* v3.33 (mandat 4P LP) : SOUS-TITRE H1 — BLOC HOMOGÈNE (correction
+ * exclusive de la description, prix/offres/sélecteur déjà validés) : la
+ * phrase Darija du mandat n'est PLUS une ligne isolée (fin du rendu v3.32
+ * p.product-intro-finish) — elle suit IMMÉDIATEMENT le texte principal dans
+ * le MÊME paragraphe et le MÊME flux, ENCADRÉE DE DEUX TIRETS (ex. exact du
+ * mandat) et SEULE ELLE est en italique (font-style:italic, règle v3.33 de
+ * styles.css) — même police, même taille, même graisse que le corps via
+ * héritage intégral de .product-intro. Rendu CONDITIONNEL sur la présence
+ * de la clé : produit-1 (sans la clé) reste bit-exact (l'espace avant <em>
+ * est DANS la branche conditionnelle). */ ?>
+          <p class="product-intro"><?php echo esc_html($T['intro']); ?><?php if (!empty($T['intro_finish'])) : ?> <em class="product-intro-darija">-<?php echo esc_html($T['intro_finish']); ?>-</em><?php endif; ?></p>
 
           <div class="price-row">
             <strong id="current-price" class="price"><?= (int) $cat['bundles'][1] ?> <small>درهم</small></strong>
