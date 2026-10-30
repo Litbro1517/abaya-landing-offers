@@ -114,6 +114,19 @@ foreach ($cat['sizes'] as $size_name) : ?>
               <span aria-hidden="true">⌄</span>
             </button>
           </fieldset>
+<?php /* v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») :
+ * SÉLECTEUR MULTI-PIÈCES (logique abaya-multi-piece-picker.html) — rendu
+ * CONDITIONNEL sur la VEDETTE uniquement (abaya_is_front_offer) : les
+ * landings secondaires restent BIT-EXACTES (aucun nœud ajouté hors vedette).
+ * Conteneur INVISIBLE au chargement (attribut hidden — zéro déformation du
+ * bloc principal) : app.js l'affiche SEULEMENT quand une offre 2/3 pièces est
+ * sélectionnée (affichage conditionnel lors de l'interaction) et y rend les
+ * lignes couleur avec compteurs +/− puis une rangée de tailles par pièce ;
+ * les deux fieldsets simple choix ci-dessus restent alors masqués. Offre
+ * 1 pièce : fieldsets historiques inchangés, conteneur jamais affiché. */ ?>
+<?php if (abaya_is_front_offer()) : ?>
+          <div class="multi-picker" id="multi-picker" hidden></div>
+<?php endif; ?>
 
           <section class="order-section hero-order" id="formulaire-commande" aria-labelledby="order-title">
             <div class="order-card" id="order-form-section">
@@ -182,6 +195,20 @@ if ($abaya_upsell_ctx) {
                 <div class="hp-field" aria-hidden="true">
                   <label>Ne pas remplir <input type="text" name="extra_note" tabindex="-1" autocomplete="off" /></label>
                 </div>
+<?php /* v3.30 (mandat « feat/wool-abaya-product-adaptation ») : contrat de
+ * données du sélecteur multi-pièces (abaya-multi-piece-picker.html §DATA) —
+ * VEDETTE uniquement (produit-1 bit-exacte). app.js tient ces champs à jour :
+ *   offer_pieces     : 1 | 2 | 3 (nombre de pièces de l'offre) ;
+ *   offer_total      : 479 | 799 | 1099 (affichage — le serveur reste autorité) ;
+ *   order_items      : ligne lisible par l'équipe de confirmation, ex.
+ *                      « قطعتان | ق1: بني كريمي / M | ق2: أسود / L » ;
+ *   order_items_json : tableau [{n,color,size},…] mappé en méta commande. */ ?>
+<?php if (abaya_is_front_offer()) : ?>
+                <input type="hidden" name="offer_pieces" id="f_pieces" />
+                <input type="hidden" name="offer_total" id="f_total" />
+                <input type="hidden" name="order_items" id="f_items" />
+                <input type="hidden" name="order_items_json" id="f_json" />
+<?php endif; ?>
                 <button class="primary-button form-submit" type="submit">اضغطي هنا للطلب</button>
               </form>
               <div class="form-result" id="form-result" role="status" hidden></div>

@@ -37,6 +37,22 @@ if (!defined('ABSPATH')) exit;
  * des anciennes images du socle. وصف المنتج (intro) CONSERVÉ tel quel.
  * Grille 3 cartes (structure), back-link ‹ رجوع, logo, formulaire,
  * produit-1 et architecture 2 landings STRICTEMENT INTACTS.
+ *
+ * v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : transition
+ * complète de la VEDETTE vers la collection « Abaya Laine » (عباية شتوية من
+ * توب الصوف) — (a) grille tarifaire de la VEDETTE SEULE 479/799/1099 MAD
+ * (économies 20/159/338 + الثمن المرجعي 499/958/1437 ; la grille commune
+ * abaya_base_commerce() 329/559/799 reste INTACTE pour produit-1 — ZÉRO diff
+ * de données hors vedette) ; (b) palette réduite à EXACTEMENT 2 couleurs du
+ * mandat (البني الكريمي #b9a590, الأسود #1c1c1c) ; (c) 2 images PROVISOIRES
+ * JPG (wool-1.jpg / wool-2.jpg + vignettes) à remplacer ultérieurement par
+ * des WebP définitifs ; (d) matrice textuelle mot-à-mot (titre, héros, 9
+ * détails produit sans le sursaut الحزام, étapes 01/02 du guide) ;
+ * (e) sélecteur multi-pièces (gabarit + app.js + REST additif) : compteurs
+ * +/− par couleur pour les offres 2/3 pièces, tailles attribuées par pièce,
+ * gating du bouton, données commandées portées par order_items/order_items_json.
+ * Logo, back-link ‹ رجوع, grille 3 offres (STRUCTURE), formulaire, tunnel,
+ * TYP, produit-1 (bit-exacte) et architecture 2 landings STRICTEMENT INTACTS.
  * Clés de chaque entrée :
  *   id            slug servie sur /{slug}/ (l'offre vedette est servie à la racine)
  *   name          nom éditorial (titre d'onglet secondaire, méta commande, cross-sell)
@@ -84,21 +100,19 @@ function abaya_base_commerce() {
  */
 function abaya_base_colors($assets_dir) {
     if ($assets_dir === '') {
-        /* v3.28 : palette hiver Chenille (توب شونيل الراقي) — les 6 couleurs du
-         * mandat dans l'ordre EXACT de son énumération (« اختيار اللون ») :
-         * البلون كاسي، البني، الأخضر الغامق، الرمادي الغامق، الأسود، البوردو.
-         * Cartographie des visuels INCHANGÉE : الأسود 1.webp, البوردو 2.webp,
-         * البني 3.webp, الرمادي الغامق 4.webp, البلون كاسي 5.webp,
-         * الأخضر الغامق 6.webp ; teintes de pastilles échantillonnées sur les
-         * visuels fournis. */
+        /* v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : palette
+         * « Abaya Laine » (عباية شتوية من توب الصوف) — EXACTEMENT les 2 couleurs
+         * du mandat (« دائرتان فقط ») dans l'ordre de son énumération :
+         * البني الكريمي (#b9a590) puis الأسود (#1c1c1c). Visuels PROVISOIRES
+         * JPG fournis par le mandat (wool-1.jpg = البني الكريمي — tons clairs
+         * de la capture 013607 ; wool-2.jpg = الأسود — tons sombres de la
+         * capture 013457) aux dimensions natives des emplacements existants
+         * (cover 3:4) + vignettes 151×170 du format du système ; ils seront
+         * REMPLACÉS ultérieurement par des WebP définitifs (consigne mandat). */
         return [
             /* « label » = forme définie arabe (ال…) utilisée dans les textes d'alt/aria. */
-            'بلون كاسي'  => ['hex' => '#a79994', 'label' => 'البلون كاسي', 'image' => 'uploads/5.webp', 'thumb' => 'uploads/thumbs/5.webp'],
-            'بني'        => ['hex' => '#463739', 'label' => 'البني', 'image' => 'uploads/3.webp', 'thumb' => 'uploads/thumbs/3.webp'],
-            'أخضر غامق'  => ['hex' => '#2e3b3a', 'label' => 'الأخضر الغامق', 'image' => 'uploads/6.webp', 'thumb' => 'uploads/thumbs/6.webp'],
-            'رمادي غامق' => ['hex' => '#53565f', 'label' => 'الرمادي الغامق', 'image' => 'uploads/4.webp', 'thumb' => 'uploads/thumbs/4.webp'],
-            'أسود'       => ['hex' => '#1c1c20', 'label' => 'الأسود', 'image' => 'uploads/1.webp', 'thumb' => 'uploads/thumbs/1.webp'],
-            'بوردو'      => ['hex' => '#431321', 'label' => 'البوردو', 'image' => 'uploads/2.webp', 'thumb' => 'uploads/thumbs/2.webp'],
+            'بني كريمي'  => ['hex' => '#b9a590', 'label' => 'البني الكريمي', 'image' => 'uploads/wool-1.jpg', 'thumb' => 'uploads/thumbs/wool-1.jpg'],
+            'أسود'       => ['hex' => '#1c1c1c', 'label' => 'الأسود', 'image' => 'uploads/wool-2.jpg', 'thumb' => 'uploads/thumbs/wool-2.jpg'],
         ];
     }
     return [
@@ -130,51 +144,62 @@ function abaya_offers() {
         'assets_dir'  => '',
         'colors'      => abaya_base_colors(''),
         'sizes'         => $commerce['sizes'],
-        'bundles'       => $commerce['bundles'],
-        'bundle_labels' => $commerce['bundle_labels'],
+        /* v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : grille
+         * de la VEDETTE SEULE — 479/799/1099 MAD (libellés ×3 de la charte
+         * CONSERVÉS) + économies 20/159/338 درهم + الثمن المرجعي 499/958/1437
+         * affiché par carte. Chaque توفير reste arithmétiquement VRAI :
+         * 499−479=20 ; 958−799=159 ; 1437−1099=338. La grille commune
+         * abaya_base_commerce() (329/559/799) reste intacte pour produit-1. */
+        'bundles'       => [1 => 479, 2 => 799, 3 => 1099],
+        'bundle_labels' => [
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 20 درهم', 'ref' => 499],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 159 درهم', 'ref' => 958],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 338 درهم', 'ref' => 1437],
+        ],
         'images' => [
-            /* v3.27 : LCP = visuel noir de la collection Chenille (1.webp).
-             * v3.28 : visuels secondaires ALIGNÉS sur la collection Chenille
-             * (1.webp…6.webp) — la section « لماذا هذه العباية » affiche
-             * 5.webp (البلون كاسي), la section détails 2.webp (البوردو) et la
-             * section inspection 4.webp (الرمادي الغامق) ; les anciens
-             * visuels du socle (Robe_comfy_*, visual-*) sont RETIRÉS. */
-            'lcp'        => 'uploads/1.webp',
-            'lcp_color'  => 'أسود',
-            'lcp_alt'    => 'العباية الشتوية باللون الأسود من توب شونيل الراقي',
-            'colors'     => ['src' => 'uploads/5.webp', 'alt' => 'العباية الشتوية من توب شونيل الراقي باللون البلون كاسي'],
-            'specs'      => ['src' => 'uploads/2.webp', 'alt' => 'قصة العباية الواسعة وانسياب توب شونيل الراقي باللون البوردو'],
-            'inspection' => ['src' => 'uploads/4.webp', 'alt' => 'معاينة العباية والتأكد من ملمس توب شونيل الراقي باللون الرمادي الغامق'],
+            /* v3.30 : collection « Abaya Laine » — LCP = visuel البني الكريمي
+             * (wool-1.jpg, 1ʳᵉ couleur de l'énumération du mandat) ; visuels
+             * de section ALTERNÉS wool-2/wool-1/wool-2 (2 images provisoires
+             * seulement, consigne mandat — remplacement WebP ultérieur). */
+            'lcp'        => 'uploads/wool-1.jpg',
+            'lcp_color'  => 'بني كريمي',
+            'lcp_alt'    => 'العباية الشتوية باللون البني الكريمي من توب الصوف',
+            'colors'     => ['src' => 'uploads/wool-2.jpg', 'alt' => 'العباية الشتوية من توب الصوف باللون الأسود بقصة دوبل كلوش واسعة'],
+            'specs'      => ['src' => 'uploads/wool-1.jpg', 'alt' => 'قصة العباية الواسعة وانسياب توب الصوف باللون البني الكريمي'],
+            'inspection' => ['src' => 'uploads/wool-2.jpg', 'alt' => 'معاينة العباية والتأكد من ملمس توب الصوف باللون الأسود'],
         ],
         'texts' => [
             'document_title'   => 'Abaya Collection',
-            /* v3.27 : textes collection hiver Chenille (توب شونيل الراقي) —
-             * v3.28 : titre MOT-À-MOT du mandat ; وصف المنتج (intro)
-             * CONSERVÉ tel quel (consigne explicite du mandat). */
-            'meta_description' => 'عباية شتوية من توب شونيل الراقي، دافئة وأنيقة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
-            'headline'         => 'عباية شتوية من توب شونيل الراقي – أنيقة وانسيابية',
+            /* v3.30 (mandat « feat/wool-abaya-product-adaptation ») : textes de
+             * la collection « Abaya Laine » — titre + description héros MOT-À-MOT
+             * du mandat ; bullet couleurs = phrase exacte du mandat (2 teintes) ;
+             * bullets 1/3/4 (qualité, خياطة مزدوجة, تخصيص القياسات) conservés —
+             * toujours vrais pour la nouvelle collection. */
+            'meta_description' => 'عباية شتوية من توب الصوف، دافئة وأنيقة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
+            'headline'         => 'عباية شتوية من توب الصوف – انسيابية ودوبل كلوش',
             'slogan'           => 'اختيار يومي أنيق',
-            'intro'            => 'عباية شتوية أنيقة ودافئة، بتوب شونيل راقٍ ملمسه ناعم وخياطة مضوبلة من الداخل والخارج، بجودة عالية لراحتك في الاستخدام اليومي.',
-            'old_price'        => '379 درهم',
+            'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق.',
+            'old_price'        => '499 درهم',
             'colors_bullets'   => [
                 'عباية شتوية دافئة بجودة عالية مناسبة لجميع الخرجات والعمل',
-                'متوفرة في 6 ألوان كي تختاري لونك المفضل بكل حرية.',
+                'متوفرة بلونين: البني الكريمي والأسود.',
                 'خياطة مزدوجة متينة|تضمن استدامة العباية وتألقها حتى مع الغسيل المتكرر والاستعمال اليومي.',
                 'تخصيص القياسات|نظرًا لأننا نقوم بالخياطة المباشرة للموديل، يمكننا تعديل وتخصيص العباية من حيث (الطول والعرض/المقاس) حسب طولك ووزنك الخاص، مع الحفاظ التام على القصة والتصميم الأصلي.',
             ],
             'specs_title'      => 'معلومات إضافية وتفاصيل عن المنتج:',
-            /* v3.28 : les 8 détails produit du mandat injectés MOT-À-MOT
-             * (injection brute — aucun préfixe, étiquette ni deux-points
-             * ajoutés ; la ponctuation du mandat est reproduite telle quelle). */
+            /* v3.30 : les 9 détails produit du mandat injectés MOT-À-MOT (format
+             * « étiquette : texte » reproduit tel quel). Le sursaut الحزام de
+             * v3.28 est SUPPRIMÉ (consigne explicite « حذف سطر الحزام نهائياً »). */
             'specs_items'      => [
-                'التوب شونيل دافئ ومريح، مناسب للموسم الشتوي.',
-                'العباية طويلة بقصة واسعة وفضفاضة وانسيابية، ما كتبينش تفاصيل الجسم، ومناسبة للستايل المحتشم.',
-                'العباية بتصميم القميص صممت بأزرار أمامية على طول العباية، لإضفاء لمسة أنيقة وجعلها سهلة التنسيق.',
-                'جميع المقاسات متوفرة، باش تختاري المقاس المناسب ليك.',
-                'العباية مصممة بكول أوفيسيي كتفصيل بسيط ومميز لمزيد من الأناقة.',
-                'الأكمام بتصميم البوفون مع الفرونس عند المعصم لمظهر راقي وأنيق.',
-                'الحزام من القماش معد بقصة دقيقة ، استعمليه لإضفاء بعض الجمالية الإضافية على العباية أو لتعديل القصة حسب الإطلالة وشكل الجسم.',
-                'الخياطة والفينيسيون : فينيسيون نقية وخياطة مضوبلة من لداخل ومن برا.',
+                'نوع التوب : توب صوف دافئ وكثيف، مريح ومناسب للموسم الشتوي.',
+                'الانسدال والجودة : توب متناسق وأنيق، طايح وما كيلصقش بالجسم وما كيبينش تفاصيل الجسم.',
+                'قصة العباية : قصة واسعة وفضفاضة على شكل دوبل كلوش، كتجمع بين الاحتشام والمظهر الأنيق وحرية الحركة.',
+                'الستايل والديكور : توب بديكور أنيق ومميز، كيعطي العباية ستايل راقي ولمسة عصرية.',
+                'الفتحة : العباية بفتحة أمامية بزر فالأعلى، كتقدري تلبسيها مقفولة أو مفتوحة على حسب ذوقك.',
+                'الكول : الكول الواسع الفتحة المتناسقة على شكل v في الأعلى كتسهل الارتداء بلا مشقة.',
+                'الأكمام : أكمام واسعة بستايل الإيفازي والريفير، مطوية ومثبتة، كتعطي مظهر أنيق وعصري للعباية.',
+                'الجيوب : جيوب أمامية كبيرة تعطي ستايل مميز للعباية.',
+                'الخياطة والفينيسيون : فينيسيون نقية وخياطة متقونة من لداخل ومن برا.',
             ],
             'inspection_title' => 'معاينة الطلبية والحق في الفحص',
             'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',
@@ -197,9 +222,13 @@ function abaya_offers() {
                 'note' => 'هاد الشي كلو باش توصلك عباية مخدومة بعناية، بخياطة متقونة وجودة عالية.',
             ],
             'guide_title'      => 'كيف يمكنني تقديم الطلب؟',
+            /* v3.30 : textes des étapes 01 et 02 du mandat MOT-À-MOT (sélection
+             * de l'offre + couleur/moule par pièce ; confirmation téléphonique
+             * élargie à l'offre et au couple couleur/moule de CHAQUE pièce).
+             * Étape 03 : SANS CHANGEMENT (consigne explicite). */
             'guide_steps'      => [
-                ['الخطوة الأولى: ملء استمارة الطلب', 'اختاري اللون والمقاس المناسبين، ثم قومي بملء معلوماتك الشخصية (الاسم الكامل، رقم الهاتف، المدينة، والعنوان) واضغطي على زر «اضغطي هنا للطلب».'],
-                ['الخطوة الثانية: التأكيد الهاتفي', 'بعد وصولك إلى صفحة الشكر والتأكد من صحة الاختيارات، ستتلقين مكالمة هاتفية من فريقنا لتأكيد المقاس، اللون، الكمية المطلوبة، وتأكيد عنوان التسليم.'],
+                ['الخطوة الأولى: ملء استمارة الطلب', 'اختاري العرض المناسب (قطعة واحدة أو قطعتان أو 3 قطع)، ثم حددي لون ومقاس كل قطعة، ثم قومي بملء معلوماتك الشخصية (الاسم الكامل، رقم الهاتف، المدينة، والعنوان) واضغطي على زر «اضغطي هنا للطلب».'],
+                ['الخطوة الثانية: التأكيد الهاتفي', 'بعد وصولك إلى صفحة الشكر والتأكد من صحة الاختيارات، ستتلقين مكالمة هاتفية من فريقنا لتأكيد العرض المختار، واللون والمقاس لكل قطعة، وتأكيد عنوان التسليم.'],
                 ['الخطوة الثالثة: الشحن والدفع عند الاستلام', 'سيتم شحن طلبيتك مباشرة إلى باب منزلك. يحق لك فتح الطرد ومعاينة العباية والتأكد من جودة الثوب والخياطة قبل تسليم المبلغ للموصل.'],
             ],
             'trust'            => [
