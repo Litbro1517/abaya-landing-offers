@@ -45,8 +45,8 @@ if (!defined('ABSPATH')) exit;
  * abaya_base_commerce() 329/559/799 reste INTACTE pour produit-1 — ZÉRO diff
  * de données hors vedette) ; (b) palette réduite à EXACTEMENT 2 couleurs du
  * mandat (البني الكريمي #b9a590, الأسود #1c1c1c) ; (c) 2 images PROVISOIRES
- * JPG (wool-1.jpg / wool-2.jpg + vignettes) à remplacer ultérieurement par
- * des WebP définitifs ; (d) matrice textuelle mot-à-mot (titre, héros, 9
+ * JPG (wool-1.jpg / wool-2.jpg + vignettes) REMPLACÉS en v3.34 par les
+ * WebP DÉFINITIFS du mandat (wool-1..5.webp) ; (d) matrice textuelle mot-à-mot (titre, héros, 9
  * détails produit sans le sursaut الحزام, étapes 01/02 du guide) ;
  * (e) sélecteur multi-pièces (gabarit + app.js + REST additif) : compteurs
  * +/− par couleur pour les offres 2/3 pièces, tailles attribuées par pièce,
@@ -114,19 +114,20 @@ function abaya_base_commerce() {
  */
 function abaya_base_colors($assets_dir) {
     if ($assets_dir === '') {
-        /* v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : palette
-         * « Abaya Laine » (عباية شتوية من توب الصوف) — EXACTEMENT les 2 couleurs
-         * du mandat (« دائرتان فقط ») dans l'ordre de son énumération :
-         * البني الكريمي (#b9a590) puis الأسود (#1c1c1c). Visuels PROVISOIRES
-         * JPG fournis par le mandat (wool-1.jpg = البني الكريمي — tons clairs
-         * de la capture 013607 ; wool-2.jpg = الأسود — tons sombres de la
-         * capture 013457) aux dimensions natives des emplacements existants
-         * (cover 3:4) + vignettes 151×170 du format du système ; ils seront
-         * REMPLACÉS ultérieurement par des WebP définitifs (consigne mandat). */
+        /* v3.34 (mandat 4P LP) : les WebP DÉFINITIFS du mandat remplacent les
+         * JPG PROVISOIRES v3.30 (fin du signalement « remplacement ultérieur »).
+         * Palette INCHANGÉE — toujours EXACTEMENT les 2 couleurs (« دائرتان فقط »)
+         * dans l'ordre de l'énumération : البني الكريمي (#b9a590) puis الأسود
+         * (#1c1c1c). Mapping des fichiers (copies BIT-EXACTES, natif 1080×1350,
+         * zéro réencodage) : Hero principal/LCP = « 1 (6).webp » → wool-1.webp ;
+         * Hero 2ᵉ image / variante de couleur = « 2 (3).webp » → wool-2.webp ;
+         * sections de contenu : « 8.webp » → wool-3.webp (manches),
+         * « 7.webp » → wool-4.webp, « 6 (1).webp » → wool-5.webp.
+         * Vignettes galerie régénérées 151×170 (format du système). */
         return [
             /* « label » = forme définie arabe (ال…) utilisée dans les textes d'alt/aria. */
-            'بني كريمي'  => ['hex' => '#b9a590', 'label' => 'البني الكريمي', 'image' => 'uploads/wool-1.jpg', 'thumb' => 'uploads/thumbs/wool-1.jpg'],
-            'أسود'       => ['hex' => '#1c1c1c', 'label' => 'الأسود', 'image' => 'uploads/wool-2.jpg', 'thumb' => 'uploads/thumbs/wool-2.jpg'],
+            'بني كريمي'  => ['hex' => '#b9a590', 'label' => 'البني الكريمي', 'image' => 'uploads/wool-1.webp', 'thumb' => 'uploads/thumbs/wool-1.webp'],
+            'أسود'       => ['hex' => '#1c1c1c', 'label' => 'الأسود', 'image' => 'uploads/wool-2.webp', 'thumb' => 'uploads/thumbs/wool-2.webp'],
         ];
     }
     return [
@@ -171,16 +172,23 @@ function abaya_offers() {
             3 => ['label' => '3 قطع', 'saving' => 'توفير 338 درهم', 'ref' => 1437],
         ],
         'images' => [
-            /* v3.30 : collection « Abaya Laine » — LCP = visuel البني الكريمي
-             * (wool-1.jpg, 1ʳᵉ couleur de l'énumération du mandat) ; visuels
-             * de section ALTERNÉS wool-2/wool-1/wool-2 (2 images provisoires
-             * seulement, consigne mandat — remplacement WebP ultérieur). */
-            'lcp'        => 'uploads/wool-1.jpg',
+            /* v3.34 (mandat 4P LP) : IMAGES WEBP DÉFINITIVES — fin des JPG
+             * provisoires v3.30. Hero (Sélection des couleurs) : image
+             * principale = « 1 (6).webp » → wool-1.webp (LCP) ; seconde image
+             * associée au Hero / variante de couleur = « 2 (3).webp » →
+             * wool-2.webp. Sections de contenu PAR ORDRE DE PRIORITÉ du
+             * mandat : 1ʳᵉ = « 8.webp » → wool-3.webp (met en valeur les
+             * manches) ; 2ᵉ = « 7.webp » → wool-4.webp ; 3ᵉ = « 6 (1).webp »
+             * → wool-5.webp. Copies BIT-EXACTES (natif 1080×1350, zéro
+             * réencodage/déformation) — cadres CSS (aspect-ratio + object-fit)
+             * INCHANGÉS ; les alts ne mentionnent plus de couleur précise
+             * (hors LCP, rattaché à la teinte بني كريمي du sélecteur). */
+            'lcp'        => 'uploads/wool-1.webp',
             'lcp_color'  => 'بني كريمي',
             'lcp_alt'    => 'العباية الشتوية باللون البني الكريمي من توب الصوف',
-            'colors'     => ['src' => 'uploads/wool-2.jpg', 'alt' => 'العباية الشتوية من توب الصوف باللون الأسود بقصة دوبل كلوش واسعة'],
-            'specs'      => ['src' => 'uploads/wool-1.jpg', 'alt' => 'قصة العباية الواسعة وانسياب توب الصوف باللون البني الكريمي'],
-            'inspection' => ['src' => 'uploads/wool-2.jpg', 'alt' => 'معاينة العباية والتأكد من ملمس توب الصوف باللون الأسود'],
+            'colors'     => ['src' => 'uploads/wool-3.webp', 'alt' => 'العباية الشتوية من توب الصوف — إبراز الأكمام الواسعة'],
+            'specs'      => ['src' => 'uploads/wool-4.webp', 'alt' => 'قصة العباية الواسعة وانسياب توب الصوف'],
+            'inspection' => ['src' => 'uploads/wool-5.webp', 'alt' => 'معاينة العباية والتأكد من ملمس توب الصوف'],
         ],
         'texts' => [
             'document_title'   => 'Abaya Collection',
