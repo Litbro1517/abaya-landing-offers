@@ -51,8 +51,22 @@ if (!defined('ABSPATH')) exit;
  * (e) sélecteur multi-pièces (gabarit + app.js + REST additif) : compteurs
  * +/− par couleur pour les offres 2/3 pièces, tailles attribuées par pièce,
  * gating du bouton, données commandées portées par order_items/order_items_json.
- * Logo, back-link ‹ رجوع, grille 3 offres (STRUCTURE), formulaire, tunnel,
- * TYP, produit-1 (bit-exacte) et architecture 2 landings STRICTEMENT INTACTS.
+ *
+ * v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation » — ajustements
+ * visuels VALIDÉS) : (a) DESIGN DES OFFRES = Option A de l'audit design
+ * (AUDIT-OFFRES-v3.30.pdf) — ruban « الأكثر طلباً » bordeaux #6B1D2F, état
+ * sélectionné en zone teintée émeraude 7 %, crochet 26px cerclé de blanc,
+ * économies #2D6A70 (bloc v3.32 en fin de styles.css) ; (b) NETTOYAGE DES
+ * PRIX — la mention « الثمن المرجعي » est SUPPRIMÉE de l'affichage et
+ * remplacée par le prix d'origine BARRÉ en gris (#888, 0.85em, style inline
+ * du mandat) sous le prix principal de chaque carte (donnée « ref » du
+ * registre réutilisée : 499/958/1437) ; (c) SOUS-TITRE H1 — paragraphe en
+ * arabe littéraire (Fusha) + phrase de finition isolée (clé « intro_finish »,
+ * centrée/fine/italique) ; (d) LISTE FINALE des caractéristiques — 6 lignes
+ * mot-à-mot. Grille 479/799/1099, 2 couleurs, 2 JPG, sélecteur multi-pièces
+ * et DONNÉES produit-1 (bit-exactes, diff harnais 0 octet) : INCHANGÉS —
+ * l'Option A est de la CHARTE unifiée de la section offres (v3.6 : copies
+ * conformes) : ses sélecteurs :not(.is-upsell) s'appliquent aussi à produit-1.
  * Clés de chaque entrée :
  *   id            slug servie sur /{slug}/ (l'offre vedette est servie à la racine)
  *   name          nom éditorial (titre d'onglet secondaire, méta commande, cross-sell)
@@ -178,7 +192,14 @@ function abaya_offers() {
             'meta_description' => 'عباية شتوية من توب الصوف، دافئة وأنيقة. توصيل مجاني والدفع عند الاستلام في جميع مدن المغرب.',
             'headline'         => 'عباية شتوية من توب الصوف – انسيابية ودوبل كلوش',
             'slogan'           => 'اختيار يومي أنيق',
-            'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق.',
+            /* v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation ») :
+             * sous-titre H1 mis à jour — le premier paragraphe passe en arabe
+             * littéraire (Fusha) ; la phrase de finition du mandat (Darija) est
+             * ISOLÉE sur sa propre ligne via la clé « intro_finish » (rendue
+             * centrée, police fine, italique — bloc v3.32 de styles.css).
+             * Faits exclusivement issus de la liste des caractéristiques. */
+            'intro'            => 'عباية شتوية فاخرة من توب الصوف الدافئ الكثيف، بقصة واسعة وفضفاضة على شكل دوبل كلوش، تجمع بين الاحتشام والأناقة وحرية الحركة. ثوب انسيابي لا يلتصق بالجسم ولا يظهر تفاصيله، ويمنحك إطلالة أنيقة ومميزة بمظهر وألوان هادئة وجذابة.',
+            'intro_finish'     => 'بالنسبة للفينيسيون نقية وخياطة متقونة من الداخل ومن برا',
             'old_price'        => '499 درهم',
             'colors_bullets'   => [
                 'عباية شتوية دافئة بجودة عالية مناسبة لجميع الخرجات والعمل',
@@ -187,19 +208,20 @@ function abaya_offers() {
                 'تخصيص القياسات|نظرًا لأننا نقوم بالخياطة المباشرة للموديل، يمكننا تعديل وتخصيص العباية من حيث (الطول والعرض/المقاس) حسب طولك ووزنك الخاص، مع الحفاظ التام على القصة والتصميم الأصلي.',
             ],
             'specs_title'      => 'معلومات إضافية وتفاصيل عن المنتج:',
-            /* v3.30 : les 9 détails produit du mandat injectés MOT-À-MOT (format
-             * « étiquette : texte » reproduit tel quel). Le sursaut الحزام de
-             * v3.28 est SUPPRIMÉ (consigne explicite « حذف سطر الحزام نهائياً »). */
+            /* v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation ») :
+             * LISTE FINALE ET ÉPURÉE des caractéristiques — EXACTEMENT les 6
+             * lignes de la matrice du mandat, injectées MOT-À-MOT (ponctuation
+             * incluse). Les anciennes lignes الستايل والديكور et
+             * الخياطة والفينيسيون disparaissent (la phrase de finition migre
+             * vers le sous-titre H1 en « intro_finish ») ; الفتحة et الكول
+             * sont fusionnées dans la ligne unique « الفتحة والكول ». */
             'specs_items'      => [
-                'نوع التوب : توب صوف دافئ وكثيف، مريح ومناسب للموسم الشتوي.',
-                'الانسدال والجودة : توب متناسق وأنيق، طايح وما كيلصقش بالجسم وما كيبينش تفاصيل الجسم.',
-                'قصة العباية : قصة واسعة وفضفاضة على شكل دوبل كلوش، كتجمع بين الاحتشام والمظهر الأنيق وحرية الحركة.',
-                'الستايل والديكور : توب بديكور أنيق ومميز، كيعطي العباية ستايل راقي ولمسة عصرية.',
-                'الفتحة : العباية بفتحة أمامية بزر فالأعلى، كتقدري تلبسيها مقفولة أو مفتوحة على حسب ذوقك.',
-                'الكول : الكول الواسع الفتحة المتناسقة على شكل v في الأعلى كتسهل الارتداء بلا مشقة.',
-                'الأكمام : أكمام واسعة بستايل الإيفازي والريفير، مطوية ومثبتة، كتعطي مظهر أنيق وعصري للعباية.',
-                'الجيوب : جيوب أمامية كبيرة تعطي ستايل مميز للعباية.',
-                'الخياطة والفينيسيون : فينيسيون نقية وخياطة متقونة من لداخل ومن برا.',
+                'نوع التوب: توب صوف دافئ وكثيف، مريح ومناسب للموسم الشتوي بمظهر وألوان هادئة وجذابة.',
+                'الانسدال والجودة: الثوب طايح وما كيلصقش بالجسم، ما كيبينش تفاصيل الجسم، كيعطيك لوك أنيق ومميز.',
+                'قصة العباية: قصة واسعة وفضفاضة على شكل دوبل كلوش، كتجمع بين الاحتشام والمظهر الأنيق وحرية الحركة.',
+                'الفتحة والكول: العباية مصممة بكول واسع وفتحة أمامية على شكل V وبزر في الأعلى، كيسهل الارتداء بلا مشقة، وتقدري تلبسيها مقفولة أو مفتوحة على حسب ذوقك.',
+                'الأكمام: أكمام واسعة بستايل الإيفازي والريفير، مطوية ومثبتة، كتعطي مظهر أنيق وعصري للعباية.',
+                'الجيوب: جيوب أمامية كبيرة تعطي ستايل مميز للعباية.',
             ],
             'inspection_title' => 'معاينة الطلبية والحق في الفحص',
             'inspection_lead'  => 'يمكنك فتح الطرد وفحص العباية قبل الدفع.',

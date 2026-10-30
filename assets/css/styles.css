@@ -2410,18 +2410,12 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
 /* ================= fin v3.22 ================= */
 
 /* =====================================================================
- * v3.28 (mandat 4P LP « fix/main-lp-text-and-webp-injection ») — prix de
- * référence affiché sous l'économie de chaque carte d'offre (matrice
- * mot-à-mot : « الثمن المرجعي: 379/658/987 درهم »). Règle NOUVELLE ajoutée
- * en fin de feuille — AUCUNE règle existante modifiée ou supprimée.
- * Teinte = celle de .bundle-saving (#6a675d, contraste validé v3.22 sur les
- * fonds #f6f2e9/#fffdf8) à 12px pour la hiérarchie visuelle : prix (27px,
- * olive) > économie (13px) > référence (12px). La carte reste en flex
- * column gap 10px — le 4e enfant grandit la carte si besoin (min-height =
- * plancher, aucun débordement horizontal possible).
+ * v3.28 → v3.32 (mandat « feat/wool-abaya-product-adaptation ») : la règle
+ * .bundle-ref (mention « الثمن المرجعي » sous l'économie) est SUPPRIMÉE —
+ * nettoyage des prix validé : remplacée par le prix d'origine BARRÉ en gris
+ * sous le prix principal de chaque carte (style inline du mandat, color #888,
+ * font-size 0.85em — voir bloc v3.32 en fin de feuille).
  * ===================================================================== */
-.bundle-ref { color: #6a675d; font-size: 12px; }
-/* ================= fin v3.28 ================= */
 
 /* =====================================================================
  * v3.29 (mandat 4P LP « fix/main-lp-manufacturing-and-contrast ») — grille
@@ -2529,3 +2523,108 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
  * ===================================================================== */
 .multi-picker .size-option[aria-pressed="true"] { border-color: var(--olive); background: var(--olive); color: #fff; }
 /* ================= fin v3.31 ================= */
+
+/* =====================================================================
+ * v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation » — ajustements
+ * visuels VALIDÉS) — TROIS volets, toutes règles NOUVELLES en fin de feuille
+ * (la spécificité et l'ordre l'emportent sur les couches v3.0/v3.2/v3.3
+ * déjà en place — même méthode que l'audit design AUDIT-OFFRES-v3.30.pdf,
+ * AUCUNE règle existante modifiée) :
+ *   0. POLICE FINE de la phrase de finition : Cairo est VARIABLE
+ *      (axe wght 200-1000 — vérifié fonttools) mais les déclarations
+ *      existantes couvrent 400-900 (critical.css) / graisses statiques
+ *      (styles.css). Déclaration ADDITIVE 200-399 du MÊME fichier
+ *      (zéro requête réseau supplémentaire, preload functions.php
+ *      inchangé) pour rendre la graisse 300 réellement fine.
+ *   1. OPTION A (audit design §3) : ruban « الأكثر طلباً » bordeaux de
+ *      section #6B1D2F (texte #FAF7F2 — 11,4:1) à 11px/900, état
+ *      sélectionné = ZONE teintée émeraude 7 % (plus seulement un
+ *      contour), crochet 26px cerclé d'un anneau blanc 3px, économies
+ *      #2D6A70 (sortie de l'émeraude d'état). Règle émeraude : « vous
+ *      avez choisi » ; bordeaux : « le plus demandé » — deux couleurs,
+ *      deux métiers, zéro collision.
+ *   2. PHRASE DE FINITION du sous-titre H1 : ligne indépendante,
+ *      centrée, graisse 300 (fine), italique.
+ *   3. Prix d'origine barré : rendu par le gabarit en style INLINE du
+ *      mandat (color #888, font-size 0.85em) — aucune règle CSS
+ *      nécessaire — rien n'est déclaré ici (documenté pour traçabilité).
+ * Périmètre : la charte de la SECTION OFFRES est UNIFIÉE depuis v3.6 (les
+ * landings secondaires sont des copies conformes de la vedette) — les
+ * sélecteurs :not(.is-upsell) de l'audit s'appliquent donc à la vedette ET
+ * à produit-1, exactement comme les couches v3.2/v3.3/v3.4. Le CONTENU
+ * Wool (del barré, Fusha, phrase de finition, 6 caractéristiques) est
+ * rendu CONDITIONNEL vedette-seule : produit-1 données bit-exactes.
+ * ===================================================================== */
+
+/* 0 — Cairo variable : graisses fines (200-399) — MÊME fichier que la
+   déclaration 400-900 de critical.css (unicode-range arabe identique) */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 200 399;
+  font-display: swap;
+  src: url(../fonts/Cairo-arabic.woff2) format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+/* 1 — phrase de finition : ligne indépendante, centrée, fine, italique */
+.product-intro-finish {
+  display: block;
+  margin: 4px 0 0;
+  color: #55564f;
+  text-align: center;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* 2 — OPTION A : ruban bordeaux de section (taille et densité remontées) */
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2)::after {
+  background: #6B1D2F;
+  color: #FAF7F2;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  top: -12px;
+  padding: 3px 10px;
+  box-shadow: 0 2px 8px rgb(107 29 47 / 30%);
+}
+/* 3 — OPTION A : l'état sélectionné = une zone, plus seulement un contour */
+.product-landing:not(.is-upsell) .bundle-card.is-selected {
+  border-color: #3A7D84;
+  background: rgb(58 125 132 / 7%); /* annule le transparent de la v3.4 */
+}
+/* 4 — OPTION A : crochet plus grand, cerclé de blanc pour se détacher */
+.product-landing:not(.is-upsell) .bundle-card.is-selected::before {
+  width: 26px;
+  height: 26px;
+  top: -9px;
+  right: -9px;
+  font: 800 13px/1 "Cairo", Tahoma, sans-serif;
+  box-shadow: 0 0 0 3px #fbfbf8, 0 2px 8px rgb(44 29 17 / 22%);
+}
+/* 5 — OPTION A : les économies sortent de l'émeraude d'état (#2D6A70).
+   Adaptation de cascade ASSUMÉE : la règle unique de l'audit (0,4,0) ne
+   pouvait pas battre la couche v3.3 carte 2 (0,5,0, ligne 1862) — les deux
+   sélecteurs sont donc déclarés ensemble pour que les TROIS cartes passent
+   au #2D6A70 (intent documenté de l'audit : « sortir de l'émeraude pour ne
+   pas concurrencer l'état », sans exception de carte). */
+.product-landing:not(.is-upsell) .bundle-saving,
+.product-landing:not(.is-upsell) .bundle-card:nth-child(2) .bundle-saving { color: #2D6A70; }
+
+@media (max-width: 540px) {
+  /* ajustements mobiles Option A (audit §3) */
+  .product-landing:not(.is-upsell) .bundle-card:nth-child(2)::after {
+    font-size: 9px;
+    top: -10px;
+    padding: 2px 7px;
+  }
+  .product-landing:not(.is-upsell) .bundle-card.is-selected::before {
+    width: 22px;
+    height: 22px;
+    top: -7px;
+    right: -7px;
+    font: 800 11px/1 "Cairo", Tahoma, sans-serif;
+  }
+  .product-intro-finish { margin-top: 2px; }
+}
+/* ================= fin v3.32 ================= */

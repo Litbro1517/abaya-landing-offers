@@ -78,6 +78,14 @@ foreach ($cat['colors'] as $color_name => $color_data) :
 abaya_render_rating_summary();
 ?>
           <p class="product-intro"><?php echo esc_html($T['intro']); ?></p>
+<?php /* v3.32 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : phrase de
+ * finition du mandat ISOLÉE sur une ligne indépendante — centrée, police fine
+ * (Cairo variable graisse 300, déclaration 200-399 ajoutée en bloc v3.32 de
+ * styles.css) et italique. Rendu CONDITIONNEL sur la présence de la clé :
+ * produit-1 (sans la clé) reste bit-exact. */ ?>
+<?php if (!empty($T['intro_finish'])) : ?>
+          <p class="product-intro-finish"><?php echo esc_html($T['intro_finish']); ?></p>
+<?php endif; ?>
 
           <div class="price-row">
             <strong id="current-price" class="price"><?= (int) $cat['bundles'][1] ?> <small>درهم</small></strong>
@@ -244,14 +252,16 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
           <button class="bundle-card offer-card<?= $bundle_is_first ? ' is-selected' : '' ?>" type="button" data-quantity="<?= (int) $bundle_qty ?>" aria-pressed="<?= $bundle_is_first ? 'true' : 'false' ?>">
             <span class="bundle-badge"><?= esc_html($cat['bundle_labels'][$bundle_qty]['label']) ?></span>
             <strong class="bundle-price"><?= (int) $bundle_price ?> <small>درهم</small></strong>
-            <span class="bundle-saving"><?= esc_html($cat['bundle_labels'][$bundle_qty]['saving']) ?></span>
-<?php /* v3.28 (mandat « fix/main-lp-text-and-webp-injection ») : prix de
-       référence du mandat affiché sous l'économie (« الثمن المرجعي ») —
-       matrice mot-à-mot : 379/658/987 درهم. Rendu CONDITIONNEL vedette :
-       les landings secondaires (hors périmètre) restent bit-exactes. */ ?>
+<?php /* v3.32 (mandat « feat/wool-abaya-product-adaptation ») : NETTOYAGE DES
+ * PRIX — la mention « الثمن المرجعي » est SUPPRIMÉE et remplacée par le prix
+ * d'origine BARRÉ en gris sous le prix principal de chaque carte (style
+ * inline du mandat : color #888, font-size 0.85em). La donnée « ref » du
+ * registre (499/958/1437) est réutilisée telle quelle. Rendu CONDITIONNEL
+ * vedette : les landings secondaires (hors périmètre) restent bit-exactes. */ ?>
 <?php if (abaya_is_front_offer()) : ?>
-            <span class="bundle-ref">الثمن المرجعي: <?= (int) $cat['bundle_labels'][$bundle_qty]['ref'] ?> درهم</span>
+            <del class="bundle-old" style="color: #888; font-size: 0.85em;"><?= (int) $cat['bundle_labels'][$bundle_qty]['ref'] ?> درهم</del>
 <?php endif; ?>
+            <span class="bundle-saving"><?= esc_html($cat['bundle_labels'][$bundle_qty]['saving']) ?></span>
           </button>
 <?php endforeach; ?>
         </div>
