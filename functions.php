@@ -657,6 +657,54 @@ function abaya_render_review_card($comment) {
     echo '</article>';
 }
 
+/* ---------- v3.30 : données multi-pièces du sélecteur (mandat 4P LP
+ * « feat/wool-abaya-product-adaptation » — logique abaya-multi-piece-picker.html) ----------
+ * Contrat ADDITIF consommé par abaya_handle_create_order() ET
+ * abaya_handle_add_to_order() (la vedette peut être servie en mode upsell).
+ * Champs ABSENTS => null : comportement historique BIT-EXACT (offre 1 pièce,
+ * landings secondaires — aucune clé renommée ni retirée du contrat REST).
+ * Champs PRÉSENTS => tableau validé de pièces [['color' => clé du catalogue,
+ * 'size' => taille], …] couvrant EXACTEMENT la quantité de l'offre ; toute
+ * pièce hors whitelist de CETTE offre => 422 (même garde P0-2 que la
+ * couleur/taille simple — la route est publique, le JSON client n'est pas
+ * cru sur parole). La ligne lisible destinée à l'équipe de confirmation est
+ * RÉGÉNÉRÉE côté serveur depuis les pièces validées (abaya_order_items_text) :
+ * la chaîne client n'est jamais stockée telle quelle. */
+function abaya_parse_order_items(WP_REST_Request $request, array $cat, $quantity) {
+    $raw_json     = trim((string) $request->get_param('order_items_json'));
+    $raw_text     = trim((string) $request->get_param('order_items'));
+    $pieces_param = (int) $request->get_param('offer_pieces');
+    if ($raw_json === '' && $raw_text === '' && $pieces_param === 0) return null;
+
+    $invalid = new WP_Error('abaya_invalid_field', 'يرجى اختيار اللون والمقاس بشكل صحيح.', ['status' => 422]);
+    if ($raw_json === '') return $invalid;
+    $decoded = json_decode($raw_json, true);
+    if (!is_array($decoded) || $decoded === []) return $invalid;
+    $pieces = [];
+    foreach ($decoded as $entry) {
+        if (!is_array($entry)) return $invalid;
+        $color = sanitize_text_field((string) (isset($entry['color']) ? $entry['color'] : ''));
+        $size  = sanitize_text_field((string) (isset($entry['size']) ? $entry['size'] : ''));
+        if ($color === '' || $size === '') return $invalid;
+        if (!isset($cat['colors'][$color]) || !in_array($size, $cat['sizes'], true)) return $invalid;
+        $pieces[] = ['color' => $color, 'size' => $size];
+    }
+    if (count($pieces) !== (int) $quantity) return $invalid;
+    return $pieces;
+}
+
+/** Ligne lisible des pièces, RÉGÉNÉRÉE depuis les pièces validées (source
+ * serveur) — ex. « قطعتان | ق1: بني كريمي / M | ق2: أسود / L » (même format
+ * que le résumé front). Libellé d'offre issu de la grille du catalogue. */
+function abaya_order_items_text($cat, $quantity, array $pieces) {
+    $label = isset($cat['bundle_labels'][$quantity]['label']) ? (string) $cat['bundle_labels'][$quantity]['label'] : '';
+    $parts = [];
+    foreach (array_values($pieces) as $abaya_piece_index => $abaya_piece) {
+        $parts[] = 'ق' . ($abaya_piece_index + 1) . ': ' . $abaya_piece['color'] . ' / ' . $abaya_piece['size'];
+    }
+    return trim($label . ' | ' . implode(' | ', $parts));
+}
+
 /* ---------- Route 1 : création de commande WooCommerce (COD) ---------- */
 
 function abaya_handle_create_order(WP_REST_Request $request) {
@@ -757,6 +805,12 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     }
     $price = (float) $cat['bundles'][$quantity];
 
+    // 7b) v3.30 : données multi-pièces du sélecteur (ADDITIF — absentes =
+    // comportement historique bit-exact ; présentes = whitelist par pièce).
+    $abaya_pieces      = abaya_parse_order_items($request, $cat, $quantity);
+    if (is_wp_error($abaya_pieces)) return $abaya_pieces;
+    $abaya_pieces_text = $abaya_pieces ? abaya_order_items_text($cat, $quantity, $abaya_pieces) : '';
+
     $product = $product_id > 0 ? wc_get_product($product_id) : false;
     if (!$product) {
         // Le prix du produit WC n'est plus consulté : la grille du catalogue fait foi.
@@ -775,11 +829,22 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     // Prix pack imposé sur la LIGNE d'article (subtotal + total).
     $item_id = $order->add_product($product, $quantity, ['subtotal' => $price, 'total' => $price]);
     $item    = $item_id ? $order->get_item($item_id) : null;
+    // v3.30 : en commande multi-pièces, la méta porte le RÉSUMÉ lisible des
+    // pièces (couleurs uniques dans l'ordre des pièces « + » tailles dans
+    // l'ordre) — l'affichage /merci/ (non modifié) reste lisible ; le détail
+    // complet est porté par « تفاصيل القطع » et la note de commande.
+    $abaya_meta_color = $color;
+    $abaya_meta_size  = $size;
+    if ($abaya_pieces) {
+        $abaya_meta_color = implode(' + ', array_values(array_unique(array_column($abaya_pieces, 'color'))));
+        $abaya_meta_size  = implode(' + ', array_column($abaya_pieces, 'size'));
+    }
     if ($item) {
         // P0-2 : taille et couleur inscrites en clair sur la ligne
         // d'article (Item Meta), visibles dans l'admin WooCommerce et les e-mails.
-        $item->add_meta_data('اللون', $color, true);
-        $item->add_meta_data('المقاس', $size, true);
+        $item->add_meta_data('اللون', $abaya_meta_color, true);
+        $item->add_meta_data('المقاس', $abaya_meta_size, true);
+        if ($abaya_pieces) $item->add_meta_data('تفاصيل القطع', $abaya_pieces_text, true);
         // Mandat multi-landing : traçabilité de l'offre sur la ligne d'article.
         $item->add_meta_data('Offre', $offer['name'], true);
         if ((string) $product->get_sku() !== '') $item->add_meta_data('SKU', (string) $product->get_sku(), true);
@@ -812,12 +877,15 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     $order->add_order_note(sprintf(
         'Tunnel landing (%1$s) — اللون : %2$s · المقاس : %3$s · Offre : %4$d pièce(s) — %5$.0f MAD · event_id : %6$s',
         $offer['id'],
-        $color,
-        $size,
+        $abaya_meta_color,
+        $abaya_meta_size,
         $quantity,
         $price,
         $event_id
     ));
+    // v3.30 : détail complet des pièces (chaîne régénérée serveur depuis les
+    // pièces validées) — c'est la source de confirmation téléphonique (étape 02).
+    if ($abaya_pieces) $order->add_order_note('تفاصيل القطع : ' . $abaya_pieces_text);
 
     // 10) Persistance des métadonnées marketing (event_id, page_url, utm_*, _fbp/_fbc)
     //    et de configuration. _abaya_color/_abaya_size conservées au niveau commande
@@ -825,8 +893,14 @@ function abaya_handle_create_order(WP_REST_Request $request) {
     //    validées et également portées par la ligne d'article (Item Meta).
     $order->update_meta_data('_abaya_event_id', $event_id);
     $order->update_meta_data('_abaya_page_url', $page_url);
-    $order->update_meta_data('_abaya_color', $color);
-    $order->update_meta_data('_abaya_size', $size);
+    // v3.30 : résumé multi-pièces lisible (couleurs uniques « + » tailles) —
+    // repris par /merci/ (non modifié) ; le détail complet est en méta dédiée.
+    $order->update_meta_data('_abaya_color', $abaya_meta_color);
+    $order->update_meta_data('_abaya_size', $abaya_meta_size);
+    if ($abaya_pieces) {
+        $order->update_meta_data('_abaya_order_items', $abaya_pieces_text);
+        $order->update_meta_data('_abaya_order_items_json', wp_json_encode($abaya_pieces));
+    }
     /* Mandat multi-landing : offre d'origine de la commande (lue par /merci/
      * pour le cross-sell et le code promo). _abaya_offer = clé canonique du
      * mandat ; _abaya_offer_id/_abaya_offer_name/_abaya_product_id = alias
@@ -951,6 +1025,18 @@ function abaya_handle_add_to_order(WP_REST_Request $request) {
     }
     $price = (float) $cat['bundles'][$quantity];
 
+    // 8b) v3.30 : données multi-pièces du sélecteur (ADDITIF — absentes =
+    // comportement historique bit-exact ; présentes = whitelist par pièce).
+    $abaya_pieces      = abaya_parse_order_items($request, $cat, $quantity);
+    if (is_wp_error($abaya_pieces)) return $abaya_pieces;
+    $abaya_pieces_text = $abaya_pieces ? abaya_order_items_text($cat, $quantity, $abaya_pieces) : '';
+    $abaya_meta_color  = $color;
+    $abaya_meta_size   = $size;
+    if ($abaya_pieces) {
+        $abaya_meta_color = implode(' + ', array_values(array_unique(array_column($abaya_pieces, 'color'))));
+        $abaya_meta_size  = implode(' + ', array_column($abaya_pieces, 'size'));
+    }
+
     $product = wc_get_product($product_id);
     if (!$product) {
         return new WP_Error('abaya_bad_product', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
@@ -967,8 +1053,9 @@ function abaya_handle_add_to_order(WP_REST_Request $request) {
     if (!$item) {
         return new WP_Error('abaya_order_failed', 'خطأ في الخدمة. يرجى المحاولة لاحقاً.', ['status' => 500]);
     }
-    $item->add_meta_data('اللون', $color, true);
-    $item->add_meta_data('المقاس', $size, true);
+    $item->add_meta_data('اللون', $abaya_meta_color, true);
+    $item->add_meta_data('المقاس', $abaya_meta_size, true);
+    if ($abaya_pieces) $item->add_meta_data('تفاصيل القطع', $abaya_pieces_text, true);
     $item->add_meta_data('Offre', $offer['name'], true);
     if ((string) $product->get_sku() !== '') $item->add_meta_data('SKU', (string) $product->get_sku(), true);
     $item->add_meta_data('_abaya_upsell_event', $event_id, true);
@@ -980,13 +1067,16 @@ function abaya_handle_add_to_order(WP_REST_Request $request) {
     $order->add_order_note(sprintf(
         'Upsell tunnel (%1$s) — اللون : %2$s · المقاس : %3$s · %4$d pièce(s) — %5$.0f MAD — ajouté à la commande #%6$d · event_id : %7$s',
         $offer['id'],
-        $color,
-        $size,
+        $abaya_meta_color,
+        $abaya_meta_size,
         $quantity,
         $price,
         $order->get_id(),
         $event_id
     ));
+    // v3.30 : détail complet des pièces (chaîne régénérée serveur depuis les
+    // pièces validées) — source de confirmation téléphonique (étape 02).
+    if ($abaya_pieces) $order->add_order_note('تفاصيل القطع : ' . $abaya_pieces_text);
     $order->save();
 
     // 12) CAPI : Purchase additionnel (valeur = ligne ajoutée, event_id dédupliqué

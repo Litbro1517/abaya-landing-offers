@@ -2437,3 +2437,78 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   #fabrication .order-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* ================= fin v3.29 ================= */
+
+/* =====================================================================
+ * v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») — SÉLECTEUR
+ * MULTI-PIÈCES (intégration abaya-multi-piece-picker.html, VEDETTE).
+ * Affichage CONDITIONNEL lors de l'interaction (consigne mandat : sans
+ * déformer le bloc principal) : le conteneur .multi-picker est masqué au
+ * chargement ; offres 2/3 pièces -> conteneur affiché ET les deux fieldsets
+ * simple choix (couleur / taille) masqués ; offre 1 pièce -> UI historique.
+ * Règles TOUTES NOUVELLES en fin de feuille — AUCUNE règle existante
+ * modifiée ou supprimée. Charte : tokens existants (--line, --ink, --muted,
+ * --olive, --olive-dark), pastilles 24px du composant .swatch span,
+ * puces de taille = classe .size-option existante (43×39, sélection olive),
+ * ton d'erreur = .field-error (#a14f43). Contrastes AA : texte --ink sur
+ * #fffdf8 > 12:1 ; +/− var(--olive-dark) #2d6a70 sur blanc ≈ 5,9:1.
+ * ===================================================================== */
+.choice-group.is-hidden { display: none; }
+.multi-picker[hidden] { display: none; }
+.multi-picker { margin: 0 0 19px; }
+.picker-colors { display: grid; gap: 8px; }
+.picker-color-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffdf8;
+  transition: border-color .15s ease;
+}
+.picker-color-line.is-on { border-color: var(--olive); }
+.picker-color-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 600 14px "Cairo", sans-serif;
+  cursor: pointer;
+  text-align: right;
+}
+.picker-swatch {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgb(40 41 35 / 8%);
+  border-radius: 50%;
+  background: var(--swatch-color);
+}
+.picker-counter { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.picker-counter button {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--olive);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--olive-dark);
+  font: 700 20px/1 "Cairo", sans-serif;
+  cursor: pointer;
+  transition: opacity .15s ease, background .15s ease;
+}
+.picker-counter button:disabled { opacity: .35; cursor: not-allowed; }
+.picker-counter output { min-width: 20px; text-align: center; font-weight: 700; }
+.picker-pieces { display: grid; gap: 8px; margin: 12px 0 0; }
+.picker-piece { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fffdf8; }
+.picker-piece header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font: 700 14px "Cairo", sans-serif; }
+.picker-field > span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+.picker-field.is-missing > span { color: #a14f43; }
+.picker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.picker-size-guide { margin-top: 10px; }
+.picker-hint { min-height: 15px; margin: 8px 0 0; color: #a14f43; font-size: 12px; text-align: center; }
+/* ================= fin v3.30 ================= */

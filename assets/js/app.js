@@ -21,9 +21,11 @@ const state = { color: null, size: null, quantity: 1 };
 // (window.LANDING.catalog, injectée depuis abaya_catalog()) — le front n'est
 // qu'un affichage ; repli local identique si l'injection manquerait.
 const LANDING = window.LANDING || {};
-// v3.28 : repli aligné sur la grille Chenille (329/559/799 — source autoritaire
-// abaya_catalog() injectée côté serveur ; le repli ne sert que si l'injection manque).
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 329, 2: 559, 3: 799 };
+// v3.28 : repli aligné sur la grille du moment — v3.30 (mandat
+// « feat/wool-abaya-product-adaptation ») : grille « Abaya Laine » 479/799/1099
+// (source autoritaire abaya_catalog() injectée côté serveur ; le repli ne sert
+// que si l'injection manque).
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 479, 2: 799, 3: 1099 };
 const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message
@@ -42,6 +44,219 @@ const CHOICE_ERROR_MESSAGES = {
   color: "يرجى اختيار اللون.",
   size: "يرجى اختيار المقاس.",
 };
+
+/* =====================================================================
+ * v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») — SÉLECTEUR
+ * MULTI-PIÈCES (intégration de la logique abaya-multi-piece-picker.html).
+ * VEDETTE UNIQUEMENT : window.LANDING.offer_id n'existe que sur les landings
+ * secondaires — son absence identifie la vedette, qui seule possède le
+ * conteneur #multi-picker (rendu conditionnel du gabarit). Sur les
+ * secondaires IS_FRONT=false et AUCUN chemin de code ci-dessous ne
+ * s'exécute : comportement historique bit-exact.
+ * Comportement (contrat du fichier de dev handoff) :
+ *   1. les cartes d'offre fixent le nombre de pièces et le prix total ;
+ *   2. 1 pièce  -> swatches simple choix (UI historique, INCHANGÉE) ;
+ *   3. 2 ou 3   -> un compteur −/+ par couleur (somme == pièces, « + »
+ *      désactivé à l'atteinte, répartition par défaut 2→1+1 / 3→2+1,
+ *      même couleur plusieurs fois autorisée) ;
+ *   4. une rangée de tailles par pièce, couleur affichée automatiquement
+ *      (aucun choix « avec/sans boutons » : modèle unique) ;
+ *   5. bouton de commande désactivé tant que somme != pièces OU qu'une
+ *      pièce est sans taille ;
+ *   6. changer d'offre conserve les tailles déjà choisies (par index) ;
+ *   7. chaque interaction couleur émet l'événement DOM « abaya:colorchange »
+ *      (détail {color}) câblé sur l'image principale de la galerie.
+ * Affichage conditionnel (consigne mandat « sans déformer le bloc
+ * principal ») : conteneur masqué (hidden) au chargement ; offres 2/3 ->
+ * conteneur affiché + simple choix masqué ; offre 1 -> UI historique.
+ * ===================================================================== */
+const IS_FRONT = !LANDING.offer_id;
+const pickerRoot = IS_FRONT ? document.getElementById("multi-picker") : null;
+const isMultiMode = () => Boolean(pickerRoot && state.quantity > 1);
+// Options couleur lues depuis les swatches rendus serveur : nom = clé du
+// catalogue (whitelist REST), teinte = variable --swatch-color du composant
+// existant — AUCUNE duplication de données front/serveur.
+const colorOptions = swatches.map((swatch) => ({
+  name: swatch.dataset.color,
+  hex: (swatch.querySelector("span")?.style.getPropertyValue("--swatch-color") || "").trim(),
+}));
+const sizeValues = sizeOptions.map((option) => option.dataset.size);
+// État multi-pièces : répartition par couleur (compteurs) + taille par pièce.
+const multi = { counts: {}, items: [] };
+
+function defaultCounts(pieces) {
+  /* Répartition par défaut : 1ʳᵉ couleur = arrondi supérieur, restante pour
+   * la dernière — 2 -> 1+1, 3 -> 2+1 (contrat handoff). */
+  const counts = {};
+  let left = pieces;
+  colorOptions.forEach((option, index) => {
+    const isLast = index === colorOptions.length - 1;
+    const take = isLast ? left : Math.ceil(left / (colorOptions.length - index));
+    counts[option.name] = take;
+    left -= take;
+  });
+  return counts;
+}
+
+function multiTotal() {
+  return colorOptions.reduce((sum, option) => sum + (multi.counts[option.name] || 0), 0);
+}
+
+/* Expansion ordonnée des compteurs : [بني كريمي, بني كريمي, أسود]. */
+function multiColors() {
+  const list = [];
+  colorOptions.forEach((option) => {
+    for (let k = 0; k < (multi.counts[option.name] || 0); k++) list.push(option.name);
+  });
+  return list;
+}
+
+function syncMultiItems() {
+  while (multi.items.length < state.quantity) multi.items.push({ size: null });
+  multi.items.length = state.quantity; // changer d'offre conserve les tailles (par index)
+}
+
+function isValidMulti() {
+  if (multiTotal() !== state.quantity) return false;
+  return multi.items.every((item) => item && item.size);
+}
+
+function multiItemsText() {
+  const parts = multiColors().map((color, index) => `ق${index + 1}: ${color} / ${multi.items[index].size || "?"}`);
+  return `${quantityLabels[state.quantity]} | ${parts.join(" | ")}`;
+}
+
+/* Aperçu galerie : image principale + vignettes + légende couleur, SANS
+ * toucher à la sélection simple choix (fieldsets masqués en mode multi). */
+function applyGalleryPreview(color) {
+  const image = colorImages.get(color);
+  if (image) updatePhoto(image.src, image.alt);
+  thumbnails.forEach((thumbnail) => {
+    const current = thumbnail.dataset.color === color;
+    thumbnail.classList.toggle("is-current", current);
+    thumbnail.setAttribute("aria-pressed", String(current));
+  });
+  const colorValue = document.querySelector("#color-value");
+  if (colorValue) colorValue.textContent = color;
+}
+
+function renderMultiPicker() {
+  if (!pickerRoot) return;
+  const complete = multiTotal() === state.quantity;
+  const full = multiTotal() >= state.quantity;
+  const colorLines = colorOptions.map((option) => {
+    const count = multi.counts[option.name] || 0;
+    return (
+      `<div class="picker-color-line${count ? " is-on" : ""}">` +
+      `<button type="button" class="picker-color-name" data-act="preview" data-color="${option.name}" aria-label="معاينة اللون ${option.name}">` +
+      `<span class="picker-swatch" style="--swatch-color:${option.hex}"></span>${option.name}</button>` +
+      `<div class="picker-counter">` +
+      `<button type="button" data-act="inc" data-color="${option.name}"${full ? " disabled" : ""} aria-label="زيادة ${option.name}">+</button>` +
+      `<output>${count}</output>` +
+      `<button type="button" data-act="dec" data-color="${option.name}"${count === 0 ? " disabled" : ""} aria-label="إنقاص ${option.name}">−</button>` +
+      `</div></div>`
+    );
+  }).join("");
+  let piecesHtml = "";
+  if (complete) {
+    piecesHtml = `<div class="picker-pieces">` + multiColors().map((color, index) => {
+      const item = multi.items[index] || { size: null };
+      const option = colorOptions.find((candidate) => candidate.name === color);
+      const chips = sizeValues.map((size) =>
+        `<button type="button" class="size-option" data-act="size" data-i="${index}" data-size="${size}" aria-pressed="${item.size === size}">${size}</button>`
+      ).join("");
+      return (
+        `<section class="picker-piece">` +
+        `<header><span class="picker-swatch" style="--swatch-color:${option ? option.hex : ""}"></span>القطعة ${index + 1} (${color})</header>` +
+        `<div class="picker-field${item.size ? "" : " is-missing"}"><span>المقاس</span><div class="picker-chips">${chips}</div></div>` +
+        `</section>`
+      );
+    }).join("") + `</div>`;
+  }
+  const hint = complete
+    ? (isValidMulti() ? "" : "اختاري المقاس لكل قطعة")
+    : `اختاري ${state.quantity} قطع بالألوان (${multiTotal()}/${state.quantity})`;
+  pickerRoot.innerHTML =
+    `<div class="picker-colors">${colorLines}</div>${piecesHtml}` +
+    `<button class="text-link picker-size-guide" type="button" data-modal="size-guide-dialog" aria-haspopup="dialog" aria-controls="size-guide-dialog">جدول المقاسات</button>` +
+    `<p class="picker-hint" role="status">${hint}</p>`;
+  // Contrat §DATA du handoff : champs cachés portés par le formulaire (vedette).
+  const fPieces = document.getElementById("f_pieces");
+  const fTotal = document.getElementById("f_total");
+  const fItems = document.getElementById("f_items");
+  const fJson = document.getElementById("f_json");
+  if (fPieces) fPieces.value = String(state.quantity);
+  if (fTotal) fTotal.value = String(bundlePrices[state.quantity]);
+  if (fItems) fItems.value = multiItemsText();
+  if (fJson) fJson.value = JSON.stringify(multiColors().map((color, index) => ({ n: index + 1, color, size: multi.items[index].size })));
+}
+
+/* Bascule d'affichage conditionnel : offres 2/3 -> conteneur multi-pièces
+ * visible + simple choix masqué ; offre 1 -> UI historique inchangée. */
+function setSelectionMode() {
+  if (!pickerRoot) return;
+  const multiMode = isMultiMode();
+  pickerRoot.hidden = !multiMode;
+  if (choiceBlocks.color) choiceBlocks.color.classList.toggle("is-hidden", multiMode);
+  if (choiceBlocks.size) choiceBlocks.size.classList.toggle("is-hidden", multiMode);
+}
+
+function syncMultiOffer() {
+  if (!pickerRoot) return;
+  multi.counts = defaultCounts(state.quantity);
+  syncMultiItems();
+  renderMultiPicker();
+}
+
+pickerRoot?.addEventListener("click", (event) => {
+  // v3.30 : le contenu du picker est RENDU dynamiquement (re-rendu à chaque
+  // interaction) — les déclencheurs [data-modal] liés au chargement ne
+  // s'y appliquent pas ; délégation scopée au conteneur (aucun double
+  // binding possible : les nœuds du picker n'ont aucun listener direct).
+  const modalTrigger = event.target.closest("[data-modal]");
+  if (modalTrigger) {
+    document.getElementById(modalTrigger.dataset.modal)?.showModal();
+    return;
+  }
+  const target = event.target.closest("[data-act]");
+  if (!target) return;
+  const action = target.dataset.act;
+  const color = target.dataset.color;
+  if (action === "preview") {
+    applyGalleryPreview(color);
+    return;
+  }
+  if (action === "inc" && multiTotal() < state.quantity) {
+    multi.counts[color] = (multi.counts[color] || 0) + 1;
+    applyGalleryPreview(color);
+    // Événement contractuel (handoff §7) câblé sur la galerie produit.
+    document.dispatchEvent(new CustomEvent("abaya:colorchange", { detail: { color } }));
+    syncMultiItems();
+    renderMultiPicker();
+    updateSummary();
+    updateSubmitState();
+    return;
+  }
+  if (action === "dec" && (multi.counts[color] || 0) > 0) {
+    multi.counts[color]--;
+    syncMultiItems();
+    renderMultiPicker();
+    updateSummary();
+    updateSubmitState();
+    return;
+  }
+  if (action === "size") {
+    const index = Number(target.dataset.i);
+    if (multi.items[index]) multi.items[index].size = target.dataset.size;
+    renderMultiPicker();
+    updateSummary();
+    updateSubmitState();
+  }
+});
+
+document.addEventListener("abaya:colorchange", (event) => {
+  if (event.detail && event.detail.color) applyGalleryPreview(event.detail.color);
+});
 
 function setChoiceError(attribute, hasError) {
   const slot = choiceErrorSlots[attribute];
@@ -112,13 +327,36 @@ function syncOutOfStockState(color) {
     stockOverlay.classList.toggle("is-visible", blocked);
     stockOverlay.setAttribute("aria-hidden", String(!blocked));
   }
-  submitButton.disabled = blocked;
-  submitButton.classList.toggle("is-unavailable", blocked);
+  updateSubmitState();
+}
+
+/* v3.30 : état du bouton de commande unifié — couleur épuisée (hérité v1.10)
+ * OU sélection multi-pièces incomplète (somme != pièces / taille manquante,
+ * contrat handoff §5 : bouton désactivé tant que la sélection n'est pas
+ * complète). Offre 1 pièce : comportement historique inchangé. */
+function updateSubmitState() {
+  const stockBlocked = outOfStockColors.has(state.color);
+  const pickerBlocked = isMultiMode() && !isValidMulti();
+  submitButton.disabled = stockBlocked || pickerBlocked;
+  submitButton.classList.toggle("is-unavailable", stockBlocked);
 }
 
 function updateSummary() {
   const price = bundlePrices[state.quantity];
   const quantityLabel = quantityLabels[state.quantity];
+  bundleOptions.forEach((option) => {
+    const selected = Number(option.dataset.quantity) === state.quantity;
+    option.classList.toggle("is-selected", selected);
+    option.setAttribute("aria-pressed", String(selected));
+  });
+  // v3.30 : mode multi-pièces (offres 2/3, vedette) — le résumé affiche
+  // l'offre tant que la sélection est incomplète, puis la ligne lisible des
+  // pièces (même format que order_items : « قطعتان | ق1: بني كريمي / M | … »).
+  if (isMultiMode()) {
+    document.querySelector("#summary-choice").textContent = isValidMulti() ? multiItemsText() : quantityLabel;
+    document.querySelector("#summary-price").textContent = `${price} درهم`;
+    return;
+  }
   // P0-3 : gère l'état « non choisi » (color/size à null).
   // v3.28 : résumé initial — vedette = mot-à-mot du mandat (« اختاري اللون
   // والمقاس ») ; landing secondaire (LANDING.offer_id présent) = libellé
@@ -131,11 +369,6 @@ function updateSummary() {
     : summaryDefault;
   document.querySelector("#summary-choice").textContent = choiceText;
   document.querySelector("#summary-price").textContent = `${price} درهم`;
-  bundleOptions.forEach((option) => {
-    const selected = Number(option.dataset.quantity) === state.quantity;
-    option.classList.toggle("is-selected", selected);
-    option.setAttribute("aria-pressed", String(selected));
-  });
 }
 
 swatches.forEach((swatch) => {
@@ -157,13 +390,22 @@ sizeOptions.forEach((option) => {
 bundleOptions.forEach((option) => {
   option.addEventListener("click", () => {
     state.quantity = Number(option.dataset.quantity);
+    // v3.30 (vedette) : répartition par défaut des compteurs de l'offre
+    // (tailles déjà choisies conservées par index — contrat handoff §6) puis
+    // bascule d'affichage conditionnel multi-pièces ↔ simple choix.
+    syncMultiOffer();
+    setSelectionMode();
     updateSummary();
+    updateSubmitState();
   });
 });
 
 thumbnails.forEach((thumbnail) => {
   thumbnail.addEventListener("click", () => {
-    selectColor(thumbnail.dataset.color);
+    // v3.30 : en mode multi-pièces la vignette pilote l'APERÇU galerie sans
+    // toucher à la sélection simple choix (réservée à l'offre 1 pièce).
+    if (isMultiMode()) applyGalleryPreview(thumbnail.dataset.color);
+    else selectColor(thumbnail.dataset.color);
     thumbnail.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   });
 });
@@ -361,8 +603,13 @@ orderForm.addEventListener("submit", async (event) => {
   const validCity = city.value.trim().length >= 2;
   const validAddress = address.value.trim().length >= 4;
   // P0-3 : couleur et taille obligatoires, aucune valeur par défaut.
-  const validColor = Boolean(state.color);
-  const validSize = Boolean(state.size);
+  // v3.30 : en mode multi-pièces (offres 2/3, vedette), la validité porte sur
+  // la répartition complète des compteurs + une taille par pièce ; la couleur
+  // et la taille transmises au serveur sont celles de la 1ʳᵇ pièce.
+  const multiMode = isMultiMode();
+  const validMulti = multiMode ? isValidMulti() : true;
+  const validColor = multiMode ? Boolean(multiColors()[0]) : Boolean(state.color);
+  const validSize = multiMode ? Boolean(multi.items[0] && multi.items[0].size) : Boolean(state.size);
 
   setFieldError(name, validName ? "" : "يرجى إدخال الاسم الكامل.");
   setFieldError(phone, moroccanPhone ? "" : "أدخلي رقم هاتف مغربي صحيحاً.");
@@ -373,21 +620,28 @@ orderForm.addEventListener("submit", async (event) => {
   // rouge + micro-secousse + micro-texte au-dessus du bloc) — plus aucun
   // message global près du bouton. Si aucun choix n'a été fait, les deux
   // blocs sont encadrés simultanément ; le défilement va au premier manquant.
+  // v3.30 : en mode multi-pièces, le seul bloc visible est le conteneur
+  // picker (les fieldsets simple choix sont masqués) — c'est lui qui reçoit
+  // le défilement si la répartition ou les tailles sont incomplètes.
   let missingChoice = null;
-  if (!validColor) {
-    flagChoiceError("color");
-    missingChoice = choiceBlocks.color;
+  if (multiMode) {
+    if (!validMulti || !validColor || !validSize) missingChoice = pickerRoot;
   } else {
-    setChoiceError("color", false);
-  }
-  if (!validSize) {
-    flagChoiceError("size");
-    if (!missingChoice) missingChoice = choiceBlocks.size;
-  } else {
-    setChoiceError("size", false);
+    if (!validColor) {
+      flagChoiceError("color");
+      missingChoice = choiceBlocks.color;
+    } else {
+      setChoiceError("color", false);
+    }
+    if (!validSize) {
+      flagChoiceError("size");
+      if (!missingChoice) missingChoice = choiceBlocks.size;
+    } else {
+      setChoiceError("size", false);
+    }
   }
 
-  if (!validName || !moroccanPhone || !validCity || !validAddress || !validColor || !validSize) {
+  if (!validName || !moroccanPhone || !validCity || !validAddress || !validColor || !validSize || (multiMode && !validMulti)) {
     if (missingChoice) {
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       missingChoice.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
@@ -412,13 +666,25 @@ orderForm.addEventListener("submit", async (event) => {
     phone: phone.value.trim(),
     city: city.value.trim(),
     address: address.value.trim(),
-    color: state.color,
-    size: state.size,
+    // v3.30 : en mode multi-pièces, couleur/taille de la 1ʳᵇ pièce (clés du
+    // catalogue — whitelist serveur + méta لون/مقاس de la ligne d'article) ;
+    // le détail complet des pièces part dans order_items / order_items_json.
+    color: multiMode ? multiColors()[0] : state.color,
+    size: multiMode ? multi.items[0].size : state.size,
     quantity: state.quantity,
     website_hp: orderForm.elements.extra_note ? orderForm.elements.extra_note.value : "",
     event_id: pageEventId,
     page_url: location.href.split("#")[0],
   };
+  // v3.30 (contrat §DATA du handoff, offres multi-pièces uniquement) : le
+  // handler REST persiste ces champs en méta (commande + ligne d'article) —
+  // offre 1 pièce : payload historique STRICTEMENT inchangé.
+  if (multiMode) {
+    payload.offer_pieces = state.quantity;
+    payload.offer_total = bundlePrices[state.quantity];
+    payload.order_items = multiItemsText();
+    payload.order_items_json = JSON.stringify(multiColors().map((color, index) => ({ n: index + 1, color, size: multi.items[index].size })));
+  }
   ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].forEach((key) => {
     if (pageParams.get(key)) payload[key] = pageParams.get(key);
   });
