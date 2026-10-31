@@ -165,9 +165,15 @@ function abaya_offers() {
          * affiché par carte. Chaque توفير reste arithmétiquement VRAI :
          * 499−479=20 ; 958−799=159 ; 1437−1099=338. La grille commune
          * abaya_base_commerce() (329/559/799) reste intacte pour produit-1. */
+        /* v3.35 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : PRIX
+         * HERO + OFFRE 1 PIÈCE — prix barré/référence 499 → 529 درهم et
+         * économie توفير 20 → توفير 50 درهم (529−479=50 : arithmétiquement
+         * VRAI, affiché au Hero [del + pill] ET carte 1 [del + saving]).
+         * Le PRIX PRINCIPAL 479 ainsi que les offres 2/3 pièces (799/1099,
+         * barrés 958/1437, توفير 159/338) restent STRICTEMENT INTACTS. */
         'bundles'       => [1 => 479, 2 => 799, 3 => 1099],
         'bundle_labels' => [
-            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 20 درهم', 'ref' => 499],
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 529],
             2 => ['label' => 'قطعتان', 'saving' => 'توفير 159 درهم', 'ref' => 958],
             3 => ['label' => '3 قطع', 'saving' => 'توفير 338 درهم', 'ref' => 1437],
         ],
@@ -210,9 +216,17 @@ function abaya_offers() {
              * <em class="product-intro-darija"> dans landing-offer.php ;
              * les tirets encadrent la phrase, la clé « intro_finish » est
              * conservée telle quelle : produit-1 reste bit-exact). */
-            'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق.',
-            'intro_finish'     => 'بالنسبة للفينيسيون نقية وخياطة متقونة من الداخل ومن برا',
-            'old_price'        => '499 درهم',
+            /* v3.35 (mandat 4P LP « feat/wool-abaya-product-adaptation ») :
+             * SOUS-TITRE H1 — TEXTE HOMOGÈNE VALIDÉ (remplace la matrice
+             * v3.33 « Fusha + finition Darija encadrée de tirets/italique ») :
+             * la description devient UNE SEULE phrase — la finition est FONDUE
+             * dans le flux (« …المظهر الأنيق، بفينيسيون نقية وخياطة متقونة
+             * من الداخل ومن برا. ») ; « intro_finish » est vidée → la branche
+             * conditionnelle <em> du gabarit ne rend plus RIEN (mécanisme
+             * conservé pour produit-1, sans la clé : bit-exact). */
+            'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق، بفينيسيون نقية وخياطة متقونة من الداخل ومن برا.',
+            'intro_finish'     => '',
+            'old_price'        => '529 درهم',
             'colors_bullets'   => [
                 'عباية شتوية دافئة بجودة عالية مناسبة لجميع الخرجات والعمل',
                 'متوفرة بلونين: البني الكريمي والأسود.',
