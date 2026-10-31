@@ -523,7 +523,10 @@ h1 {
 }
 .form-field input::placeholder { color: #aaa89f; }
 .form-field input:focus, .form-field select:focus { border-color: var(--olive); box-shadow: 0 0 0 3px rgb(81 124 121 / 10%); }
-.field-error { display: block; min-height: 0; margin-top: 3px; color: #a14f43; font-size: 10px; }
+/* v3.35 (mandat 4P LP) : message d'alerte EN ROUGE — #c0392b (rouge voyant,
+ * contraste AA 5.4:1 sur blanc pour ce texte de 10px ; #e74c3c du mandat reste
+ * réservé aux CADRES). Mise en page inchangée (taille/marges identiques). */
+.field-error { display: block; min-height: 0; margin-top: 3px; color: #c0392b; font-size: 10px; }
 .field-error:not(:empty) { min-height: 15px; }
 .form-submit { width: 100%; min-height: 60px; grid-column: 1 / -1; margin-top: 4px; background: var(--olive); font-size: 17px; }
 .form-submit:hover { background: var(--olive-hover); }
@@ -1235,7 +1238,10 @@ body { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px; }
   40%, 60% { transform: translateX(3px); }
 }
 .choice-group.attribute-error-box {
-  outline: 2px solid #e53e3e;
+  /* v3.35 (mandat 4P LP) : couleur du contour alignée sur le cadre du mandat
+   * (#e53e3e → #e74c3c, « border: 2px solid #e74c3c ») — technique outline
+   * CONSERVÉE (zéro décalage de mise en page, cf. commentaire ci-dessus). */
+  outline: 2px solid #e74c3c;
   outline-offset: 3px;
   border-radius: 12px;
   animation: abaya-shake .45s cubic-bezier(.36,.07,.19,.97) both;
@@ -2631,3 +2637,44 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   }
 }
 /* ================= fin v3.32 ================= */
+
+/* =====================================================================
+ * v3.35 — VALIDATION « SHAKE & RED BORDER » (mandat 4P LP
+ * « feat/wool-abaya-product-adaptation », système de validation du
+ * formulaire « معلومات الزبون ») : au clic sur « اضغطي هنا للطلب »,
+ * chaque champ obligatoire manquant (nom, téléphone, ville, adresse)
+ * reçoit TROIS signaux simultanés :
+ *   1. CADRE ROUGE VOYANT « border: 2px solid #e74c3c » — rendu par
+ *      border-color #e74c3c + box-shadow 1px (1px de bordure + 1px
+ *      d'ombre = cadre SOLIDE de 2px #e74c3c) : la bordure de repos
+ *      1px #e2dfd7 et la géométrie 46px restent BIT-EXACTES (zéro
+ *      décalage de mise en page à l'apparition/disparition). La règle
+ *      est déclarée APRÈS le :focus (même spécificité, cascade plus
+ *      tard) pour que l'erreur reste visible sur champ focalisé.
+ *   2. MICRO-SECOUSSE — abaya-shake (keyframes v4P ci-dessus) portée
+ *      par .form-field.is-shaking, relancée par reflow dans app.js
+ *      (setFieldError) à CHAQUE tentative de soumission.
+ *   3. MESSAGE D'ALERTE ROUGE à proximité immédiate — .field-error
+ *      passe au rouge #c0392b (règle v3.35 ligne ~526) ; phrasé
+ *      « المرجو… » du mandat (app.js).
+ * Les blocs couleur/taille gardent leur mécanique attribute-error-box
+ * (outline 2px passé à #e74c3c). prefers-reduced-motion neutralise la
+ * secousse. Les landings secondaires ne sont PAS affectées au repos :
+ * aria-invalid / is-shaking / attribute-error-box sont des états
+ * JS clients — le HTML servi (produit-1 bit-exact) est inchangé.
+ * ===================================================================== */
+.form-field input[aria-invalid="true"],
+.form-field select[aria-invalid="true"],
+/* spécificité (0,4,1) : bat la recoloration « VF charte » des inputs
+ * (.product-landing .hero-order .form-field input — (0,3,1), ligne ~1340)
+ * et le :focus (0,4,1) par position de cascade (bloc v3.35 = fin de feuille) */
+.product-landing .hero-order .form-field input[aria-invalid="true"],
+.product-landing .hero-order .form-field select[aria-invalid="true"] {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 1px #e74c3c;
+}
+.form-field.is-shaking { animation: abaya-shake .45s cubic-bezier(.36,.07,.19,.97) both; }
+@media (prefers-reduced-motion: reduce) {
+  .form-field.is-shaking { animation: none; }
+}
+/* ================= fin v3.35 ================= */

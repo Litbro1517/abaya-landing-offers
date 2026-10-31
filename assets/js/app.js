@@ -41,8 +41,12 @@ const choiceErrorSlots = {
   size: document.querySelector('[data-choice-error="size"]'),
 };
 const CHOICE_ERROR_MESSAGES = {
-  color: "يرجى اختيار اللون.",
-  size: "يرجى اختيار المقاس.",
+  /* v3.35 (mandat 4P LP) : messages d'alerte rouges du mandat — phrasé « المرجو… »
+   * (l'exemple exact de la matrice « المرجو اختيار المقاس » est repris tel quel ;
+   * même phrasé pour la couleur). Affichage inchangé : micro-texte au-dessus du
+   * bloc, nettoyé dès la sélection. */
+  color: "المرجو اختيار اللون",
+  size: "المرجو اختيار المقاس",
 };
 
 /* =====================================================================
@@ -553,6 +557,15 @@ function setFieldError(field, message) {
   const wrapper = field.closest(".form-field");
   wrapper.querySelector(".field-error").textContent = message;
   field.setAttribute("aria-invalid", message ? "true" : "false");
+  /* v3.35 (mandat 4P LP « Shake & Red Border ») : la ZONE concernée reçoit la
+   * micro-secousse à CHAQUE tentative de soumission (relance par reflow, même
+   * mécanique que flagChoiceError) en plus du cadre rouge 2px #e74c3c posé par
+   * styles.css (bloc v3.35) sur input[aria-invalid="true"]. */
+  wrapper.classList.remove("is-shaking");
+  if (message) {
+    void wrapper.offsetWidth; // reflow : réinitialise l'animation CSS
+    wrapper.classList.add("is-shaking");
+  }
 }
 
 orderForm.querySelectorAll(".form-field input, .form-field select").forEach((field) => {
@@ -618,10 +631,14 @@ orderForm.addEventListener("submit", async (event) => {
   const validColor = multiMode ? Boolean(multiColors()[0]) : Boolean(state.color);
   const validSize = multiMode ? Boolean(multi.items[0] && multi.items[0].size) : Boolean(state.size);
 
-  setFieldError(name, validName ? "" : "يرجى إدخال الاسم الكامل.");
-  setFieldError(phone, moroccanPhone ? "" : "أدخلي رقم هاتف مغربي صحيحاً.");
-  setFieldError(city, validCity ? "" : "يرجى اختيار المدينة.");
-  setFieldError(address, validAddress ? "" : "يرجى إدخال العنوان الكامل.");
+  /* v3.35 (mandat 4P LP) : messages d'alerte rouges « المرجو… » à proximité
+   * immédiate de chaque champ manquant — exemples EXACTS de la matrice :
+   * « المرجو إدخال رقم الهاتف » ; le téléphone garde un message dédié si le
+   * format marocain est invalide (guidage renforcé, même famille rouge). */
+  setFieldError(name, validName ? "" : "المرجو إدخال الاسم الكامل");
+  setFieldError(phone, moroccanPhone ? "" : (phone.value.trim() === "" ? "المرجو إدخال رقم الهاتف" : "المرجو إدخال رقم هاتف مغربي صحيح"));
+  setFieldError(city, validCity ? "" : "المرجو إدخال المدينة");
+  setFieldError(address, validAddress ? "" : "المرجو إدخال العنوان");
 
   // Mandat 4P : chaque groupe manquant est signalé indépendamment (contour
   // rouge + micro-secousse + micro-texte au-dessus du bloc) — plus aucun
