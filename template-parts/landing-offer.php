@@ -38,7 +38,11 @@ get_header();
       <section class="hero wrap" aria-labelledby="product-title">
         <div class="gallery">
           <div class="main-photo-wrap product-image-wrapper">
-            <img id="main-photo" class="main-photo" src="<?php echo esc_url(abaya_lcp_image_src()); ?>" width="1170" height="1560" fetchpriority="high" decoding="async" alt="<?php echo esc_attr($I['lcp_alt']); ?>" />
+<?php /* v3.37 (mandat perf LCP) : srcset/sizes responsifs émis UNIQUEMENT si
+       des variantes -480/-720 existent pour l'image LCP (famille wool) — les
+       landings secondaires sans variantes gardent un markup BIT-EXACT. */
+$lcp_srcset = abaya_img_srcset($I['lcp']); ?>
+            <img id="main-photo" class="main-photo" src="<?php echo esc_url(abaya_lcp_image_src()); ?>"<?php if ($lcp_srcset) : ?> srcset="<?php echo esc_attr($lcp_srcset); ?>" sizes="<?php echo esc_attr(abaya_img_sizes('hero')); ?>"<?php endif; ?> width="1170" height="1560" fetchpriority="high" decoding="async" alt="<?php echo esc_attr($I['lcp_alt']); ?>" />
             <span class="photo-tag"><?php echo esc_html($T['slogan']); ?></span>
             <?php /* v1.10 : overlay « Stock épuisé » — voile fin + badge vitré,
                    basculé par app.js quand la couleur sélectionnée porte le
@@ -56,10 +60,14 @@ $lcp_color = isset($I['lcp_color']) ? $I['lcp_color'] : 'بني';
 foreach ($cat['colors'] as $color_name => $color_data) :
     $is_lcp   = ($color_name === $lcp_color);
     $full_src = $is_lcp ? abaya_lcp_image_src() : $u . '/' . $color_data['image'];
+    /* v3.37 : srcset complet de l'image couleur — app.js le pose sur
+     * #main-photo AVANT src au changement de couleur (sans quoi le srcset
+     * de l'ancienne couleur primerait). Absent si aucune variante. */
+    $color_srcset = abaya_img_srcset($color_data['image']);
     $color_alt  = 'العباية باللون ' . $color_data['label'];
     $color_aria = 'عرض اللون ' . $color_data['label'];
 ?>
-            <button class="thumbnail<?= $is_lcp ? ' is-current' : '' ?>" type="button" data-color="<?= esc_attr($color_name) ?>" data-src="<?= esc_url($full_src) ?>" data-alt="<?= esc_attr($color_alt) ?>"<?= !empty($color_data['out_of_stock']) ? ' data-out-of-stock="1"' : '' ?> aria-label="<?= esc_attr($color_aria) ?>" aria-pressed="<?= $is_lcp ? 'true' : 'false' ?>">
+            <button class="thumbnail<?= $is_lcp ? ' is-current' : '' ?>" type="button" data-color="<?= esc_attr($color_name) ?>" data-src="<?= esc_url($full_src) ?>" data-alt="<?= esc_attr($color_alt) ?>"<?= $color_srcset ? ' data-srcset="' . esc_attr($color_srcset) . '"' : '' ?><?= !empty($color_data['out_of_stock']) ? ' data-out-of-stock="1"' : '' ?> aria-label="<?= esc_attr($color_aria) ?>" aria-pressed="<?= $is_lcp ? 'true' : 'false' ?>">
               <img src="<?= $u ?>/<?= esc_attr($color_data['thumb']) ?>" width="151" height="170" loading="lazy" decoding="async" alt="" />
             </button>
 <?php endforeach; ?>
@@ -272,7 +280,8 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
       <section class="visual-section visual-section-colors wrap" aria-labelledby="visual-colors-title">
         <div class="visual-row image-left">
           <figure class="visual-media">
-            <img src="<?= $u ?>/<?php echo esc_attr($I['colors']['src']); ?>" width="1170" height="1560" alt="<?php echo esc_attr($I['colors']['alt']); ?>" loading="lazy" decoding="async" />
+<?php $sec_srcset = abaya_img_srcset($I['colors']['src']); ?>
+            <img src="<?= $u ?>/<?php echo esc_attr($I['colors']['src']); ?>"<?php if ($sec_srcset) : ?> srcset="<?php echo esc_attr($sec_srcset); ?>" sizes="<?php echo esc_attr(abaya_img_sizes('section')); ?>"<?php endif; ?> width="1170" height="1560" alt="<?php echo esc_attr($I['colors']['alt']); ?>" loading="lazy" decoding="async" />
           </figure>
           <div class="visual-copy color-copy">
             <h2 class="visual-title" id="visual-colors-title">لماذا هذه العباية هي الخيار المثالي؟</h2>
@@ -302,7 +311,8 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
       <section class="visual-section visual-section-specs wrap" aria-labelledby="product-specs-title">
         <div class="visual-row">
           <figure class="visual-media">
-            <img src="<?= $u ?>/<?php echo esc_attr($I['specs']['src']); ?>" width="1170" height="1560" alt="<?php echo esc_attr($I['specs']['alt']); ?>" loading="lazy" decoding="async" />
+<?php $spec_srcset = abaya_img_srcset($I['specs']['src']); ?>
+            <img src="<?= $u ?>/<?php echo esc_attr($I['specs']['src']); ?>"<?php if ($spec_srcset) : ?> srcset="<?php echo esc_attr($spec_srcset); ?>" sizes="<?php echo esc_attr(abaya_img_sizes('section')); ?>"<?php endif; ?> width="1170" height="1560" alt="<?php echo esc_attr($I['specs']['alt']); ?>" loading="lazy" decoding="async" />
           </figure>
           <div class="visual-copy">
             <h2 class="visual-title" id="product-specs-title"><?php echo esc_html($T['specs_title']); ?></h2>
@@ -319,7 +329,8 @@ foreach ($cat['bundles'] as $bundle_qty => $bundle_price) :
       <section class="visual-section visual-section-inspection wrap" aria-labelledby="inspection-title">
         <div class="visual-row image-left">
           <figure class="visual-media">
-            <img src="<?= $u ?>/<?php echo esc_attr($I['inspection']['src']); ?>" width="1170" height="1560" alt="<?php echo esc_attr($I['inspection']['alt']); ?>" loading="lazy" decoding="async" />
+<?php $insp_srcset = abaya_img_srcset($I['inspection']['src']); ?>
+            <img src="<?= $u ?>/<?php echo esc_attr($I['inspection']['src']); ?>"<?php if ($insp_srcset) : ?> srcset="<?php echo esc_attr($insp_srcset); ?>" sizes="<?php echo esc_attr(abaya_img_sizes('section')); ?>"<?php endif; ?> width="1170" height="1560" alt="<?php echo esc_attr($I['inspection']['alt']); ?>" loading="lazy" decoding="async" />
           </figure>
           <div class="visual-copy">
             <h2 class="visual-title" id="inspection-title"><?php echo esc_html($T['inspection_title']); ?></h2>
