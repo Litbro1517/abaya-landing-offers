@@ -4,7 +4,9 @@ const swatches = [...document.querySelectorAll(".swatch")];
 const colorImages = new Map(
   thumbnails.map((thumbnail) => [
     thumbnail.dataset.color,
-    { src: thumbnail.dataset.src, alt: thumbnail.dataset.alt },
+    // v3.37 : srcset complet de l'image couleur (data-srcset du gabarit, vide
+    // si aucune variante) — utilisé par updatePhoto pour le swap responsif.
+    { src: thumbnail.dataset.src, alt: thumbnail.dataset.alt, srcset: thumbnail.dataset.srcset || "" },
   ]),
 );
 // v1.10 : couleurs temporairement épuisées (drapeau out_of_stock du catalogue
@@ -134,7 +136,7 @@ function multiItemsText() {
  * toucher à la sélection simple choix (fieldsets masqués en mode multi). */
 function applyGalleryPreview(color) {
   const image = colorImages.get(color);
-  if (image) updatePhoto(image.src, image.alt);
+  if (image) updatePhoto(image.src, image.alt, image.srcset);
   thumbnails.forEach((thumbnail) => {
     const current = thumbnail.dataset.color === color;
     thumbnail.classList.toggle("is-current", current);
@@ -291,12 +293,19 @@ function flagChoiceError(attribute) {
   }
 }
 
-function updatePhoto(src, alt) {
+function updatePhoto(src, alt, srcset) {
   const requestId = ++photoRequestId;
   mainPhoto.classList.add("is-changing");
   const nextImage = new Image();
   nextImage.onload = () => {
     if (requestId !== photoRequestId) return;
+    /* v3.37 : le srcset de la NOUVELLE couleur est posé AVANT src — sinon le
+     * navigateur continuerait de choisir le candidat dans le srcset de
+     * l'ancienne couleur (attribut encore présent) et afficherait l'ancienne
+     * image. srcset vide (sans variante) => attribut retiré, comportement
+     * historique (src seul) bit-exact. */
+    if (srcset) mainPhoto.srcset = srcset;
+    else mainPhoto.removeAttribute("srcset");
     mainPhoto.src = src;
     mainPhoto.alt = alt;
     mainPhoto.classList.remove("is-changing");
@@ -304,6 +313,13 @@ function updatePhoto(src, alt) {
   nextImage.onerror = () => {
     if (requestId === photoRequestId) mainPhoto.classList.remove("is-changing");
   };
+  /* v3.37 : préchargement du MÊME candidat que l'affichage futur —
+   * sizes miroir de #main-photo pour une sélection identique par le
+   * navigateur (décode une seule image, zéro sur-consommation). */
+  if (srcset) {
+    nextImage.sizes = mainPhoto.getAttribute("sizes") || "";
+    nextImage.srcset = srcset;
+  }
   nextImage.src = src;
 }
 
@@ -322,7 +338,7 @@ function selectColor(color) {
     thumbnail.classList.toggle("is-current", selected);
     thumbnail.setAttribute("aria-pressed", String(selected));
   });
-  updatePhoto(image.src, image.alt);
+  updatePhoto(image.src, image.alt, image.srcset);
   document.querySelector("#color-value").textContent = color;
   setChoiceError("color", false);
   syncOutOfStockState(color);

@@ -159,6 +159,59 @@ function abaya_lcp_image_src() {
     return get_template_directory_uri() . '/' . $rel . '?v=' . $ver;
 }
 
+/* =====================================================================
+ * v3.37 (mandat perf LCP, branche opt/performance-audit) — VARIANTES
+ * RESPONSIVES « srcset » : pour une image « uploads/wool-N.webp », le
+ * générateur a produit « uploads/wool-N-480.webp » (480x600) et
+ * « uploads/wool-N-720.webp » (720x900), PSNR >= 40 dB (composité blanc —
+ * wool-1/2/5 sont RGBA détourés). Retourne la chaîne srcset complète
+ * (URLs cache-bustées + descripteurs de largeur) ou '' si aucune variante
+ * n'existe : les landings secondaires (produit-1/2/3) gardent alors un
+ * markup BIT-EXACT (attribut absent, aucune émission).
+ * ===================================================================== */
+function abaya_img_srcset($rel) {
+    static $cache = [];
+    if (!is_string($rel) || $rel === '' || substr($rel, -5) !== '.webp') return '';
+    if (array_key_exists($rel, $cache)) return $cache[$rel];
+    $out = '';
+    $dir  = dirname($rel);
+    $name = pathinfo($rel, PATHINFO_FILENAME);
+    $full = get_template_directory() . '/' . $rel;
+    $entries = [];
+    foreach ([480, 720] as $w) {
+        $variant = $dir . '/' . $name . '-' . $w . '.webp';
+        $f = get_template_directory() . '/' . $variant;
+        if (file_exists($f)) {
+            $entries[] = get_template_directory_uri() . '/' . $variant . '?v=' . filemtime($f) . ' ' . $w . 'w';
+        }
+    }
+    if ($entries && file_exists($full)) {
+        /* Descripteur de la base = largeur intrinsèque réelle du fichier
+         * (getimagesize — 1080 pour la famille wool-N ; jamais déduite du nom). */
+        $info = @getimagesize($full);
+        if (!empty($info[0])) {
+            $entries[] = get_template_directory_uri() . '/' . $rel . '?v=' . filemtime($full) . ' ' . (int) $info[0] . 'w';
+            $out = implode(', ', $entries);
+        }
+    }
+    $cache[$rel] = $out;
+    return $out;
+}
+
+/* v3.37 — « sizes » d'affichage calculés d'après styles.css (réels, vérifiés) :
+ * Hero #main-photo — .wrap calc(100vw - 30px) <=540 ; colonne unique plafonnée
+ * min(100vw - 38px, 560px) <=800 (wrap line 718) ; colonne galerie du hero
+ * desktop 1.04fr/2fr de (wrap - gap) ≈ 555px max => 560px.
+ * Sections .visual-media — pleine largeur <=540 ; colonne unique <=700 (media
+ * queries 1079/718) ; 701-800 : 2 colonnes dans le wrap 560px ≈ 270px ;
+ * desktop : (min(1160px, vw-64) - gap)/2 ≈ 561px max. */
+function abaya_img_sizes($kind) {
+    if ($kind === 'section') {
+        return '(max-width: 540px) calc(100vw - 30px), (max-width: 700px) min(calc(100vw - 38px), 560px), (max-width: 800px) 270px, 561px';
+    }
+    return '(max-width: 540px) calc(100vw - 30px), (max-width: 800px) min(calc(100vw - 38px), 560px), 560px';
+}
+
 /* Priorité 1 : émis AVANT les autres ressources du wp_head (priorité 5),
  * pour que le navigateur découvre l'image LCP et les polices critiques en premier. */
 add_action('wp_head', function () {
@@ -166,8 +219,15 @@ add_action('wp_head', function () {
 
     $base  = get_template_directory_uri();
     $fonts = $base . '/assets/fonts';
+    /* v3.37 : le preload LCP suit le srcset de #main-photo (imagesrcset +
+     * imagesizes, mêmes valeurs que la balise <img>) — le navigateur
+     * précharge directement le candidat responsif qu'il affichera (720px
+     * sur mobile ≈ 630px CSS x DPR 1,75) au lieu du 1080px. Sans variante
+     * (landings secondaires) : preload historique inchangé bit-à-bit. */
+    $offer      = abaya_offer_config();
+    $lcp_srcset = abaya_img_srcset($offer ? (string) $offer['images']['lcp'] : '');
     ?>
-<link rel="preload" as="image" href="<?php echo esc_url(abaya_lcp_image_src()); ?>" fetchpriority="high" />
+<link rel="preload" as="image" href="<?php echo esc_url(abaya_lcp_image_src()); ?>"<?php if ($lcp_srcset) : ?> imagesrcset="<?php echo esc_attr($lcp_srcset); ?>" imagesizes="<?php echo esc_attr(abaya_img_sizes('hero')); ?>"<?php endif; ?> fetchpriority="high" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="<?php echo esc_url($fonts . '/Cairo-arabic.woff2'); ?>" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="<?php echo esc_url($fonts . '/DMSans-latin.woff2'); ?>" />
 <?php
@@ -1458,7 +1518,19 @@ function abaya_render_rating_summary() {
  * landings (racine + secondaires — mandat 4P LP : badge étoiles sur la landing
  * principale également) ainsi que sur la page /merci/. */
 add_action('wp_enqueue_scripts', function () {
-    if (is_page('merci') || abaya_is_landing_page()) {
+    /* v3.37 (mandat perf LCP) : sur les LANDINGS, offers.css (≈11,6 Kio) est
+     * INLINÉ dans le <head> au MÊME rang de cascade (wp_head priorité 8 ==
+     * wp_print_styles — position de la <link> historique conservée au pixel
+     * près) : la feuille bloquante disparaît (gain PSI ≈130 ms) sans déplacer
+     * une seule règle. /merci/ n'est pas une landing (abaya_is_landing_page
+     * false) et conserve la <link> historique. */
+    if (abaya_is_landing_page()) {
+        add_action('wp_head', function () {
+            $f = get_template_directory() . '/assets/css/offers.css';
+            if (!file_exists($f)) return;
+            echo '<style id="abaya-offers-inline">' . file_get_contents($f) . '</style>' . "\n";
+        }, 8);
+    } elseif (is_page('merci')) {
         wp_enqueue_style('abaya-offers', get_template_directory_uri() . '/assets/css/offers.css', [], abaya_asset_ver('assets/css/offers.css'));
     }
 }, 20);
