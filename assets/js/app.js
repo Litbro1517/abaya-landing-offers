@@ -86,7 +86,13 @@ const colorOptions = swatches.map((swatch) => ({
 }));
 const sizeValues = sizeOptions.map((option) => option.dataset.size);
 // État multi-pièces : répartition par couleur (compteurs) + taille par pièce.
-const multi = { counts: {}, items: [] };
+/* v3.36 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : état de
+ * validation des blocs multi-pièces — errors.colors (répartition incomplète),
+ * errors.sizes (un drapeau booléen par pièce, index aligné sur multi.items)
+ * et shake (drapeau TRANSITOIRE consommé par renderMultiPicker : la secousse
+ * ne rejoue qu'à chaque tentative de soumission, les cadres/messages
+ * persistent jusqu'à correction — même grammaire que l'offre 1 pièce). */
+const multi = { counts: {}, items: [], errors: { colors: false, sizes: [] }, shake: false };
 
 function defaultCounts(pieces) {
   /* Répartition par défaut : 1ʳᵉ couleur = arrondi supérieur, restante pour
@@ -148,6 +154,13 @@ function renderMultiPicker() {
   if (!pickerRoot) return;
   const complete = multiTotal() === state.quantity;
   const full = multiTotal() >= state.quantity;
+  /* v3.36 : drapeau de secousse CONSOMMÉ à ce rendu — les nœuds reconstruits
+   * portent .is-shaking à l'insertion (l'animation rejoue à chaque tentative
+   * de soumission) ; les rendus suivants (interactions clientes) ne secouent
+   * plus, seuls les cadres/messages persistent jusqu'à correction. */
+  const shake = Boolean(multi.shake);
+  multi.shake = false;
+  const colorsInvalid = Boolean(multi.errors.colors);
   const colorLines = colorOptions.map((option) => {
     const count = multi.counts[option.name] || 0;
     return (
@@ -166,6 +179,11 @@ function renderMultiPicker() {
     piecesHtml = `<div class="picker-pieces">` + multiColors().map((color, index) => {
       const item = multi.items[index] || { size: null };
       const option = colorOptions.find((candidate) => candidate.name === color);
+      /* v3.36 : bloc de pièce non validé (taille manquante signalée au clic
+       * sur le bouton de commande) — cadre rouge 2px #e74c3c + contour du
+       * sélecteur + message ciblé + micro-secousse (styles.css v3.36). */
+      const invalid = Boolean(multi.errors.sizes[index]) && !item.size;
+      const shaking = shake && invalid;
       const chips = sizeValues.map((size) =>
         /* v3.31 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : l'état
          * actif des puces dynamiques doit être VISIBLE sur mobile (aucun
@@ -177,9 +195,10 @@ function renderMultiPicker() {
         `<button type="button" class="size-option${item.size === size ? " is-selected" : ""}" data-act="size" data-i="${index}" data-size="${size}" aria-pressed="${item.size === size}">${size}</button>`
       ).join("");
       return (
-        `<section class="picker-piece">` +
+        `<section class="picker-piece${invalid ? " is-invalid" : ""}${shaking ? " is-shaking" : ""}">` +
         `<header><span class="picker-swatch" style="--swatch-color:${option ? option.hex : ""}"></span>القطعة ${index + 1} (${color})</header>` +
         `<div class="picker-field${item.size ? "" : " is-missing"}"><span>المقاس</span><div class="picker-chips">${chips}</div></div>` +
+        (invalid ? `<p class="field-error picker-error" role="alert">${CHOICE_ERROR_MESSAGES.size}</p>` : "") +
         `</section>`
       );
     }).join("") + `</div>`;
@@ -188,7 +207,9 @@ function renderMultiPicker() {
     ? (isValidMulti() ? "" : "اختاري المقاس لكل قطعة")
     : `اختاري ${state.quantity} قطع بالألوان (${multiTotal()}/${state.quantity})`;
   pickerRoot.innerHTML =
-    `<div class="picker-colors">${colorLines}</div>${piecesHtml}` +
+    `<div class="picker-colors${colorsInvalid ? ` is-invalid${shake ? " is-shaking" : ""}` : ""}">${colorLines}</div>` +
+    (colorsInvalid ? `<p class="field-error picker-error" role="alert">${CHOICE_ERROR_MESSAGES.color}</p>` : "") +
+    `${piecesHtml}` +
     `<button class="text-link picker-size-guide" type="button" data-modal="size-guide-dialog" aria-haspopup="dialog" aria-controls="size-guide-dialog">جدول المقاسات</button>` +
     `<p class="picker-hint" role="status">${hint}</p>`;
   // Contrat §DATA du handoff : champs cachés portés par le formulaire (vedette).
@@ -216,7 +237,28 @@ function syncMultiOffer() {
   if (!pickerRoot) return;
   multi.counts = defaultCounts(state.quantity);
   syncMultiItems();
+  // v3.36 : changer d'offre efface les erreurs affichées (nouveaux blocs,
+  // nouvelle répartition — aucune erreur héritée de l'offre précédente).
+  multi.errors = { colors: false, sizes: multi.items.map(() => false) };
+  multi.shake = false;
   renderMultiPicker();
+}
+
+/* v3.36 — VALIDATION DES BLOCS MULTI-PIÈCES (généralisation du système
+ * « Shake & Red Border » de l'offre 1 pièce, v3.35) : au clic sur
+ * « اضغطي هنا للطلب », chaque bloc non validé reçoit les TROIS mêmes
+ * signaux — cadre rouge #e74c3c, micro-secousse abaya-shake, message rouge
+ * ciblé « المرجو اختيار المقاس » / « المرجو اختيار اللون » (messages
+ * CHOICE_ERROR_MESSAGES, mêmes chaînes que les blocs 1 pièce). Les erreurs
+ * vivent dans multi.errors et sont RENDUES par renderMultiPicker() (le DOM
+ * du picker étant reconstruit à chaque interaction, l'état JS est la seule
+ * source durable) ; nettoyage ciblé dès la sélection (handlers inc/dec/size). */
+function flagMultiErrors() {
+  multi.errors.colors = multiTotal() !== state.quantity;
+  multi.errors.sizes = multi.items.map((item) => !item || !item.size);
+  multi.shake = true;
+  renderMultiPicker();
+  return multi.errors.colors || multi.errors.sizes.some(Boolean);
 }
 
 pickerRoot?.addEventListener("click", (event) => {
@@ -243,6 +285,9 @@ pickerRoot?.addEventListener("click", (event) => {
     // Événement contractuel (handoff §7) câblé sur la galerie produit.
     document.dispatchEvent(new CustomEvent("abaya:colorchange", { detail: { color } }));
     syncMultiItems();
+    // v3.36 : répartition complète → erreur couleur nettoyée (dès la sélection,
+    // même grammaire que l'offre 1 pièce).
+    if (multiTotal() === state.quantity) multi.errors.colors = false;
     renderMultiPicker();
     updateSummary();
     updateSubmitState();
@@ -251,6 +296,8 @@ pickerRoot?.addEventListener("click", (event) => {
   if (action === "dec" && (multi.counts[color] || 0) > 0) {
     multi.counts[color]--;
     syncMultiItems();
+    // v3.36 : répartition complète (après un + correctif) → erreur nettoyée.
+    if (multiTotal() === state.quantity) multi.errors.colors = false;
     renderMultiPicker();
     updateSummary();
     updateSubmitState();
@@ -259,6 +306,9 @@ pickerRoot?.addEventListener("click", (event) => {
   if (action === "size") {
     const index = Number(target.dataset.i);
     if (multi.items[index]) multi.items[index].size = target.dataset.size;
+    // v3.36 : taille choisie → erreur de CE bloc nettoyée (dès la sélection,
+    // même grammaire que setChoiceError(false) de l'offre 1 pièce).
+    if (multi.errors.sizes[index]) multi.errors.sizes[index] = false;
     renderMultiPicker();
     updateSummary();
     updateSubmitState();
@@ -341,14 +391,18 @@ function syncOutOfStockState(color) {
   updateSubmitState();
 }
 
-/* v3.30 : état du bouton de commande unifié — couleur épuisée (hérité v1.10)
- * OU sélection multi-pièces incomplète (somme != pièces / taille manquante,
- * contrat handoff §5 : bouton désactivé tant que la sélection n'est pas
- * complète). Offre 1 pièce : comportement historique inchangé. */
+/* v3.30 : état du bouton de commande unifié — couleur épuisée (hérité v1.10).
+ * v3.36 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : FIN du
+ * blocage « sélection multi-pièces incomplète » (ancien contrat handoff §5) —
+ * le bouton de commande reste ACTIF en mode 2/3 pièces afin que la tentative
+ * de soumission déclenche la validation ciblée des blocs (secousse + cadre
+ * rouge #e74c3c + messages « المرجو… »), de façon RIGOUREUSEMENT IDENTIQUE à
+ * l'offre 1 pièce et aux champs du formulaire (PARTIE 2 du mandat : « les
+ * sélecteurs multi-pièces réagissent de façon rigoureusement identique »).
+ * La garde serveur (abaya_out_of_stock, 422) reste l'autorité finale. */
 function updateSubmitState() {
   const stockBlocked = outOfStockColors.has(state.color);
-  const pickerBlocked = isMultiMode() && !isValidMulti();
-  submitButton.disabled = stockBlocked || pickerBlocked;
+  submitButton.disabled = stockBlocked;
   submitButton.classList.toggle("is-unavailable", stockBlocked);
 }
 
@@ -644,12 +698,21 @@ orderForm.addEventListener("submit", async (event) => {
   // rouge + micro-secousse + micro-texte au-dessus du bloc) — plus aucun
   // message global près du bouton. Si aucun choix n'a été fait, les deux
   // blocs sont encadrés simultanément ; le défilement va au premier manquant.
-  // v3.30 : en mode multi-pièces, le seul bloc visible est le conteneur
-  // picker (les fieldsets simple choix sont masqués) — c'est lui qui reçoit
-  // le défilement si la répartition ou les tailles sont incomplètes.
+  // v3.36 (mandat 4P LP — GÉNÉRALISATION AUX OFFRES 2/3 PIÈCES) : en mode
+  // multi-pièces, flagMultiErrors() marque CHAQUE bloc non validé — répartition
+  // couleur incomplète → « المرجو اختيار اللون » sur les compteurs ; pièce sans
+  // taille → « المرجو اختيار المقاس » sur CE bloc — avec cadre rouge #e74c3c et
+  // micro-secousse, EXACTEMENT comme les blocs couleur/taille de l'offre 1
+  // pièce (fin du scroll seul v3.30). Le défilement va au premier manquant
+  // (compteurs couleur, sinon première pièce incomplète).
   let missingChoice = null;
   if (multiMode) {
-    if (!validMulti || !validColor || !validSize) missingChoice = pickerRoot;
+    if (!validMulti && flagMultiErrors()) {
+      const pieces = pickerRoot.querySelectorAll(".picker-piece");
+      if (multi.errors.colors) missingChoice = pickerRoot.querySelector(".picker-colors");
+      const firstBad = multi.errors.sizes.findIndex(Boolean);
+      if (firstBad !== -1 && !missingChoice) missingChoice = pieces[firstBad];
+    }
   } else {
     if (!validColor) {
       flagChoiceError("color");

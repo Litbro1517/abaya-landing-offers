@@ -2678,3 +2678,50 @@ body.product-landing:not(.is-upsell) { background: #fbfbf8; }
   .form-field.is-shaking { animation: none; }
 }
 /* ================= fin v3.35 ================= */
+
+/* =====================================================================
+ * v3.36 — GÉNÉRALISATION « SHAKE & RED BORDER » AUX BLOCS MULTI-PIÈCES
+ * (mandat 4P LP « feat/wool-abaya-product-adaptation », PARTIE 2) : offres
+ * 2/3 pièces, au clic sur « اضغطي هنا للطلب » sans couleurs/tailles requis,
+ * chaque bloc non validé reçoit les TROIS mêmes signaux que l'offre 1 pièce
+ * (v3.35) :
+ *   1. CADRE ROUGE VOYANT « border: 2px solid #e74c3c » — bloc de pièce :
+ *      border-color #e74c3c + box-shadow 1px sur la bordure existante 1px
+ *      (cadre SOLIDE 2px, géométrie bit-exacte, zéro décalage) ; sélecteur
+ *      de tailles manquant (.picker-field.is-missing) et bloc des compteurs
+ *      couleur (.picker-colors) : CONTOUR outline 2px #e74c3c (technique
+ *      zéro décalage des choice-groups v4P).
+ *   2. MICRO-SECOUSSE — abaya-shake (keyframes v4P ci-dessus) portée par
+ *      .is-shaking posée AU RENDU du picker (les nœuds étant reconstruits à
+ *      chaque tentative par renderMultiPicker, l'animation rejoue à chaque
+ *      essai) ; prefers-reduced-motion neutralise la secousse.
+ *   3. MESSAGE D'ALERTE ROUGE ciblé — classe .field-error EXISTANTE
+ *      réutilisée (#c0392b, style EXACT des messages du formulaire —
+ *      « de la même manière que pour l'offre 1 pièce ») : « المرجو اختيار
+ *      المقاس » par pièce, « المرجو اختيار اللون » pour la répartition ;
+ *      nettoyé dès la sélection (app.js v3.36).
+ * États JS clients : le HTML servi (produit-1 bit-exact) est inchangé.
+ * ===================================================================== */
+.multi-picker .picker-piece.is-invalid {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 1px #e74c3c;
+}
+.multi-picker .picker-piece.is-invalid .picker-field.is-missing {
+  outline: 2px solid #e74c3c;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.multi-picker .picker-colors.is-invalid {
+  outline: 2px solid #e74c3c;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+.multi-picker .picker-piece.is-shaking,
+.multi-picker .picker-colors.is-shaking {
+  animation: abaya-shake .45s cubic-bezier(.36,.07,.19,.97) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .multi-picker .picker-piece.is-shaking,
+  .multi-picker .picker-colors.is-shaking { animation: none; }
+}
+/* ================= fin v3.36 ================= */
