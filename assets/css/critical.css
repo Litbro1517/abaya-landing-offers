@@ -488,3 +488,5 @@ body{font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px;}
    le disabled natif bloque le clic, la classe porte le marquage visuel. */
 .form-submit.is-unavailable { opacity: .55; cursor: not-allowed; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
+  .stock-overlay { transition: none; }
+}
