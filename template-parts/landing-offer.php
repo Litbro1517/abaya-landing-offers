@@ -431,10 +431,15 @@ foreach ($T['trust'] as $trust_index => $trust_item) :
  * finale — seuls les avis TEXTUELS validés par l'admin s'affichent ; les
  * évaluations d'étoiles seules (approuvées, sans texte) n'apparaissent jamais
  * comme cartes partielles/vides. Le nombre est porté à 50 pour que les
- * enregistrements filtrés ne réduisent pas la fenêtre des cartes visibles. */
-$abaya_reviews_args   = ['status' => 'approve', 'type' => 'review', 'number' => 50];
-$abaya_reviews_target = abaya_reviews_target_post_id();
-if ($abaya_reviews_target) $abaya_reviews_args['post_id'] = $abaya_reviews_target;
+ * enregistrements filtrés ne réduisent pas la fenêtre des cartes visibles.
+ * v3.41 (mandat fix/audit-restauration-reviews) : requête SANS filtre post_id —
+ * l'audit a prouvé que la cible unique (page_on_front → LANDING_PRODUCT_ID →
+ * repli 15) pouvait diverger du rattachement réel des avis historiques en BDD
+ * (listing vide silencieux). Le type « review » (exclusif au tunnel —
+ * abaya_handle_submit_review) est le seul filtre : le listing est désormais
+ * indépendant du post de rattachement ; l'étanchéité v2.4 reste la garde
+ * unique du rendu (abaya_render_review_card). */
+$abaya_reviews_args = ['status' => 'approve', 'type' => 'review', 'number' => 50];
 foreach (get_comments($abaya_reviews_args) as $abaya_review) {
     abaya_render_review_card($abaya_review);
 }

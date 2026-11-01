@@ -508,7 +508,14 @@ function abaya_normalize_phone_ma($raw) {
     return '0' . $digits;
 }
 
-/** Post cible des avis : page d'accueil statique si définie, sinon produit du landing (LANDING_PRODUCT_ID). */
+/** Post cible des avis : page d'accueil statique si définie, sinon produit du landing (LANDING_PRODUCT_ID).
+ *  v3.41 (mandat fix/audit-restauration-reviews) : ce post_id ne sert PLUS qu'au
+ *  RATTACHEMENT des nouveaux avis (abaya_handle_submit_review, comment_post_ID) —
+ *  le listing (#avis-clients) et le badge Global Score (abaya_review_summary)
+ *  interrogent désormais par TYPE « review » à l'échelle du site, indépendamment
+ *  de ce post (l'audit v3.41 a prouvé que la divergence cible/rattachement
+ *  rendait les avis invisibles en silence). La fonction est conservée telle
+ *  quelle : aucune rupture du chemin de soumission, aucun changement de contrat. */
 function abaya_reviews_target_post_id() {
     $front_id = (int) get_option('page_on_front');
     if ($front_id > 0 && get_post($front_id)) return $front_id;
@@ -1472,14 +1479,24 @@ add_filter('template_include', function ($template) {
  *  (mandat « fix/rating-comments-decoupling ») : le score global sous le H1
  *  agrège TOUTES les notes de type « review » (approuvées ET en attente),
  *  indépendamment du corps du commentaire. Chaque note attribuée met à jour la
- *  moyenne générale immédiatement. Union déterministe approve+hold : le spam et
- *  la corbeille restent exclus par construction (comment_approved 0 ou 1 seul). */
+ *  moyenne générale immédiatement.
+ *
+ *  v3.41 (mandat « fix/audit-restauration-reviews ») : la requête n'est PLUS
+ *  filtrée par post_id — l'audit v3.41 a prouvé que la cible unique
+ *  abaya_reviews_target_post_id() (page_on_front → LANDING_PRODUCT_ID → repli
+ *  15) pouvait diverger du rattachement réel des avis historiques en BDD
+ *  (produit vedette v3.30, page d'accueil statique, corrections wp-config
+ *  v3.40) : listing vide + badge 0/0 sans aucune erreur visible. Le type
+ *  « review » est le marqueur exclusif des avis du tunnel
+ *  (abaya_handle_submit_review, comment_type 'review') : l'agrégat est
+ *  désormais INDÉPENDANT du post de rattachement. Union déterministe
+ *  approve + hold : les notes en attente de modération alimentent la moyenne ;
+ *  la corbeille et le spam restent exclus par construction (comment_approved
+ *  0 ou 1 seul). */
 function abaya_review_summary() {
-    $post_id = abaya_reviews_target_post_id();
-    if (!$post_id) return ['count' => 0, 'average' => 0];
     $reviews = array_merge(
-        get_comments(['status' => 'approve', 'type' => 'review', 'post_id' => $post_id, 'number' => 0, 'fields' => 'ids']),
-        get_comments(['status' => 'hold', 'type' => 'review', 'post_id' => $post_id, 'number' => 0, 'fields' => 'ids'])
+        get_comments(['status' => 'approve', 'type' => 'review', 'number' => 0, 'fields' => 'ids']),
+        get_comments(['status' => 'hold', 'type' => 'review', 'number' => 0, 'fields' => 'ids'])
     );
     $sum = 0;
     $count = 0;
