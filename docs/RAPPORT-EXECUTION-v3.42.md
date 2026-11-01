@@ -95,7 +95,7 @@ Impact : dossier `uploads/` réduit de **6 342,8 Ko → 2 353,8 Ko (−63 %)** ;
 
 ## 8. Architecture de production définitive (v3.42)
 
-- **109 fichiers suivis** (156 − 48 purge + 1 rapport) : 15 PHP, 3 CSS, 3 JS, 5 polices, 4 images de marque, 33 images produits (wool ×15 + vignettes wool ×2 + produit-1 ×18 + favicon... soit 36 fichiers uploads au total), 8 pages légales HTML, 32 docs projet.
+- **109 fichiers suivis** (156 − 48 purge + 1 rapport) : 15 PHP (10 racine + 5 template-parts), 3 CSS, 3 JS (app.js, mock-api.js, merci-review.js), 5 polices, 3 images de marque (2 logos SVG + logo TYP), 36 fichiers uploads (wool ×15 + vignettes wool ×2 + produit-1 ×18 + favicon), 8 pages légales HTML, 35 docs projet.
 - **Périmètre métier** : 2 landings (vedette `accueil` publique + secondaire `produit-1` gate 302 upsell, slugs retirés → 301), 1 produit d'upsell TYP, grilles dissociées 479/799/1099 / 299/499/699, CAPI Purchase serveur, avis « مراجعة الزبناء » v3.41 (type `review`).
 - **Volumes** : uploads 2 353,8 Ko (−63 %), dépôt ≈ 3,9 Mio (−50 %).
 
