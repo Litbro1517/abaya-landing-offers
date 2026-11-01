@@ -676,7 +676,7 @@ get_header();
 <?php if (!empty($abaya_cross_offers)) : ?>
   <section class="merci-upsell" aria-labelledby="merci-upsell-title">
     <h2 class="merci-upsell-title" id="merci-upsell-title">تشكيلة أخرى قد تعجبكِ أيضاً</h2>
-    <p class="merci-upsell-sub">أضيفي عباية أخرى لنستفيدي من الخصم المباشر في طلبكِ</p>
+    <p class="merci-upsell-sub">أضيفي عباية أخرى لتستفيدي من الخصم المباشر في طلبكِ</p>
     <div class="merci-upsell-grid">
 <?php foreach ($abaya_cross_offers as $abaya_cross_id => $abaya_cross_entry) :
         $abaya_cross_badge = isset($abaya_cross_entry['cross_badge']) ? (string) $abaya_cross_entry['cross_badge'] : '';
