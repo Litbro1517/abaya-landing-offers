@@ -160,11 +160,42 @@ function abaya_base_colors($assets_dir) {
     ];
 }
 
+/**
+ * v3.39 AVENANT (mandat « fix/logique-recuperation-landing » — anticipation production) :
+ * résolution GÉNÉRIQUE du produit WooCommerce d'une offre, par convention de slug.
+ * Méthode de liaison documentée (PROJECT_MAP §1 « Offres du registre » + §2) :
+ *   - offre vedette (`accueil`)         → constante LANDING_PRODUCT_ID ;
+ *   - offre secondaire `produit-N`      → constante LANDING_PRODUCT_ID_{N} ;
+ *   - autre slug futur                  → LANDING_PRODUCT_ID_{SLUG_EN_MAJUSCULES}.
+ * Repli historique documenté (PROJECT_MAP §2) : constante absente → produit vedette
+ * (LANDING_PRODUCT_ID, lui-même replié sur 15 — « config production »).
+ * L'ajout d'une offre (produit-2, produit-3, …) ne requiert donc AUCUNE
+ * modification de code de résolution : une entrée de registre + sa constante.
+ * Les handlers REST consomment $offer['product_id'] tel quel : prix pack imposé
+ * par la grille du registre (le prix WooCommerce n'est plus consulté), Item Meta
+ * (اللون/المقاس/تفاصيل القطع/Offre/SKU) + Order Meta (_abaya_product_id,
+ * _abaya_offer, _abaya_offer_name) — traçabilité inchangée, cohérence TYP
+ * garantie (titre court v3.39 porté par la ligne, méta _abaya_offer → registre).
+ */
+function abaya_offer_product_id($offer_id) {
+    $offer_id = sanitize_key((string) $offer_id);
+    $front    = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
+    if ($offer_id === $front) {
+        $constant = 'LANDING_PRODUCT_ID';
+    } elseif (preg_match('/^produit-(\d+)$/', $offer_id, $m)) {
+        $constant = 'LANDING_PRODUCT_ID_' . $m[1];
+    } else {
+        $constant = 'LANDING_PRODUCT_ID_' . strtoupper(preg_replace('/[^a-z0-9]/', '_', $offer_id));
+    }
+    if (defined($constant)) return (int) constant($constant);
+    /* Repli historique documenté : produit vedette (15 = « config production »). */
+    return (int) (defined('LANDING_PRODUCT_ID') ? LANDING_PRODUCT_ID : 15);
+}
+
 /** Configuration éditoriale et commerciale isolée de chaque landing. */
 function abaya_offers() {
     $commerce    = abaya_base_commerce();
     $front_offer = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
-    $default_product = (int) (defined('LANDING_PRODUCT_ID') ? LANDING_PRODUCT_ID : 15);
 
     $offers = [
 
@@ -176,7 +207,8 @@ function abaya_offers() {
          * — forme officielle du produit (sans slogan), affichée par le tableau
          * récapitulatif de la TYP et portée par la ligne d'article WooCommerce. */
         'short_title' => 'عباية شتوية من توب الصوف',
-        'product_id'  => $default_product,
+        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID). */
+        'product_id'  => abaya_offer_product_id($front_offer),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => '',
@@ -316,7 +348,9 @@ function abaya_offers() {
         'name'        => 'Produit 1',
         /* v3.39 : TITRE COURT officiel (mandat « fix/logique-recuperation-landing »). */
         'short_title' => 'عباية خريفية من توب لولان',
-        'product_id'  => (int) (defined('LANDING_PRODUCT_ID_1') ? LANDING_PRODUCT_ID_1 : $default_product),
+        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID_1).
+         * Repli documenté : constante absente → produit vedette (PROJECT_MAP §2). */
+        'product_id'  => abaya_offer_product_id('produit-1'),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => 'uploads/offers/produit-1/',
