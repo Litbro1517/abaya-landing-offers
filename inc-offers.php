@@ -67,9 +67,26 @@ if (!defined('ABSPATH')) exit;
  * et DONNÉES produit-1 (bit-exactes, diff harnais 0 octet) : INCHANGÉS —
  * l'Option A est de la CHARTE unifiée de la section offres (v3.6 : copies
  * conformes) : ses sélecteurs :not(.is-upsell) s'appliquent aussi à produit-1.
+ *
+ * v3.39 (mandat 4P LP « fix/logique-recuperation-landing ») : RESTAURATION ET
+ * SYNCHRONISATION DES LANDING PAGES — (a) GRILLE TARIFAIRE OFFICIELLE
+ * 299/499/699 MAD restaurée (canonique v3.25/v3.26) sur les DEUX landings :
+ * l'override spécifique de la vedette (479/799/1099, v3.30/v3.35) est retiré
+ * au profit de la grille commune ; prix barrés proportionnels 349/598/897
+ * (= prix unitaire × quantité, schéma historique v3.25 : chaque « توفير »
+ * reste arithmétiquement VRAI : 349−299=50 ; 598−499=99 ; 897−699=198) ;
+ * (b) TITRE COURT officiel ('short_title') par offre — écrit par les handlers
+ * REST sur la ligne d'article WooCommerce (set_name) : la TYP, l'admin et les
+ * e-mails affichent le nom officiel du produit vendu, plus un libellé périmé ;
+ * (c) TYP : couleur/taille rendues PAR LIGNE (Item Meta) — la ligne d'upsell
+ * affiche SES variantes, plus celles du 1er article. Zéro CSS, zéro gabarit
+ * visuel : aucune modification esthétique.
  * Clés de chaque entrée :
  *   id            slug servie sur /{slug}/ (l'offre vedette est servie à la racine)
  *   name          nom éditorial (titre d'onglet secondaire, méta commande, cross-sell)
+ *   short_title   v3.39 — TITRE COURT officiel (nom affiché par le tableau récapitulatif
+ *                 de la TYP et porté par la ligne d'article WooCommerce via set_name ;
+ *                 « s'adapter au tableau d'affichage » : forme officielle sans slogan)
  *   product_id    produit WooCommerce (constante LANDING_PRODUCT_ID_N, repli historique)
  *   sku           repli éventuel (résolution produit par SKU si product_id vide)
  *   layout        gabarit du landing (toutes les offres partagent le même layout)
@@ -91,17 +108,19 @@ function abaya_base_commerce() {
         'sizes'   => ['S', 'M', 'L', 'XL', 'XXL'],
         /* Grille tarifaire AUTORITAIRE des offres (MAD) — le serveur est la seule
          * autorité sur le prix d'une commande, le front n'est qu'un affichage. */
-        /* v3.28 (mandat 4P LP « fix/main-lp-text-and-webp-injection ») : grille
-         * du mandat MOT-À-MOT — 329/559/799 MAD, économies 50/99/188 درهم,
-         * prix de référence affiché par carte (« الثمن المرجعي ») 379/658/987 :
-         * chaque « توفير » reste arithmétiquement VRAI (379−329=50 ;
-         * 658−559=99 ; 987−799=188). Structure 3 cartes et libellés
-         * (قطعة واحدة/قطعتان/3 قطع) STRICTEMENT INTACTS. */
-        'bundles' => [1 => 329, 2 => 559, 3 => 799],
+        /* v3.39 (mandat 4P LP « fix/logique-recuperation-landing ») : RESTAURATION
+         * de la grille tarifaire OFFICIELLE du mandat — 299/499/699 MAD
+         * (canonique v3.25/v3.26), économies affichées 50/99/198 درهم, prix
+         * barrés proportionnels 349/598/897 (prix unitaire × quantité) :
+         * chaque « توفير » reste arithmétiquement VRAI (349−299=50 ;
+         * 598−499=99 ; 897−699=198). Structure 3 cartes et libellés
+         * (قطعة واحدة/قطعتان/3 قطع) STRICTEMENT INTACTS. Le serveur reste
+         * la seule autorité sur le prix d'une commande. */
+        'bundles' => [1 => 299, 2 => 499, 3 => 699],
         'bundle_labels' => [
-            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 379],
-            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم', 'ref' => 658],
-            3 => ['label' => '3 قطع', 'saving' => 'توفير 188 درهم', 'ref' => 987],
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 349],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم', 'ref' => 598],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 198 درهم', 'ref' => 897],
         ],
     ];
 }
@@ -141,11 +160,42 @@ function abaya_base_colors($assets_dir) {
     ];
 }
 
+/**
+ * v3.39 AVENANT (mandat « fix/logique-recuperation-landing » — anticipation production) :
+ * résolution GÉNÉRIQUE du produit WooCommerce d'une offre, par convention de slug.
+ * Méthode de liaison documentée (PROJECT_MAP §1 « Offres du registre » + §2) :
+ *   - offre vedette (`accueil`)         → constante LANDING_PRODUCT_ID ;
+ *   - offre secondaire `produit-N`      → constante LANDING_PRODUCT_ID_{N} ;
+ *   - autre slug futur                  → LANDING_PRODUCT_ID_{SLUG_EN_MAJUSCULES}.
+ * Repli historique documenté (PROJECT_MAP §2) : constante absente → produit vedette
+ * (LANDING_PRODUCT_ID, lui-même replié sur 15 — « config production »).
+ * L'ajout d'une offre (produit-2, produit-3, …) ne requiert donc AUCUNE
+ * modification de code de résolution : une entrée de registre + sa constante.
+ * Les handlers REST consomment $offer['product_id'] tel quel : prix pack imposé
+ * par la grille du registre (le prix WooCommerce n'est plus consulté), Item Meta
+ * (اللون/المقاس/تفاصيل القطع/Offre/SKU) + Order Meta (_abaya_product_id,
+ * _abaya_offer, _abaya_offer_name) — traçabilité inchangée, cohérence TYP
+ * garantie (titre court v3.39 porté par la ligne, méta _abaya_offer → registre).
+ */
+function abaya_offer_product_id($offer_id) {
+    $offer_id = sanitize_key((string) $offer_id);
+    $front    = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
+    if ($offer_id === $front) {
+        $constant = 'LANDING_PRODUCT_ID';
+    } elseif (preg_match('/^produit-(\d+)$/', $offer_id, $m)) {
+        $constant = 'LANDING_PRODUCT_ID_' . $m[1];
+    } else {
+        $constant = 'LANDING_PRODUCT_ID_' . strtoupper(preg_replace('/[^a-z0-9]/', '_', $offer_id));
+    }
+    if (defined($constant)) return (int) constant($constant);
+    /* Repli historique documenté : produit vedette (15 = « config production »). */
+    return (int) (defined('LANDING_PRODUCT_ID') ? LANDING_PRODUCT_ID : 15);
+}
+
 /** Configuration éditoriale et commerciale isolée de chaque landing. */
 function abaya_offers() {
     $commerce    = abaya_base_commerce();
     $front_offer = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
-    $default_product = (int) (defined('LANDING_PRODUCT_ID') ? LANDING_PRODUCT_ID : 15);
 
     $offers = [
 
@@ -153,30 +203,24 @@ function abaya_offers() {
     $front_offer => [
         'id'          => $front_offer,
         'name'        => 'Abaya Collection',
-        'product_id'  => $default_product,
+        /* v3.39 : TITRE COURT officiel (mandat « fix/logique-recuperation-landing »)
+         * — forme officielle du produit (sans slogan), affichée par le tableau
+         * récapitulatif de la TYP et portée par la ligne d'article WooCommerce. */
+        'short_title' => 'عباية شتوية من توب الصوف',
+        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID). */
+        'product_id'  => abaya_offer_product_id($front_offer),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => '',
         'colors'      => abaya_base_colors(''),
         'sizes'         => $commerce['sizes'],
-        /* v3.30 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : grille
-         * de la VEDETTE SEULE — 479/799/1099 MAD (libellés ×3 de la charte
-         * CONSERVÉS) + économies 20/159/338 درهم + الثمن المرجعي 499/958/1437
-         * affiché par carte. Chaque توفير reste arithmétiquement VRAI :
-         * 499−479=20 ; 958−799=159 ; 1437−1099=338. La grille commune
-         * abaya_base_commerce() (329/559/799) reste intacte pour produit-1. */
-        /* v3.35 (mandat 4P LP « feat/wool-abaya-product-adaptation ») : PRIX
-         * HERO + OFFRE 1 PIÈCE — prix barré/référence 499 → 529 درهم et
-         * économie توفير 20 → توفير 50 درهم (529−479=50 : arithmétiquement
-         * VRAI, affiché au Hero [del + pill] ET carte 1 [del + saving]).
-         * Le PRIX PRINCIPAL 479 ainsi que les offres 2/3 pièces (799/1099,
-         * barrés 958/1437, توفير 159/338) restent STRICTEMENT INTACTS. */
-        'bundles'       => [1 => 479, 2 => 799, 3 => 1099],
-        'bundle_labels' => [
-            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 529],
-            2 => ['label' => 'قطعتان', 'saving' => 'توفير 159 درهم', 'ref' => 958],
-            3 => ['label' => '3 قطع', 'saving' => 'توفير 338 درهم', 'ref' => 1437],
-        ],
+        /* v3.39 (mandat 4P LP « fix/logique-recuperation-landing ») : la vedette
+         * retrouve la GRILLE OFFICIELLE commune 299/499/699 (refs barrées
+         * 349/598/897, توفير 50/99/198) — l'override spécifique 479/799/1099
+         * (v3.30, ajusté v3.35 : 529/958/1437, توفير 50/159/338) est RETIRÉ :
+         * unification des DEUX landings sur la grille officielle du mandat. */
+        'bundles'       => $commerce['bundles'],
+        'bundle_labels' => $commerce['bundle_labels'],
         'images' => [
             /* v3.34 (mandat 4P LP) : IMAGES WEBP DÉFINITIVES — fin des JPG
              * provisoires v3.30. Hero (Sélection des couleurs) : image
@@ -226,7 +270,9 @@ function abaya_offers() {
              * conservé pour produit-1, sans la clé : bit-exact). */
             'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق، بفينيسيون نقية وخياطة متقونة من الداخل ومن برا.',
             'intro_finish'     => '',
-            'old_price'        => '529 درهم',
+            /* v3.39 : prix barré du Hero aligné sur la grille officielle
+             * (349 − 299 = 50 درهم, « توفير 50 درهم » inchangé). */
+            'old_price'        => '349 درهم',
             'colors_bullets'   => [
                 'عباية شتوية دافئة بجودة عالية مناسبة لجميع الخرجات والعمل',
                 'متوفرة بلونين: البني الكريمي والأسود.',
@@ -300,7 +346,11 @@ function abaya_offers() {
     'produit-1' => [
         'id'          => 'produit-1',
         'name'        => 'Produit 1',
-        'product_id'  => (int) (defined('LANDING_PRODUCT_ID_1') ? LANDING_PRODUCT_ID_1 : $default_product),
+        /* v3.39 : TITRE COURT officiel (mandat « fix/logique-recuperation-landing »). */
+        'short_title' => 'عباية خريفية من توب لولان',
+        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID_1).
+         * Repli documenté : constante absente → produit vedette (PROJECT_MAP §2). */
+        'product_id'  => abaya_offer_product_id('produit-1'),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => 'uploads/offers/produit-1/',
@@ -322,7 +372,8 @@ function abaya_offers() {
             'headline'         => 'عباية خريفية من توب لولان – أناقة وانسيابية',
             'slogan'           => 'اختيار يومي أنيق',
             'intro'            => 'عباية خريفية أنيقة وانسيابية، بتوب مميز وخياطة متقنة لراحة يومية.',
-            'old_price'        => '379 درهم',
+            /* v3.39 : prix barré du Hero aligné sur la grille officielle (349 درهم). */
+            'old_price'        => '349 درهم',
             'colors_bullets'   => [
                 'عباية ذات جودة عالية مناسبة لجميع الخرجات والعمل',
                 'متوفرة في 7 ألوان كي تختاري لونك المفضل بكل حرية.',

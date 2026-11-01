@@ -2,7 +2,7 @@ const ORDER_KEY = "mock_orders";
 const REVIEW_KEY = "mock_reviews";
 const ORDER_MODE_KEY = "mock_order_mode";
 const REVIEW_MODE_KEY = "mock_review_mode";
-const PRICES = { 1: 479, 2: 799, 3: 1099 }; // v3.30 : grille « Abaya Laine » (479/799/1099) — repli dev uniquement
+const PRICES = { 1: 299, 2: 499, 3: 699 }; // v3.39 : GRILLE OFFICIELLE restaurée (299/499/699) — repli dev uniquement
 
 function readRows(key) {
   try {
