@@ -20,6 +20,87 @@ if (!defined('META_CAPI_TOKEN'))    define('META_CAPI_TOKEN', '');
 if (!defined('META_TEST_EVENT_CODE')) define('META_TEST_EVENT_CODE', '');
 if (!defined('LANDING_PRODUCT_ID')) define('LANDING_PRODUCT_ID', 15); // produit réel du landing
 
+/* ---------- Google Tag Manager / GA4 — tuyauterie standard Google (v3.44) ----------
+ * Les identifiants se définissent dans le wp-config.php de l'hébergement :
+ *   define('GTM_CONTAINER_ID', 'GTM-XXXXXXX');    // conteneur GTM — la balise GA4 est
+ *                                                  // généralement configurée DANS ce conteneur.
+ *   define('GA4_MEASUREMENT_ID', 'G-XXXXXXXXXX'); // gtag.js GA4 DIRECT — laisser VIDE si la
+ *                                                  // balise GA4 vit déjà dans le conteneur GTM
+ *                                                  // (une même propriété ne doit jamais être
+ *                                                  // alimentée par les deux chemins : double comptage).
+ * Conformité aux standards officiels d'installation Google Tag Manager :
+ *   — gtm.js émis DANS le <head> aussi haut que possible : hook wp_head PRIORITÉ 2,
+ *     c'est-à-dire immédiatement après les preloads LCP/polices (priorité 1, discipline
+ *     CWV v3.37 conservée) et AVANT tout script/style du bloc ressources (priorité 5) ;
+ *   — <noscript> (iframe ns.html) émis IMMÉDIATEMENT après l'ouverture du <body> :
+ *     hook wp_body_open PRIORITÉ 1 — header.php l'appelle en tête de corps ;
+ *   — identifiants validés par liste blanche stricte (GTM-… / G-…) : identifiant
+ *     invalide ou vide = AUCUN octet émis (pas d'extrait tronqué ni de balise muette) ;
+ *   — défauts VIDES : tant que wp-config.php ne définit pas les constantes, la sortie
+ *     rendue reste BIT-EXACT (zéro régression, zéro requête émise).
+ */
+if (!defined('GTM_CONTAINER_ID'))   define('GTM_CONTAINER_ID', '');
+if (!defined('GA4_MEASUREMENT_ID')) define('GA4_MEASUREMENT_ID', '');
+
+/** ID de conteneur GTM validé (liste blanche `GTM-<alnum>`), '' si absent ou invalide. */
+function abaya_gtm_container_id() {
+    $id = defined('GTM_CONTAINER_ID') ? trim((string) constant('GTM_CONTAINER_ID')) : '';
+    return preg_match('/^GTM-[A-Za-z0-9_-]+$/', $id) ? $id : '';
+}
+
+/** ID de mesure GA4 validé (liste blanche `G-<alnum>`), '' si absent ou invalide. */
+function abaya_ga4_measurement_id() {
+    $id = defined('GA4_MEASUREMENT_ID') ? trim((string) constant('GA4_MEASUREMENT_ID')) : '';
+    return preg_match('/^G-[A-Za-z0-9_-]+$/', $id) ? $id : '';
+}
+
+/* Balise gtm.js DANS le <head> — priorité 2 : après les preloads (prio 1),
+ * avant tout autre script/style (prio 5). Extrait officiel Google, octet pour octet. */
+add_action('wp_head', function () {
+    $gtm = abaya_gtm_container_id();
+    if ($gtm === '') return;
+    ?>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','<?php echo esc_js($gtm); ?>');</script>
+<!-- End Google Tag Manager -->
+<?php
+}, 2);
+
+/* <noscript> GTM — IMMÉDIATEMENT après l'ouverture du <body> (standard Google). */
+add_action('wp_body_open', function () {
+    $gtm = abaya_gtm_container_id();
+    if ($gtm === '') return;
+    ?>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo esc_attr($gtm); ?>"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<?php
+}, 1);
+
+/* gtag.js GA4 DIRECT — uniquement si AUCUN conteneur GTM n'est configuré
+ * (protection anti double-comptage : GTM et gtag ne ciblent jamais la même
+ * propriété simultanément ; la priorité 2 place la balise en tête du wp_head). */
+add_action('wp_head', function () {
+    if (abaya_gtm_container_id() !== '') return;
+    $ga4 = abaya_ga4_measurement_id();
+    if ($ga4 === '') return;
+    ?>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr($ga4); ?>"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<?php echo esc_js($ga4); ?>');
+</script>
+<?php
+}, 2);
+
 add_theme_support('title-tag');
 add_theme_support('woocommerce');
 
