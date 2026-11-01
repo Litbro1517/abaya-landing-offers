@@ -71,7 +71,7 @@
 | 9 | Régressions : `test_validation_v335.py`, `test_perf_v337.py`, `test_size_bug_v331.py` | ✅ 35/35, 24/24, 41/44 |
 | 10 | Complétion `PROJECT_MAP.md` §5-vigesimus-sexto + présent rapport | ✅ |
 | 11 | Push branche `fix/cls-v3.38` vers origin (PAS main) | ✅ |
-| 12 | Merge + push `main` via WP Pusher | ⏸ **en attente du feu vert** |
+| 12 | Merge `main` (--no-ff `7faffea`) + push `origin/main` (4a18b7e..7faffea) → déploiement WP Pusher | ✅ **feu vert d'arbitrage exécuté** (suites rejouées conformes, état main en ligne 23/23) |
 
 ---
 
@@ -135,5 +135,7 @@ style.css                 |  2 +-                (Version 3.37 → 3.38)
 
 ## 8. Statut final
 
-- Branche `fix/cls-v3.38` poussée sur origin (3 commits : `9d4c1ae` patch verbatim, `d7b5996` complétion alerte, + docs) — **aucun merge vers main**.
-- **En attente du feu vert d'arbitrage** : merge + push `main` via WP Pusher, puis re-mesure PSI.
+- **Feu vert d'arbitrage reçu et exécuté** : suites REJOUÉES avant fusion, toutes conformes — parité `check_parity_v338.py` **17/17**, banc CLS `test_cls_v338.py` **23/23** (témoin v3.37 **0,442** / correctif v3.38 **0,000**), `test_validation_v335.py` **35/35**, `test_perf_v337.py` **24/24**, `test_size_bug_v331.py` **41/44 = baseline main identique** (3 écarts préexistants documentés).
+- Merge `--no-ff` `fix/cls-v3.38` → `main` : commit **`7faffea`** ; push `origin/main` : **4a18b7e..7faffea** — déploiement WP Pusher déclenché.
+- Vérification en ligne de l'état `main` servi à WP Pusher (GitHub raw, `scripts/verify_deploy_v338.py`) : **23/23** — Version 3.38, bloc v3.38 complet dans critical.css (main inset, h1 900, hero 26/42, stock-overlay/badge/is-unavailable, reduced-motion complet, font-family ×5 sélecteurs), parité des valeurs vs styles.css, 239/239 accolades, audit + rapport + PROJECT_MAP livrés.
+- **Reste (post-déploiement)** : re-mesure PSI sur dev (§7.1) — attendu CLS vert (~0,00-0,013) et score > 80.
