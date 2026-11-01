@@ -441,3 +441,52 @@ body{font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: 16px;}
 .product-landing:not(.is-upsell) .hero-order .order-form-grid{gap: 12px;}
 .product-landing:not(.is-upsell) .hero-order .form-submit{min-height: 56px; font-size: 16px !important; font-weight: 900 !important; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);}
 .product-landing:not(.is-upsell) .secure-note{font-size: 12px;}
+/* v3.38 — CORRECTIF CLS 0,39 : PARITÉ critical.css ↔ styles.css (au-dessus de la ligne de flottaison).
+ * Règles déjà présentes dans styles.css (v2.9 « carte main », v3.x charte, v3.21 espacements) mais
+ * absentes du CSS critique : quand styles.css (async) arrivait APRÈS le 1er rendu, le <main> se
+ * rétrécissait (carte inset 10px), le H1 passait en 900 et se rewrappait, le Hero changeait de
+ * padding → un décalage unique de 0,39. Mêmes valeurs, mêmes sélecteurs que styles.css. */
+@media (max-width: 700px){
+.product-landing main{width: calc(100% - 20px); margin: 10px auto 22px; border-radius: 20px;}
+}
+.product-landing .product-info h1{color: var(--ink); font-weight: 900;}
+.product-landing:not(.is-upsell) .hero{padding-block: 26px 42px; border-bottom: 1px solid var(--line);}
+.wordmark-name, .footer-wordmark, .eyebrow, .price, .size-option{font-family: "Cairo", Tahoma, Arial, sans-serif;}
+
+/* v3.38 — overlay « Stock épuisé » (hors flux dès le 1er rendu : il occupait 30px en flux avant styles.css) — copie conforme styles.css:1261-1294 */
+.stock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility .25s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+.stock-overlay.is-visible { opacity: 1; visibility: visible; }
+.stock-badge {
+  max-width: 100%;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  color: #e53e3e;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+}
+/* État indisponible du bouton de commande (couleur épuisée sélectionnée) :
+   le disabled natif bloque le clic, la classe porte le marquage visuel. */
+.form-submit.is-unavailable { opacity: .55; cursor: not-allowed; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .stock-overlay { transition: none; }
+}
