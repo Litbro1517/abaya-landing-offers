@@ -1,0 +1,10 @@
+# v3.43 — NETTOYAGE DE LA STRUCTURE DU THÈME (mandat 4P LP « fix/nettoyage-structure-theme »).
+# Objectif : les archives exportées (ZIP « Download ZIP » de GitHub, zipball API consommé
+# par WP Pusher, `git archive`) ne contiennent QUE le thème exécutable, prêt à être
+# installé sur WordPress sans manipulation. La mémoire projet (docs/) reste intégrale
+# dans le dépôt — elle est simplement exclue des EXPORTS (zéro impact runtime :
+# docs/ n'est ni incluse ni requise ni lue par le code actif, uniquement citée en
+# commentaires de documentation).
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/docs export-ignore
