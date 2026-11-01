@@ -148,12 +148,16 @@ function abaya_catalog($offer_id = null) {
 }
 
 /* Image LCP (#main-photo) : visuel défini par offre dans le registre
- * (v3.28 : le repli hors-landing pointe sur le visuel Chenille 1.webp —
- * l'ancien Hero Moka est retiré du dépôt).
+ * (v3.42 : repli hors-landing retargeté sur le LCP de la vedette
+ * uploads/wool-1.webp — la collection Chenille (1.webp…6.webp + vignettes)
+ * est PURGÉE du dépôt. Cette branche de repli est de toute façon
+ * INATTEIGNABLE : abaya_offers() indexe ses entrées par ABAYA_FRONT_OFFER,
+ * donc abaya_offer_config() ne peut jamais retourner null — garde
+ * défensive conservée, désormais ancrée sur un asset existant).
  * URL unique partagée entre le preload (wp_head) et la balise <img>, cache-busting filemtime. */
 function abaya_lcp_image_src() {
     $offer = abaya_offer_config();
-    $rel   = $offer ? (string) $offer['images']['lcp'] : 'uploads/1.webp';
+    $rel   = $offer ? (string) $offer['images']['lcp'] : 'uploads/wool-1.webp';
     $f   = get_template_directory() . '/' . $rel;
     $ver = file_exists($f) ? filemtime($f) : '1';
     return get_template_directory_uri() . '/' . $rel . '?v=' . $ver;
