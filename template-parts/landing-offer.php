@@ -217,7 +217,7 @@ if ($abaya_upsell_ctx) {
  * données du sélecteur multi-pièces (abaya-multi-piece-picker.html §DATA) —
  * VEDETTE uniquement (produit-1 bit-exacte). app.js tient ces champs à jour :
  *   offer_pieces     : 1 | 2 | 3 (nombre de pièces de l'offre) ;
- *   offer_total      : 479 | 799 | 1099 (affichage — le serveur reste autorité) ;
+ *   offer_total      : 299 | 499 | 699 (v3.39 — grille officielle restaurée ; affichage — le serveur reste autorité) ;
  *   order_items      : ligne lisible par l'équipe de confirmation, ex.
  *                      « قطعتان | ق1: بني كريمي / M | ق2: أسود / L » ;
  *   order_items_json : tableau [{n,color,size},…] mappé en méta commande. */ ?>

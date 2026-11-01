@@ -27,7 +27,10 @@ const LANDING = window.LANDING || {};
 // « feat/wool-abaya-product-adaptation ») : grille « Abaya Laine » 479/799/1099
 // (source autoritaire abaya_catalog() injectée côté serveur ; le repli ne sert
 // que si l'injection manque).
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 479, 2: 799, 3: 1099 };
+// v3.39 : repli aligné sur la GRILLE OFFICIELLE restaurée (299/499/699 —
+// registre inc-offers.php, canonique v3.25) — jamais exécuté en production,
+// window.LANDING.catalog.bundles étant toujours injecté côté serveur.
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 299, 2: 499, 3: 699 };
 const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message

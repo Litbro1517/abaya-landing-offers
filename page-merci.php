@@ -490,11 +490,20 @@ if ($abaya_order) {
 
     /* Tableau récapitulatif : ligne(s) d'article (nom, quantité, prix unitaire
      * dérivé et total de ligne) — le tunnel landing crée UNE ligne unique
-     * portant le prix du pack sélectionné. */
+     * portant le prix du pack sélectionné.
+     * v3.39 (mandat « fix/logique-recuperation-landing ») : couleur/taille
+     * PAR LIGNE — Item Meta « اللون »/« المقاس » écrites par les handlers REST
+     * sur chaque ligne ; repli méta au niveau commande pour la 1re ligne
+     * (commandes historiques). La ligne d'upsell affiche SES variantes,
+     * plus celles du premier article. */
     $abaya_rows = [];
     foreach ($abaya_order->get_items() as $abaya_item) {
+        $abaya_item_color = (string) $abaya_item->get_meta('اللون');
+        $abaya_item_size  = (string) $abaya_item->get_meta('المقاس');
         $abaya_rows[] = [
             'name'     => (string) $abaya_item->get_name(),
+            'color'    => $abaya_item_color !== '' ? $abaya_item_color : $abaya_color,
+            'size'     => $abaya_item_size !== '' ? $abaya_item_size : $abaya_size,
             'qty'      => (int) $abaya_item->get_quantity(),
             'total'    => (float) $abaya_item->get_total(),
         ];
@@ -608,11 +617,13 @@ get_header();
 <?php foreach ($abaya_rows as $abaya_row) :
         $abaya_qty        = max(1, $abaya_row['qty']);
         $abaya_unit       = $abaya_row['total'] / $abaya_qty;
-        $abaya_row_name   = $abaya_row['name'] !== '' ? $abaya_row['name'] : (string) $abaya_offer['name'];
+        /* v3.39 : repli du nom = TITRE COURT officiel de l'offre (registre),
+         * puis nom éditorial générique en dernier ressort. */
+        $abaya_row_name   = $abaya_row['name'] !== '' ? $abaya_row['name'] : (string) (!empty($abaya_offer['short_title']) ? $abaya_offer['short_title'] : $abaya_offer['name']);
 ?>
             <tr>
               <td><p class="merci-item-name"><?php echo esc_html($abaya_row_name); ?></p></td>
-              <td class="merci-qty"><?php echo esc_html($abaya_color !== '' ? $abaya_color : '—'); ?> / <?php echo esc_html($abaya_size !== '' ? $abaya_size : '—'); ?></td>
+              <td class="merci-qty"><?php echo esc_html($abaya_row['color'] !== '' ? $abaya_row['color'] : '—'); ?> / <?php echo esc_html($abaya_row['size'] !== '' ? $abaya_row['size'] : '—'); ?></td>
               <td class="merci-qty"><?php echo esc_html($abaya_qty); ?></td>
               <td class="merci-price"><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_row['total'])); ?></bdi><?php if ($abaya_qty > 1) : ?><small><bdi dir="rtl"><?php echo esc_html($abaya_dh($abaya_unit)); ?></bdi> / القطعة</small><?php endif; ?></td>
             </tr>

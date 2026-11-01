@@ -360,8 +360,8 @@ if (mockOrder && mockContainer) {
       '<a class="merci-upsell-item" href="' + escapeHtml((offer.url || ("/" + encodeURIComponent(offer.id) + "/")).split("#")[0] + upsellQuery + "#order-form-section") + '">' +
       '<span class="merci-upsell-frame"><img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" loading="lazy" /></span>' +
       '<strong class="merci-upsell-name">' + escapeHtml(offer.headline) + '</strong>' +
-      // v3.27 : repli d'affichage aligné sur la grille Chenille (329)
-      '<span class="merci-upsell-price"><bdi dir="rtl">' + escapeHtml(dh(offer.price || 329)) + '</bdi></span>' +
+      // v3.39 : repli d'affichage aligné sur la GRILLE OFFICIELLE (299)
+      '<span class="merci-upsell-price"><bdi dir="rtl">' + escapeHtml(dh(offer.price || 299)) + '</bdi></span>' +
       '<span class="merci-upsell-btn">إضافة للطلب</span></a>'
     ).join("");
 

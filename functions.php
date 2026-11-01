@@ -908,6 +908,11 @@ function abaya_handle_create_order(WP_REST_Request $request) {
         // Mandat multi-landing : traçabilité de l'offre sur la ligne d'article.
         $item->add_meta_data('Offre', $offer['name'], true);
         if ((string) $product->get_sku() !== '') $item->add_meta_data('SKU', (string) $product->get_sku(), true);
+        /* v3.39 (mandat « fix/logique-recuperation-landing ») : la ligne porte le
+         * TITRE COURT officiel de l'offre (registre — « configurer dans WordPress »)
+         * : le nom rendu par /merci/ (item->get_name()), l'admin et les e-mails
+         * reflètent le produit vendu, plus un libellé produit générique/périmé. */
+        if (!empty($offer['short_title'])) $item->set_name((string) $offer['short_title']);
         $item->save();
     }
 
@@ -1120,6 +1125,10 @@ function abaya_handle_add_to_order(WP_REST_Request $request) {
     if ((string) $product->get_sku() !== '') $item->add_meta_data('SKU', (string) $product->get_sku(), true);
     $item->add_meta_data('_abaya_upsell_event', $event_id, true);
     $item->add_meta_data('_abaya_upsell_offer', $offer['id'], true);
+    /* v3.39 : TITRE COURT officiel sur la ligne ajoutée — l'upsell n'écrit
+     * QUE sa propre ligne : le nom, le prix et les variantes du premier
+     * article de la commande restent STRICTEMENT intacts. */
+    if (!empty($offer['short_title'])) $item->set_name((string) $offer['short_title']);
     $item->save();
 
     // 11) Totaux recalculés sur la commande existante + note service client.
