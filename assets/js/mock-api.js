@@ -2,7 +2,11 @@ const ORDER_KEY = "mock_orders";
 const REVIEW_KEY = "mock_reviews";
 const ORDER_MODE_KEY = "mock_order_mode";
 const REVIEW_MODE_KEY = "mock_review_mode";
-const PRICES = { 1: 299, 2: 499, 3: 699 }; // v3.39 : GRILLE OFFICIELLE restaurée (299/499/699) — repli dev uniquement
+/* v3.40 (mandat « fix/dissociation-produits-landing ») : SUPPRESSION de la
+ * grille en dur partagée — la grille de repli dev est celle de CETTE landing
+ * (window.LANDING.catalog.bundles, injectée côté serveur) ; l'objet vide ne
+ * sert qu'en dehors d'une landing (jamais un prix d'une autre landing). */
+const PRICES = (window.LANDING && window.LANDING.catalog && window.LANDING.catalog.bundles) || {};
 
 function readRows(key) {
   try {
@@ -32,7 +36,7 @@ export function createMockOrder(payload) {
   const orderId = 10000 + Math.floor(Math.random() * 90000);
   const eventId = "evt_mock_" + token();
   const orderKey = "wc_order_mock_" + token();
-  const value = Number(payload.value ?? payload.total?.amount ?? PRICES[quantity] ?? PRICES[1]);
+  const value = Number(payload.value ?? payload.total?.amount ?? PRICES[quantity] ?? PRICES[1] ?? 0);
   const order = {
     order_id: orderId,
     order_key: orderKey,

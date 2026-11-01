@@ -102,27 +102,52 @@ if (!defined('ABSPATH')) exit;
 /** Offre vedette servie à la racine (constante surchargeable dans wp-config.php). */
 if (!defined('ABAYA_FRONT_OFFER')) define('ABAYA_FRONT_OFFER', 'accueil');
 
-/** Grille commerciale commune (tailles, bundles) — un seul endroit, comme abaya_catalog(). */
+/** Tailles communes à toutes les landings — un seul endroit, comme abaya_catalog(). */
 function abaya_base_commerce() {
-    return [
-        'sizes'   => ['S', 'M', 'L', 'XL', 'XXL'],
-        /* Grille tarifaire AUTORITAIRE des offres (MAD) — le serveur est la seule
-         * autorité sur le prix d'une commande, le front n'est qu'un affichage. */
-        /* v3.39 (mandat 4P LP « fix/logique-recuperation-landing ») : RESTAURATION
-         * de la grille tarifaire OFFICIELLE du mandat — 299/499/699 MAD
-         * (canonique v3.25/v3.26), économies affichées 50/99/198 درهم, prix
-         * barrés proportionnels 349/598/897 (prix unitaire × quantité) :
-         * chaque « توفير » reste arithmétiquement VRAI (349−299=50 ;
-         * 598−499=99 ; 897−699=198). Structure 3 cartes et libellés
-         * (قطعة واحدة/قطعتان/3 قطع) STRICTEMENT INTACTS. Le serveur reste
-         * la seule autorité sur le prix d'une commande. */
-        'bundles' => [1 => 299, 2 => 499, 3 => 699],
-        'bundle_labels' => [
-            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 349],
-            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم', 'ref' => 598],
-            3 => ['label' => '3 قطع', 'saving' => 'توفير 198 درهم', 'ref' => 897],
-        ],
+    return ['sizes' => ['S', 'M', 'L', 'XL', 'XXL']];
+}
+
+/* =====================================================================
+ * v3.40 (mandat 4P LP « fix/dissociation-produits-landing ») : DISSOCIATION
+ * des grilles tarifaires — FIN de la grille commune. Chaque landing porte
+ * SA grille AUTORITAIRE (bundles + libellés + barrés) dans SA propre entrée
+ * de registre : le serveur reste la seule autorité sur le prix d'une
+ * commande, le front n'est qu'un affichage.
+ *   - VEDETTE (accueil) : VRAIS PRIX DU MODÈLE (écran de référence du
+ *     mandat) — 479/799/1099 MAD, barrés 529/958/1437 (= unitaire ×
+ *     quantité : 529=529×1, 958=479×2, 1437=479×3), économies affichées
+ *     توفير 50/159/338 درهم — chaque « توفير » reste arithmétiquement
+ *     VRAI (529−479=50 ; 958−799=159 ; 1437−1099=338).
+ *   - SECONDAIRE (produit-1) : grille officielle 299/499/699 MAD
+ *     (canonique v3.25/v3.26, restaurée v3.39) CONSERVÉE TELLE QUELLE —
+ *     barrés 349/598/897, économies 50/99/198 درهم (« reste intacte 299
+ *     comme elle l'est actuellement »).
+ * Structure 3 cartes et libellés (قطعة واحدة/قطعتان/3 قطع) STRICTEMENT
+ * INTACTS sur les deux landings.
+ * ===================================================================== */
+
+/**
+ * v3.40 (mandat 4P LP « fix/dissociation-produits-landing ») : LIAISON
+ * EXPLICITE offre → constante wp-config.php. Fin du code en dur forçant
+ * UN MÊME produit pour toutes les landing pages : chaque landing active
+ * déclare SA constante dans cette table de liaison (donnée, pas logique),
+ * auditable en un seul regard.
+ *   - landing principale (vedette `accueil`) → LANDING_PRODUCT_ID ;
+ *   - landing secondaire (`produit-1`)       → LANDING_PRODUCT_ID_2
+ *     (constante réellement définie dans wp-config.php ; le slug
+ *     historique /produit-1/ est conservé — zéro régression URL/SEO/
+ *     publicités — et la convention générique produit-N →
+ *     LANDING_PRODUCT_ID_N demeure la voie de repli).
+ * Toute landing FUTURE déclare sa constante ici + son entrée de registre :
+ * aucun code de résolution à retoucher.
+ */
+function abaya_offer_product_constant($offer_id) {
+    static $map = [
+        'accueil'   => 'LANDING_PRODUCT_ID',
+        'produit-1' => 'LANDING_PRODUCT_ID_2',
     ];
+    $offer_id = sanitize_key((string) $offer_id);
+    return isset($map[$offer_id]) ? $map[$offer_id] : '';
 }
 
 /**
@@ -161,24 +186,34 @@ function abaya_base_colors($assets_dir) {
 }
 
 /**
- * v3.39 AVENANT (mandat « fix/logique-recuperation-landing » — anticipation production) :
- * résolution GÉNÉRIQUE du produit WooCommerce d'une offre, par convention de slug.
- * Méthode de liaison documentée (PROJECT_MAP §1 « Offres du registre » + §2) :
- *   - offre vedette (`accueil`)         → constante LANDING_PRODUCT_ID ;
- *   - offre secondaire `produit-N`      → constante LANDING_PRODUCT_ID_{N} ;
- *   - autre slug futur                  → LANDING_PRODUCT_ID_{SLUG_EN_MAJUSCULES}.
- * Repli historique documenté (PROJECT_MAP §2) : constante absente → produit vedette
- * (LANDING_PRODUCT_ID, lui-même replié sur 15 — « config production »).
- * L'ajout d'une offre (produit-2, produit-3, …) ne requiert donc AUCUNE
- * modification de code de résolution : une entrée de registre + sa constante.
- * Les handlers REST consomment $offer['product_id'] tel quel : prix pack imposé
- * par la grille du registre (le prix WooCommerce n'est plus consulté), Item Meta
+ * v3.40 (mandat « fix/dissociation-produits-landing ») : résolution du produit
+ * WooCommerce d'une offre — chaîne de priorité DISSOCIÉE par landing :
+ *   1) LIAISON EXPLICITE abaya_offer_product_constant() (table de liaison
+ *      v3.40 — la landing secondaire consomme LANDING_PRODUCT_ID_2 tel que
+ *      défini dans wp-config.php ; fin du produit vedette imposé par défaut) ;
+ *   2) convention de slug générique (v3.39) : vedette → LANDING_PRODUCT_ID,
+ *      produit-N → LANDING_PRODUCT_ID_{N}, autre slug →
+ *      LANDING_PRODUCT_ID_{SLUG_EN_MAJUSCULES} (offres futures) ;
+ *   3) repli historique documenté (PROJECT_MAP §2) : produit vedette
+ *      (LANDING_PRODUCT_ID, lui-même replié sur 15 — « config production »).
+ *      Ne concerne plus AUCUNE landing active en production (les deux
+ *      constantes y sont définies) : environnement de dev/staging sans
+ *      wp-config uniquement (harnais de test).
+ * L'ajout d'une offre ne requiert AUCUNE modification de code de résolution :
+ * une entrée de registre + sa ligne dans la table de liaison.
+ * Les handlers REST consomment $offer['product_id'] tel quel : prix pack
+ * imposé par la grille DE L'OFFRE du registre (v3.40 : grille dissociée —
+ * le prix WooCommerce n'est plus consulté), Item Meta
  * (اللون/المقاس/تفاصيل القطع/Offre/SKU) + Order Meta (_abaya_product_id,
  * _abaya_offer, _abaya_offer_name) — traçabilité inchangée, cohérence TYP
  * garantie (titre court v3.39 porté par la ligne, méta _abaya_offer → registre).
  */
 function abaya_offer_product_id($offer_id) {
     $offer_id = sanitize_key((string) $offer_id);
+    /* 1) liaison explicite (source de vérité wp-config de chaque landing) */
+    $explicit = abaya_offer_product_constant($offer_id);
+    if ($explicit !== '' && defined($explicit)) return (int) constant($explicit);
+    /* 2) convention de slug (offres futures — v3.39) */
     $front    = defined('ABAYA_FRONT_OFFER') ? ABAYA_FRONT_OFFER : 'accueil';
     if ($offer_id === $front) {
         $constant = 'LANDING_PRODUCT_ID';
@@ -188,7 +223,7 @@ function abaya_offer_product_id($offer_id) {
         $constant = 'LANDING_PRODUCT_ID_' . strtoupper(preg_replace('/[^a-z0-9]/', '_', $offer_id));
     }
     if (defined($constant)) return (int) constant($constant);
-    /* Repli historique documenté : produit vedette (15 = « config production »). */
+    /* 3) repli historique documenté : produit vedette (15 = « config production »). */
     return (int) (defined('LANDING_PRODUCT_ID') ? LANDING_PRODUCT_ID : 15);
 }
 
@@ -207,20 +242,25 @@ function abaya_offers() {
          * — forme officielle du produit (sans slogan), affichée par le tableau
          * récapitulatif de la TYP et portée par la ligne d'article WooCommerce. */
         'short_title' => 'عباية شتوية من توب الصوف',
-        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID). */
+        /* v3.40 : liaison EXPLICITE à SA constante wp-config (LANDING_PRODUCT_ID
+         * — abaya_offer_product_constant). */
         'product_id'  => abaya_offer_product_id($front_offer),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => '',
         'colors'      => abaya_base_colors(''),
         'sizes'         => $commerce['sizes'],
-        /* v3.39 (mandat 4P LP « fix/logique-recuperation-landing ») : la vedette
-         * retrouve la GRILLE OFFICIELLE commune 299/499/699 (refs barrées
-         * 349/598/897, توفير 50/99/198) — l'override spécifique 479/799/1099
-         * (v3.30, ajusté v3.35 : 529/958/1437, توفير 50/159/338) est RETIRÉ :
-         * unification des DEUX landings sur la grille officielle du mandat. */
-        'bundles'       => $commerce['bundles'],
-        'bundle_labels' => $commerce['bundle_labels'],
+        /* v3.40 (mandat « fix/dissociation-produits-landing ») : GRILLE
+         * AUTORITAIRE DE LA LANDING PRINCIPALE — VRAIS PRIX DU MODÈLE
+         * (écran de référence du mandat : 479 درهم/529 barré/توفير 50 —
+         * 799/958/توفير 159 — 1099/1437/توفير 338). Fin de la grille commune
+         * v3.39 : chaque landing porte SA grille dans SA propre entrée. */
+        'bundles'       => [1 => 479, 2 => 799, 3 => 1099],
+        'bundle_labels' => [
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 529],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 159 درهم', 'ref' => 958],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 338 درهم', 'ref' => 1437],
+        ],
         'images' => [
             /* v3.34 (mandat 4P LP) : IMAGES WEBP DÉFINITIVES — fin des JPG
              * provisoires v3.30. Hero (Sélection des couleurs) : image
@@ -270,9 +310,10 @@ function abaya_offers() {
              * conservé pour produit-1, sans la clé : bit-exact). */
             'intro'            => 'عباية شتوية من توب الصوف، بقصة دوبل كلوش واسعة وفضفاضة وانسيابية، تجمع بين الدفء والاحتشام والمظهر الأنيق، بفينيسيون نقية وخياطة متقونة من الداخل ومن برا.',
             'intro_finish'     => '',
-            /* v3.39 : prix barré du Hero aligné sur la grille officielle
-             * (349 − 299 = 50 درهم, « توفير 50 درهم » inchangé). */
-            'old_price'        => '349 درهم',
+            /* v3.40 : prix barré du Hero = grille AUTORITAIRE de la vedette
+             * (529 − 479 = 50 درهم, « توفير 50 درهم » inchangé — vrais prix
+             * du modèle, écran de référence du mandat). */
+            'old_price'        => '529 درهم',
             'colors_bullets'   => [
                 'عباية شتوية دافئة بجودة عالية مناسبة لجميع الخرجات والعمل',
                 'متوفرة بلونين: البني الكريمي والأسود.',
@@ -348,16 +389,27 @@ function abaya_offers() {
         'name'        => 'Produit 1',
         /* v3.39 : TITRE COURT officiel (mandat « fix/logique-recuperation-landing »). */
         'short_title' => 'عباية خريفية من توب لولان',
-        /* v3.39 avenant : résolution GÉNÉRIQUE par convention (LANDING_PRODUCT_ID_1).
-         * Repli documenté : constante absente → produit vedette (PROJECT_MAP §2). */
+        /* v3.40 : liaison EXPLICITE à SA constante wp-config
+         * (LANDING_PRODUCT_ID_2 — abaya_offer_product_constant) ; fin du
+         * repli par défaut sur le produit de la landing principale.
+         * Convention produit-N → LANDING_PRODUCT_ID_1 conservée en repli. */
         'product_id'  => abaya_offer_product_id('produit-1'),
         'sku'         => '',
         'layout'      => 'default',
         'assets_dir'  => 'uploads/offers/produit-1/',
         'colors'      => abaya_base_colors('uploads/offers/produit-1/'),
         'sizes'         => $commerce['sizes'],
-        'bundles'       => $commerce['bundles'],
-        'bundle_labels' => $commerce['bundle_labels'],
+        /* v3.40 (mandat « fix/dissociation-produits-landing ») : GRILLE
+         * AUTORITAIRE DE LA LANDING SECONDAIRE — CONSERVÉE TELLE QUELLE
+         * (299/499/699, barrés 349/598/897, توفير 50/99/198 — « le prix de
+         * la landing secondaire reste intact 299 comme il est actuellement »).
+         * Fin du partage avec la vedette : SA grille dans SA propre entrée. */
+        'bundles'       => [1 => 299, 2 => 499, 3 => 699],
+        'bundle_labels' => [
+            1 => ['label' => 'قطعة واحدة', 'saving' => 'توفير 50 درهم', 'ref' => 349],
+            2 => ['label' => 'قطعتان', 'saving' => 'توفير 99 درهم', 'ref' => 598],
+            3 => ['label' => '3 قطع', 'saving' => 'توفير 198 درهم', 'ref' => 897],
+        ],
         'images' => [
             'lcp'        => 'uploads/offers/produit-1/hero.jpg',
             'lcp_color'  => 'بني',
@@ -418,7 +470,9 @@ function abaya_offers() {
      * excédentaires réintroduites à tort par le revert v3.25) sont RETIRÉES
      * du registre — voir abaya_retired_offers() + le gate 301 de
      * abaya_gate_secondary_landing() (redirection permanente vers la racine).
-     * La grille commerciale commune (bundles 1/2/3 pièces) reste INTACTE. */
+     * v3.40 : les grilles tarifaires sont DISSOCIÉES par landing (SA grille
+     * dans SA propre entrée) — toute future réactivation d'une offre portera
+     * sa propre grille + sa ligne dans abaya_offer_product_constant(). */
     ];
 
     return $offers;

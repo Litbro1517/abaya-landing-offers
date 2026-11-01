@@ -23,14 +23,14 @@ const state = { color: null, size: null, quantity: 1 };
 // (window.LANDING.catalog, injectée depuis abaya_catalog()) — le front n'est
 // qu'un affichage ; repli local identique si l'injection manquerait.
 const LANDING = window.LANDING || {};
-// v3.28 : repli aligné sur la grille du moment — v3.30 (mandat
-// « feat/wool-abaya-product-adaptation ») : grille « Abaya Laine » 479/799/1099
-// (source autoritaire abaya_catalog() injectée côté serveur ; le repli ne sert
-// que si l'injection manque).
-// v3.39 : repli aligné sur la GRILLE OFFICIELLE restaurée (299/499/699 —
-// registre inc-offers.php, canonique v3.25) — jamais exécuté en production,
-// window.LANDING.catalog.bundles étant toujours injecté côté serveur.
-const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || { 1: 299, 2: 499, 3: 699 };
+// v3.40 (mandat « fix/dissociation-produits-landing ») : SUPPRESSION de la
+// grille en dur — le front n'est qu'un affichage : la SEULE source de la
+// grille est l'injection serveur de CETTE landing (window.LANDING.catalog
+// .bundles, alimenté par la grille autoritaire de l'offre dans le registre).
+// Aucun repli statique partagé : en production l'injection est toujours
+// présente (functions.php) ; un objet vide = dégradation honnête, jamais un
+// prix d'une autre landing.
+const bundlePrices = (LANDING.catalog && LANDING.catalog.bundles) || {};
 const quantityLabels = { 1: "قطعة واحدة", 2: "قطعتان", 3: "3 قطع" };
 let photoRequestId = 0;
 // Mandat 4P : erreurs ciblées par bloc (couleur / taille). Plus aucun message
