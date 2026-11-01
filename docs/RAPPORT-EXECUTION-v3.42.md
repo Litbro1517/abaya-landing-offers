@@ -89,9 +89,9 @@ Impact : dossier `uploads/` réduit de **6 342,8 Ko → 2 353,8 Ko (−63 %)** ;
 
 ## 7. Fusion et déploiement (autonomie accordée par le mandat)
 
-1. Merge `--no-ff` `chore/nettoyage-production-v342` → main ; push origin/main → déploiement WP Pusher.
-2. Vérification de propagation sur **GitHub raw** (= source WP Pusher) : style.css `Version: 3.42` ; `uploads/wool-1.webp` servie (HTTP 200) ; `uploads/1.webp` et `uploads/offers/produit-2/hero.webp` purgées (HTTP 404) ; typo `لتستفيدي` intacte ; liaison `LANDING_PRODUCT_ID_2` intacte.
-3. Commit de clôture sur main (hashes finaux + résultats raw) — cf. §8.
+1. Merge `--no-ff` **`09d67ac`** (`chore/nettoyage-production-v342` → main ; commit purge `a7bd409` — 52 fichiers : 48 D + 3 M + 1 A) ; push origin/main `a25df30..09d67ac` → déploiement WP Pusher.
+2. Vérification de propagation sur **GitHub raw** (= source WP Pusher), résultats : style.css `Version: 3.42` ✓ ; `uploads/wool-1.webp` **200** ✓ ; `uploads/offers/produit-1/hero.jpg` **200** ✓ ; `uploads/1.webp` **404** ✓ ; `uploads/thumbs/1.webp` **404** ✓ ; `uploads/offers/produit-2/hero.webp` **404** ✓ ; `uploads/offers/produit-3/hero.jpg` **404** ✓ ; typo `لتستفيدي` présente ✓ ; liaisons `LANDING_PRODUCT_ID_2` ×4 ✓ ; repli `uploads/wool-1.webp` dans functions.php ✓.
+3. Commit de clôture sur main : le présent paragraphe + PROJECT_MAP §5-tricesimus (hashes finaux).
 
 ## 8. Architecture de production définitive (v3.42)
 
