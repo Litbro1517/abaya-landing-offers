@@ -360,8 +360,10 @@ if (mockOrder && mockContainer) {
       '<a class="merci-upsell-item" href="' + escapeHtml((offer.url || ("/" + encodeURIComponent(offer.id) + "/")).split("#")[0] + upsellQuery + "#order-form-section") + '">' +
       '<span class="merci-upsell-frame"><img src="' + escapeHtml(offer.img || "") + '" alt="' + escapeHtml(offer.headline) + '" loading="lazy" /></span>' +
       '<strong class="merci-upsell-name">' + escapeHtml(offer.headline) + '</strong>' +
-      // v3.27 : repli d'affichage aligné sur la grille Chenille (329)
-      '<span class="merci-upsell-price"><bdi dir="rtl">' + escapeHtml(dh(offer.price || 329)) + '</bdi></span>' +
+      // v3.40 : le prix affiché = grille autoritaire de CETTE offre (config
+      // mock injectée par page-merci.php depuis le registre) — repli neutre 0,
+      // plus aucun prix d'une autre landing inventé en dur.
+      '<span class="merci-upsell-price"><bdi dir="rtl">' + escapeHtml(dh(offer.price || 0)) + '</bdi></span>' +
       '<span class="merci-upsell-btn">إضافة للطلب</span></a>'
     ).join("");
 
@@ -408,7 +410,7 @@ if (mockOrder && mockContainer) {
     '</section>' +
     '<section class="merci-upsell" aria-labelledby="mock-upsell-title">' +
       '<h2 class="merci-upsell-title" id="mock-upsell-title">تشكيلة أخرى قد تعجبكِ أيضاً</h2>' +
-      '<p class="merci-upsell-sub">أضيفي عباية أخرى لنستفيدي من الخصم المباشر في طلبكِ</p>' +
+      '<p class="merci-upsell-sub">أضيفي عباية أخرى لتستفيدي من الخصم المباشر في طلبكِ</p>' +
       '<div class="merci-upsell-grid">' + otherOffers + '</div></section>' +
     '<footer class="merci-foot">© ' + new Date().getFullYear() + ' Abaya Collection — جميع الحقوق محفوظة</footer>';
 
